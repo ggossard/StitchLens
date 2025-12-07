@@ -1,0 +1,195 @@
+@model StitchLens.Web.Models.ConfigureViewModel
+@{
+    ViewData["Title"] = "Configure Pattern";
+}
+
+<div class="container mt-4">
+    <h2>Configure Your Pattern</h2>
+    <p class="lead">Set your canvas dimensions and color preferences</p>
+
+    <div class="row">
+        <!-- Left side: Image preview -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Your Image</h5>
+                </div>
+                <div class="card-body text-center">
+                    <img src="@Model.ImageUrl"
+                         alt="Uploaded image"
+                         class="img-fluid"
+                         style="max-height: 400px;">
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h6>Pattern Size</h6>
+                    <p class="mb-1">
+                        <strong>Canvas:</strong>
+                        <span id="canvasSize">@Model.WidthInches.ToString("F1")" × @Model.HeightInches.ToString("F1")"</span>
+                    </p>
+                    <p class="mb-0">
+                        <strong>Stitches:</strong>
+                        <span id="stitchCount">@Model.WidthStitches × @Model.HeightStitches</span>
+                        (<span id="totalStitches">@((Model.WidthStitches * Model.HeightStitches).ToString("N0"))</span> total)
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right side: Settings form -->
+        <div class="col-md-6">
+            <form asp-action="Configure" method="post" id="configureForm">
+                <input type="hidden" asp-for="ProjectId" />
+                <input type="hidden" asp-for="ImageUrl" />
+
+                <!-- CARD FOR PROJECT TITLE -->
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h5>Project Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-0">
+                            <label asp-for="Title" class="form-label">Project Title</label>
+                            <input asp-for="Title"
+                                   type="text"
+                                   class="form-control"
+                                   placeholder="Enter a name for your pattern"
+                                   maxlength="200">
+                            <span asp-validation-for="Title" class="text-danger"></span>
+                            <div class="form-text">
+                                Give your pattern a memorable name (e.g., "Sunset Landscape", "Family Pet Portrait")
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Canvas Settings</h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Mesh Count -->
+                        <div class="mb-3">
+                            <label asp-for="MeshCount" class="form-label">Mesh Count</label>
+                            <select asp-for="MeshCount"
+                                    asp-items="Model.MeshCountOptions"
+                                    class="form-select"
+                                    id="meshCount">
+                            </select>
+                            <div class="form-text">
+                                Higher mesh = smaller stitches and more detail
+                            </div>
+                        </div>
+
+                        <!-- Dimensions -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="WidthInches" class="form-label">Width (inches)</label>
+                                <input asp-for="WidthInches"
+                                       type="number"
+                                       step="0.1"
+                                       min="1"
+                                       max="36"
+                                       class="form-control dimension-input"
+                                       id="widthInches">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="HeightInches" class="form-label">Height (inches)</label>
+                                <input asp-for="HeightInches"
+                                       type="number"
+                                       step="0.1"
+                                       min="1"
+                                       max="36"
+                                       class="form-control dimension-input"
+                                       id="heightInches">
+                            </div>
+                        </div>
+
+                        <!-- Stitch Type -->
+                        <div class="mb-3">
+                            <label asp-for="StitchType" class="form-label">Stitch Type</label>
+                            <select asp-for="StitchType"
+                                    asp-items="Model.StitchTypeOptions"
+                                    class="form-select">
+                            </select>
+                        </div>
+
+                        <!-- Max Colors -->
+                        <div class="mb-3">
+                            <label asp-for="MaxColors" class="form-label">
+                                Maximum Colors: <span id="colorDisplay">@Model.MaxColors</span>
+                            </label>
+                            <input asp-for="MaxColors"
+                                   type="range"
+                                   min="10"
+                                   max="60"
+                                   step="1"
+                                   class="form-range"
+                                   id="maxColors">
+                            <div class="form-text">
+                                Fewer colors = simpler pattern, more colors = more detail
+                            </div>
+                        </div>
+
+                        <!-- Yarn Brand -->
+                        <div class="mb-3">
+                            <label asp-for="YarnBrandId" class="form-label">Yarn Brand</label>
+                            <select asp-for="YarnBrandId"
+                                    asp-items="Model.YarnBrands"
+                                    class="form-select">
+                                <option value="">-- Select a brand --</option>
+                            </select>
+                            <div class="form-text">
+                                Choose your preferred yarn brand for color matching
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div asp-validation-summary="All" class="text-danger mt-3"></div>
+
+                <div class="d-grid gap-2 mt-3">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        Generate Pattern
+                    </button>
+                    <a asp-action="Upload" class="btn btn-outline-secondary">
+                        Start Over
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>// Update color count display as slider moves
+        document.getElementById('maxColors').addEventListener('input', function(e) {
+            document.getElementById('colorDisplay').textContent = e.target.value;
+        });
+
+        // Update stitch count calculations when dimensions or mesh change
+        function updateCalculations() {
+            const meshCount = parseInt(document.getElementById('meshCount').value);
+            const widthInches = parseFloat(document.getElementById('widthInches').value);
+            const heightInches = parseFloat(document.getElementById('heightInches').value);
+
+            if (meshCount && widthInches && heightInches) {
+                const widthStitches = Math.round(widthInches * meshCount);
+                const heightStitches = Math.round(heightInches * meshCount);
+                const totalStitches = widthStitches * heightStitches;
+
+                document.getElementById('canvasSize').textContent =
+                    widthInches.toFixed(1) + '" × ' + heightInches.toFixed(1) + '"';
+                document.getElementById('stitchCount').textContent =
+                    widthStitches + ' × ' + heightStitches;
+                document.getElementById('totalStitches').textContent =
+                    totalStitches.toLocaleString();
+            }
+        }
+
+        document.getElementById('meshCount').addEventListener('change', updateCalculations);
+        document.getElementById('widthInches').addEventListener('input', updateCalculations);
+        document.getElementById('heightInches').addEventListener('input', updateCalculations);</script>
+}

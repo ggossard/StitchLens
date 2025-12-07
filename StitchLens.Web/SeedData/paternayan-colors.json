@@ -1,0 +1,1090 @@
+[
+  {
+    "code": "010",
+    "name": "Scarlet",
+    "hex": "#E82828",
+    "lab_l": 50.5,
+    "lab_a": 69.8,
+    "lab_b": 49.1
+  },
+  {
+    "code": "011",
+    "name": "Scarlet Bright",
+    "hex": "#FF3030",
+    "lab_l": 55.7,
+    "lab_a": 74.4,
+    "lab_b": 51.5
+  },
+  {
+    "code": "020",
+    "name": "Crimson",
+    "hex": "#DC143C",
+    "lab_l": 47.0,
+    "lab_a": 70.9,
+    "lab_b": 33.6
+  },
+  {
+    "code": "021",
+    "name": "Ruby",
+    "hex": "#C8143C",
+    "lab_l": 42.9,
+    "lab_a": 65.9,
+    "lab_b": 27.7
+  },
+  {
+    "code": "030",
+    "name": "Wine",
+    "hex": "#8B1A3C",
+    "lab_l": 30.8,
+    "lab_a": 48.1,
+    "lab_b": 9.4
+  },
+  {
+    "code": "031",
+    "name": "Wine Dark",
+    "hex": "#721430",
+    "lab_l": 24.6,
+    "lab_a": 41.5,
+    "lab_b": 8.2
+  },
+  {
+    "code": "040",
+    "name": "Rose Pink",
+    "hex": "#FF69B4",
+    "lab_l": 65.5,
+    "lab_a": 64.3,
+    "lab_b": -10.7
+  },
+  {
+    "code": "041",
+    "name": "Rose Pink Light",
+    "hex": "#FFB5D0",
+    "lab_l": 81.2,
+    "lab_a": 30.7,
+    "lab_b": -2.8
+  },
+  {
+    "code": "050",
+    "name": "Salmon",
+    "hex": "#FA8072",
+    "lab_l": 67.3,
+    "lab_a": 45.2,
+    "lab_b": 29.1
+  },
+  {
+    "code": "051",
+    "name": "Salmon Light",
+    "hex": "#FFAFAF",
+    "lab_l": 79.0,
+    "lab_a": 29.2,
+    "lab_b": 11.9
+  },
+  {
+    "code": "060",
+    "name": "Fuchsia",
+    "hex": "#FF00FF",
+    "lab_l": 60.3,
+    "lab_a": 98.3,
+    "lab_b": -60.8
+  },
+  {
+    "code": "061",
+    "name": "Fuchsia Light",
+    "hex": "#FF77FF",
+    "lab_l": 70.6,
+    "lab_a": 69.0,
+    "lab_b": -44.5
+  },
+  {
+    "code": "070",
+    "name": "Magenta",
+    "hex": "#FF00AA",
+    "lab_l": 56.2,
+    "lab_a": 88.1,
+    "lab_b": -18.8
+  },
+  {
+    "code": "071",
+    "name": "Magenta Light",
+    "hex": "#FF69B4",
+    "lab_l": 65.5,
+    "lab_a": 64.3,
+    "lab_b": -10.7
+  },
+  {
+    "code": "080",
+    "name": "Dusty Rose",
+    "hex": "#DCAE96",
+    "lab_l": 74.6,
+    "lab_a": 13.4,
+    "lab_b": 18.7
+  },
+  {
+    "code": "081",
+    "name": "Dusty Rose Light",
+    "hex": "#ECC9B7",
+    "lab_l": 83.5,
+    "lab_a": 9.6,
+    "lab_b": 13.6
+  },
+  {
+    "code": "090",
+    "name": "Mauve",
+    "hex": "#E0B0FF",
+    "lab_l": 78.5,
+    "lab_a": 31.5,
+    "lab_b": -32.5
+  },
+  {
+    "code": "091",
+    "name": "Mauve Light",
+    "hex": "#F0D0FF",
+    "lab_l": 87.4,
+    "lab_a": 19.4,
+    "lab_b": -18.8
+  },
+  {
+    "code": "100",
+    "name": "Christmas Red",
+    "hex": "#C82848",
+    "lab_l": 44.6,
+    "lab_a": 62.3,
+    "lab_b": 22.4
+  },
+  {
+    "code": "101",
+    "name": "Christmas Red Bright",
+    "hex": "#E83050",
+    "lab_l": 51.7,
+    "lab_a": 69.4,
+    "lab_b": 27.9
+  },
+  {
+    "code": "110",
+    "name": "Coral",
+    "hex": "#FF6347",
+    "lab_l": 62.2,
+    "lab_a": 57.9,
+    "lab_b": 46.4
+  },
+  {
+    "code": "111",
+    "name": "Coral Light",
+    "hex": "#FF8C69",
+    "lab_l": 70.2,
+    "lab_a": 40.4,
+    "lab_b": 37.9
+  },
+  {
+    "code": "120",
+    "name": "Burnt Orange",
+    "hex": "#CC5500",
+    "lab_l": 51.1,
+    "lab_a": 44.2,
+    "lab_b": 60.8
+  },
+  {
+    "code": "121",
+    "name": "Burnt Orange Light",
+    "hex": "#E86010",
+    "lab_l": 57.6,
+    "lab_a": 49.6,
+    "lab_b": 63.7
+  },
+  {
+    "code": "200",
+    "name": "Rust",
+    "hex": "#B84518",
+    "lab_l": 45.0,
+    "lab_a": 44.5,
+    "lab_b": 48.2
+  },
+  {
+    "code": "201",
+    "name": "Rust Light",
+    "hex": "#D05520",
+    "lab_l": 51.8,
+    "lab_a": 46.2,
+    "lab_b": 52.4
+  },
+  {
+    "code": "210",
+    "name": "Terracotta",
+    "hex": "#E8754C",
+    "lab_l": 62.0,
+    "lab_a": 41.4,
+    "lab_b": 42.6
+  },
+  {
+    "code": "211",
+    "name": "Terracotta Light",
+    "hex": "#FF9876",
+    "lab_l": 72.9,
+    "lab_a": 35.3,
+    "lab_b": 34.4
+  },
+  {
+    "code": "212",
+    "name": "Pearl Gray",
+    "hex": "#E8E8E8",
+    "lab_l": 92.0,
+    "lab_a": 0.0,
+    "lab_b": -0.0
+  },
+  {
+    "code": "213",
+    "name": "Silver",
+    "hex": "#C0C0C0",
+    "lab_l": 77.7,
+    "lab_a": 0.0,
+    "lab_b": -0.0
+  },
+  {
+    "code": "214",
+    "name": "Gray Light",
+    "hex": "#D3D3D3",
+    "lab_l": 84.6,
+    "lab_a": 0.0,
+    "lab_b": -0.0
+  },
+  {
+    "code": "215",
+    "name": "Gray Medium",
+    "hex": "#A9A9A9",
+    "lab_l": 69.2,
+    "lab_a": 0.0,
+    "lab_b": -0.0
+  },
+  {
+    "code": "216",
+    "name": "Gray",
+    "hex": "#808080",
+    "lab_l": 53.6,
+    "lab_a": 0.0,
+    "lab_b": -0.0
+  },
+  {
+    "code": "217",
+    "name": "Gray Dark",
+    "hex": "#696969",
+    "lab_l": 44.4,
+    "lab_a": 0.0,
+    "lab_b": -0.0
+  },
+  {
+    "code": "218",
+    "name": "Charcoal",
+    "hex": "#36454F",
+    "lab_l": 28.4,
+    "lab_a": -3.2,
+    "lab_b": -8.0
+  },
+  {
+    "code": "219",
+    "name": "Charcoal Dark",
+    "hex": "#2B2B2B",
+    "lab_l": 17.5,
+    "lab_a": 0.0,
+    "lab_b": -0.0
+  },
+  {
+    "code": "220",
+    "name": "Apricot",
+    "hex": "#FFBB88",
+    "lab_l": 81.1,
+    "lab_a": 18.6,
+    "lab_b": 35.4
+  },
+  {
+    "code": "220",
+    "name": "Black",
+    "hex": "#000000",
+    "lab_l": 0,
+    "lab_a": 0.0,
+    "lab_b": 0.0
+  },
+  {
+    "code": "221",
+    "name": "Apricot Pale",
+    "hex": "#FFD8B8",
+    "lab_l": 88.8,
+    "lab_a": 9.0,
+    "lab_b": 20.8
+  },
+  {
+    "code": "221",
+    "name": "Jet Black",
+    "hex": "#0A0A0A",
+    "lab_l": 2.7,
+    "lab_a": 0.0,
+    "lab_b": -0.0
+  },
+  {
+    "code": "260",
+    "name": "White",
+    "hex": "#FFFFFF",
+    "lab_l": 100.0,
+    "lab_a": 0.0,
+    "lab_b": -0.0
+  },
+  {
+    "code": "261",
+    "name": "Cream",
+    "hex": "#FFF8E0",
+    "lab_l": 97.5,
+    "lab_a": -1.6,
+    "lab_b": 12.4
+  },
+  {
+    "code": "262",
+    "name": "Eggshell",
+    "hex": "#FFF0D8",
+    "lab_l": 95.4,
+    "lab_a": 1.2,
+    "lab_b": 13.4
+  },
+  {
+    "code": "263",
+    "name": "Ivory",
+    "hex": "#FFEED0",
+    "lab_l": 94.7,
+    "lab_a": 1.0,
+    "lab_b": 16.6
+  },
+  {
+    "code": "300",
+    "name": "Orange",
+    "hex": "#FF8C00",
+    "lab_l": 69.5,
+    "lab_a": 36.8,
+    "lab_b": 75.5
+  },
+  {
+    "code": "301",
+    "name": "Orange Bright",
+    "hex": "#FFA000",
+    "lab_l": 73.8,
+    "lab_a": 26.5,
+    "lab_b": 78.2
+  },
+  {
+    "code": "310",
+    "name": "Marigold",
+    "hex": "#FFB830",
+    "lab_l": 79.5,
+    "lab_a": 14.8,
+    "lab_b": 73.0
+  },
+  {
+    "code": "311",
+    "name": "Marigold Light",
+    "hex": "#FFD860",
+    "lab_l": 87.6,
+    "lab_a": 0.5,
+    "lab_b": 62.6
+  },
+  {
+    "code": "320",
+    "name": "Purple",
+    "hex": "#800080",
+    "lab_l": 29.8,
+    "lab_a": 58.9,
+    "lab_b": -36.5
+  },
+  {
+    "code": "321",
+    "name": "Purple Light",
+    "hex": "#9370DB",
+    "lab_l": 55.0,
+    "lab_a": 36.8,
+    "lab_b": -50.1
+  },
+  {
+    "code": "322",
+    "name": "Violet",
+    "hex": "#8B00FF",
+    "lab_l": 42.3,
+    "lab_a": 84.0,
+    "lab_b": -90.9
+  },
+  {
+    "code": "323",
+    "name": "Violet Light",
+    "hex": "#BA55D3",
+    "lab_l": 53.6,
+    "lab_a": 59.1,
+    "lab_b": -47.4
+  },
+  {
+    "code": "330",
+    "name": "Lavender",
+    "hex": "#E6E6FA",
+    "lab_l": 91.8,
+    "lab_a": 3.7,
+    "lab_b": -9.7
+  },
+  {
+    "code": "331",
+    "name": "Lavender Light",
+    "hex": "#F0E6FF",
+    "lab_l": 92.7,
+    "lab_a": 7.9,
+    "lab_b": -10.9
+  },
+  {
+    "code": "340",
+    "name": "Plum",
+    "hex": "#8E4585",
+    "lab_l": 40.7,
+    "lab_a": 40.0,
+    "lab_b": -22.2
+  },
+  {
+    "code": "341",
+    "name": "Plum Light",
+    "hex": "#B565A7",
+    "lab_l": 53.9,
+    "lab_a": 41.5,
+    "lab_b": -21.7
+  },
+  {
+    "code": "400",
+    "name": "Lemon",
+    "hex": "#FFF44F",
+    "lab_l": 94.5,
+    "lab_a": -14.4,
+    "lab_b": 76.6
+  },
+  {
+    "code": "401",
+    "name": "Lemon Light",
+    "hex": "#FFFACD",
+    "lab_l": 97.6,
+    "lab_a": -5.4,
+    "lab_b": 22.2
+  },
+  {
+    "code": "410",
+    "name": "Buttercup",
+    "hex": "#FFD700",
+    "lab_l": 86.9,
+    "lab_a": -1.9,
+    "lab_b": 87.1
+  },
+  {
+    "code": "411",
+    "name": "Buttercup Light",
+    "hex": "#FFE44D",
+    "lab_l": 90.5,
+    "lab_a": -6.6,
+    "lab_b": 73.3
+  },
+  {
+    "code": "420",
+    "name": "Yellow",
+    "hex": "#FFFF00",
+    "lab_l": 97.1,
+    "lab_a": -21.6,
+    "lab_b": 94.5
+  },
+  {
+    "code": "421",
+    "name": "Yellow Pale",
+    "hex": "#FFFFE0",
+    "lab_l": 99.3,
+    "lab_a": -5.1,
+    "lab_b": 14.8
+  },
+  {
+    "code": "430",
+    "name": "Goldenrod",
+    "hex": "#DAA520",
+    "lab_l": 70.8,
+    "lab_a": 8.5,
+    "lab_b": 68.8
+  },
+  {
+    "code": "431",
+    "name": "Goldenrod Light",
+    "hex": "#EEB422",
+    "lab_l": 76.6,
+    "lab_a": 9.3,
+    "lab_b": 73.9
+  },
+  {
+    "code": "440",
+    "name": "Mustard",
+    "hex": "#FFDB58",
+    "lab_l": 88.3,
+    "lab_a": -1.5,
+    "lab_b": 66.8
+  },
+  {
+    "code": "441",
+    "name": "Mustard Light",
+    "hex": "#FFED89",
+    "lab_l": 93.3,
+    "lab_a": -6.9,
+    "lab_b": 50.4
+  },
+  {
+    "code": "450",
+    "name": "Gold",
+    "hex": "#FFD700",
+    "lab_l": 86.9,
+    "lab_a": -1.9,
+    "lab_b": 87.1
+  },
+  {
+    "code": "451",
+    "name": "Gold Light",
+    "hex": "#FFE87C",
+    "lab_l": 91.9,
+    "lab_a": -5.6,
+    "lab_b": 54.8
+  },
+  {
+    "code": "460",
+    "name": "Tan",
+    "hex": "#D2B48C",
+    "lab_l": 75.0,
+    "lab_a": 5.0,
+    "lab_b": 24.4
+  },
+  {
+    "code": "461",
+    "name": "Tan Light",
+    "hex": "#F0E68C",
+    "lab_l": 90.3,
+    "lab_a": -9.0,
+    "lab_b": 45.0
+  },
+  {
+    "code": "470",
+    "name": "Beige",
+    "hex": "#F5F5DC",
+    "lab_l": 95.9,
+    "lab_a": -4.2,
+    "lab_b": 12.0
+  },
+  {
+    "code": "471",
+    "name": "Beige Light",
+    "hex": "#FFFAF0",
+    "lab_l": 98.4,
+    "lab_a": -0.0,
+    "lab_b": 5.4
+  },
+  {
+    "code": "480",
+    "name": "Sand",
+    "hex": "#C2B280",
+    "lab_l": 72.8,
+    "lab_a": -1.7,
+    "lab_b": 27.7
+  },
+  {
+    "code": "481",
+    "name": "Sand Light",
+    "hex": "#E0D5A9",
+    "lab_l": 85.1,
+    "lab_a": -3.1,
+    "lab_b": 23.2
+  },
+  {
+    "code": "500",
+    "name": "Leaf Green",
+    "hex": "#90EE90",
+    "lab_l": 86.5,
+    "lab_a": -46.3,
+    "lab_b": 36.9
+  },
+  {
+    "code": "501",
+    "name": "Leaf Green Light",
+    "hex": "#C1FFC1",
+    "lab_l": 94.6,
+    "lab_a": -31.0,
+    "lab_b": 23.5
+  },
+  {
+    "code": "510",
+    "name": "Spring Green",
+    "hex": "#00FF7F",
+    "lab_l": 88.5,
+    "lab_a": -76.9,
+    "lab_b": 47.0
+  },
+  {
+    "code": "511",
+    "name": "Spring Green Light",
+    "hex": "#7FFFD4",
+    "lab_l": 92.0,
+    "lab_a": -45.5,
+    "lab_b": 9.7
+  },
+  {
+    "code": "520",
+    "name": "Forest Green",
+    "hex": "#228B22",
+    "lab_l": 50.6,
+    "lab_a": -49.6,
+    "lab_b": 45.0
+  },
+  {
+    "code": "521",
+    "name": "Forest Green Light",
+    "hex": "#32CD32",
+    "lab_l": 72.6,
+    "lab_a": -67.1,
+    "lab_b": 61.4
+  },
+  {
+    "code": "530",
+    "name": "Emerald",
+    "hex": "#50C878",
+    "lab_l": 72.5,
+    "lab_a": -51.2,
+    "lab_b": 30.3
+  },
+  {
+    "code": "531",
+    "name": "Emerald Light",
+    "hex": "#7FE5A0",
+    "lab_l": 83.5,
+    "lab_a": -44.6,
+    "lab_b": 24.6
+  },
+  {
+    "code": "540",
+    "name": "Kelly Green",
+    "hex": "#4CBB17",
+    "lab_l": 67.4,
+    "lab_a": -57.6,
+    "lab_b": 64.1
+  },
+  {
+    "code": "541",
+    "name": "Kelly Green Light",
+    "hex": "#6FD639",
+    "lab_l": 77.1,
+    "lab_a": -56.0,
+    "lab_b": 64.1
+  },
+  {
+    "code": "550",
+    "name": "Olive",
+    "hex": "#808000",
+    "lab_l": 51.9,
+    "lab_a": -12.9,
+    "lab_b": 56.7
+  },
+  {
+    "code": "551",
+    "name": "Olive Light",
+    "hex": "#9A9A00",
+    "lab_l": 61.6,
+    "lab_a": -14.8,
+    "lab_b": 64.8
+  },
+  {
+    "code": "560",
+    "name": "Moss",
+    "hex": "#8A9A5B",
+    "lab_l": 61.0,
+    "lab_a": -16.3,
+    "lab_b": 31.2
+  },
+  {
+    "code": "561",
+    "name": "Moss Light",
+    "hex": "#ADBC90",
+    "lab_l": 74.1,
+    "lab_a": -12.9,
+    "lab_b": 20.6
+  },
+  {
+    "code": "600",
+    "name": "Teal",
+    "hex": "#008080",
+    "lab_l": 48.3,
+    "lab_a": -28.8,
+    "lab_b": -8.5
+  },
+  {
+    "code": "601",
+    "name": "Teal Light",
+    "hex": "#20B2AA",
+    "lab_l": 65.8,
+    "lab_a": -37.5,
+    "lab_b": -6.3
+  },
+  {
+    "code": "610",
+    "name": "Jade",
+    "hex": "#00A86B",
+    "lab_l": 60.8,
+    "lab_a": -51.4,
+    "lab_b": 21.4
+  },
+  {
+    "code": "611",
+    "name": "Jade Light",
+    "hex": "#29AB87",
+    "lab_l": 62.8,
+    "lab_a": -43.0,
+    "lab_b": 8.8
+  },
+  {
+    "code": "620",
+    "name": "Seafoam",
+    "hex": "#93E9BE",
+    "lab_l": 86.1,
+    "lab_a": -35.2,
+    "lab_b": 12.8
+  },
+  {
+    "code": "621",
+    "name": "Seafoam Light",
+    "hex": "#B2F7D5",
+    "lab_l": 92.0,
+    "lab_a": -28.3,
+    "lab_b": 9.5
+  },
+  {
+    "code": "630",
+    "name": "Mint",
+    "hex": "#98FF98",
+    "lab_l": 91.9,
+    "lab_a": -50.0,
+    "lab_b": 40.0
+  },
+  {
+    "code": "631",
+    "name": "Mint Light",
+    "hex": "#C1FFC1",
+    "lab_l": 94.6,
+    "lab_a": -31.0,
+    "lab_b": 23.5
+  },
+  {
+    "code": "640",
+    "name": "Pine",
+    "hex": "#01796F",
+    "lab_l": 45.4,
+    "lab_a": -30.8,
+    "lab_b": -2.6
+  },
+  {
+    "code": "641",
+    "name": "Pine Light",
+    "hex": "#2F9E94",
+    "lab_l": 59.2,
+    "lab_a": -32.9,
+    "lab_b": -3.8
+  },
+  {
+    "code": "650",
+    "name": "Hunter Green",
+    "hex": "#355E3B",
+    "lab_l": 36.1,
+    "lab_a": -22.8,
+    "lab_b": 15.7
+  },
+  {
+    "code": "651",
+    "name": "Hunter Green Light",
+    "hex": "#4F7B55",
+    "lab_l": 47.6,
+    "lab_a": -23.7,
+    "lab_b": 16.1
+  },
+  {
+    "code": "660",
+    "name": "Sage",
+    "hex": "#9CAF88",
+    "lab_l": 69.1,
+    "lab_a": -13.7,
+    "lab_b": 17.8
+  },
+  {
+    "code": "661",
+    "name": "Sage Light",
+    "hex": "#C1D5B0",
+    "lab_l": 82.9,
+    "lab_a": -13.3,
+    "lab_b": 16.1
+  },
+  {
+    "code": "700",
+    "name": "Sky Blue",
+    "hex": "#87CEEB",
+    "lab_l": 79.2,
+    "lab_a": -14.8,
+    "lab_b": -21.3
+  },
+  {
+    "code": "701",
+    "name": "Sky Blue Light",
+    "hex": "#B0E0E6",
+    "lab_l": 86.1,
+    "lab_a": -14.1,
+    "lab_b": -8.0
+  },
+  {
+    "code": "710",
+    "name": "Baby Blue",
+    "hex": "#89CFF0",
+    "lab_l": 79.7,
+    "lab_a": -13.5,
+    "lab_b": -23.1
+  },
+  {
+    "code": "711",
+    "name": "Baby Blue Light",
+    "hex": "#A7E5FF",
+    "lab_l": 87.7,
+    "lab_a": -13.4,
+    "lab_b": -18.9
+  },
+  {
+    "code": "720",
+    "name": "Turquoise",
+    "hex": "#40E0D0",
+    "lab_l": 81.3,
+    "lab_a": -44.1,
+    "lab_b": -4.0
+  },
+  {
+    "code": "721",
+    "name": "Turquoise Light",
+    "hex": "#7FFFD4",
+    "lab_l": 92.0,
+    "lab_a": -45.5,
+    "lab_b": 9.7
+  },
+  {
+    "code": "730",
+    "name": "Cobalt",
+    "hex": "#0047AB",
+    "lab_l": 32.8,
+    "lab_a": 22.5,
+    "lab_b": -58.4
+  },
+  {
+    "code": "731",
+    "name": "Cobalt Light",
+    "hex": "#5983CC",
+    "lab_l": 54.8,
+    "lab_a": 7.1,
+    "lab_b": -42.2
+  },
+  {
+    "code": "740",
+    "name": "Royal Blue",
+    "hex": "#4169E1",
+    "lab_l": 47.8,
+    "lab_a": 26.3,
+    "lab_b": -65.3
+  },
+  {
+    "code": "741",
+    "name": "Royal Blue Light",
+    "hex": "#6A89EF",
+    "lab_l": 59.1,
+    "lab_a": 18.3,
+    "lab_b": -54.8
+  },
+  {
+    "code": "750",
+    "name": "Navy",
+    "hex": "#000080",
+    "lab_l": 13.0,
+    "lab_a": 47.5,
+    "lab_b": -64.7
+  },
+  {
+    "code": "751",
+    "name": "Navy Medium",
+    "hex": "#003399",
+    "lab_l": 25.8,
+    "lab_a": 28.9,
+    "lab_b": -59.1
+  },
+  {
+    "code": "760",
+    "name": "Denim",
+    "hex": "#1560BD",
+    "lab_l": 41.5,
+    "lab_a": 14.0,
+    "lab_b": -54.9
+  },
+  {
+    "code": "761",
+    "name": "Denim Light",
+    "hex": "#4682B4",
+    "lab_l": 52.5,
+    "lab_a": -4.1,
+    "lab_b": -32.2
+  },
+  {
+    "code": "770",
+    "name": "Chocolate",
+    "hex": "#7B3F00",
+    "lab_l": 33.5,
+    "lab_a": 22.3,
+    "lab_b": 43.8
+  },
+  {
+    "code": "771",
+    "name": "Chocolate Light",
+    "hex": "#A0522D",
+    "lab_l": 43.8,
+    "lab_a": 29.3,
+    "lab_b": 35.6
+  },
+  {
+    "code": "780",
+    "name": "Coffee",
+    "hex": "#6F4E37",
+    "lab_l": 36.2,
+    "lab_a": 10.9,
+    "lab_b": 19.1
+  },
+  {
+    "code": "781",
+    "name": "Coffee Light",
+    "hex": "#8B6F47",
+    "lab_l": 48.7,
+    "lab_a": 5.6,
+    "lab_b": 26.4
+  },
+  {
+    "code": "790",
+    "name": "Mahogany",
+    "hex": "#C04000",
+    "lab_l": 45.5,
+    "lab_a": 49.2,
+    "lab_b": 56.7
+  },
+  {
+    "code": "791",
+    "name": "Mahogany Light",
+    "hex": "#D2691E",
+    "lab_l": 56.0,
+    "lab_a": 37.1,
+    "lab_b": 56.7
+  },
+  {
+    "code": "800",
+    "name": "Chestnut",
+    "hex": "#954535",
+    "lab_l": 39.4,
+    "lab_a": 32.3,
+    "lab_b": 25.5
+  },
+  {
+    "code": "801",
+    "name": "Chestnut Light",
+    "hex": "#B5694D",
+    "lab_l": 52.4,
+    "lab_a": 27.6,
+    "lab_b": 28.7
+  },
+  {
+    "code": "810",
+    "name": "Copper",
+    "hex": "#B87333",
+    "lab_l": 54.8,
+    "lab_a": 21.7,
+    "lab_b": 45.4
+  },
+  {
+    "code": "811",
+    "name": "Copper Light",
+    "hex": "#CB8C4A",
+    "lab_l": 63.3,
+    "lab_a": 17.4,
+    "lab_b": 44.2
+  },
+  {
+    "code": "820",
+    "name": "Auburn",
+    "hex": "#A52A2A",
+    "lab_l": 37.5,
+    "lab_a": 49.7,
+    "lab_b": 30.5
+  },
+  {
+    "code": "821",
+    "name": "Auburn Light",
+    "hex": "#BC5A45",
+    "lab_l": 50.0,
+    "lab_a": 37.8,
+    "lab_b": 30.6
+  },
+  {
+    "code": "830",
+    "name": "Spice",
+    "hex": "#8B4513",
+    "lab_l": 37.5,
+    "lab_a": 26.4,
+    "lab_b": 41.0
+  },
+  {
+    "code": "831",
+    "name": "Spice Light",
+    "hex": "#A0623B",
+    "lab_l": 47.7,
+    "lab_a": 21.3,
+    "lab_b": 32.4
+  },
+  {
+    "code": "840",
+    "name": "Camel",
+    "hex": "#C19A6B",
+    "lab_l": 66.1,
+    "lab_a": 8.4,
+    "lab_b": 30.1
+  },
+  {
+    "code": "841",
+    "name": "Camel Light",
+    "hex": "#D9B894",
+    "lab_l": 76.8,
+    "lab_a": 6.6,
+    "lab_b": 22.7
+  },
+  {
+    "code": "850",
+    "name": "Toast",
+    "hex": "#9F8170",
+    "lab_l": 56.3,
+    "lab_a": 8.9,
+    "lab_b": 13.6
+  },
+  {
+    "code": "851",
+    "name": "Toast Light",
+    "hex": "#BC9A85",
+    "lab_l": 66.1,
+    "lab_a": 9.5,
+    "lab_b": 15.8
+  },
+  {
+    "code": "860",
+    "name": "Taupe",
+    "hex": "#B38B6D",
+    "lab_l": 60.9,
+    "lab_a": 11.1,
+    "lab_b": 21.9
+  },
+  {
+    "code": "861",
+    "name": "Taupe Light",
+    "hex": "#D4BBA8",
+    "lab_l": 77.5,
+    "lab_a": 5.9,
+    "lab_b": 12.9
+  }
+]

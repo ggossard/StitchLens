@@ -1,0 +1,317 @@
+@{
+    ViewData["Title"] = "Upload Photo";
+}
+
+<div class="container mt-5">
+
+    @* Add this sign-in prompt for guests *@
+    @if (User.Identity?.IsAuthenticated != true) {
+        <div class="alert alert-info alert-dismissible fade show" role="alert">
+            <div class="d-flex align-items-start">
+                <i class="fas fa-info-circle me-3 mt-1" style="font-size: 1.5rem;"></i>
+                <div class="flex-grow-1">
+                    <h5 class="alert-heading mb-2">Save Your Patterns</h5>
+                    <p class="mb-2">Create a free account to save your patterns, download them anytime, and track your projects.</p>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <a asp-controller="Account" asp-action="Register" class="btn btn-sm btn-primary">
+                            <i class="fas fa-user-plus me-1"></i> Create Free Account
+                        </a>
+                        <span class="text-muted align-self-center">or</span>
+                        <form asp-controller="Account" asp-action="ExternalLogin" asp-route-returnUrl="/Pattern/Upload" method="post" class="d-inline">
+                            <button type="submit" name="provider" value="Google" class="btn btn-sm btn-outline-danger">
+                                <i class="fab fa-google me-1"></i> Sign in with Google
+                            </button>
+                        </form>
+                        <form asp-controller="Account" asp-action="ExternalLogin" asp-route-returnUrl="/Pattern/Upload" method="post" class="d-inline">
+                            <button type="submit" name="provider" value="Facebook" class="btn btn-sm btn-outline-primary">
+                                <i class="fab fa-facebook-f me-1"></i> Sign in with Facebook
+                            </button>
+                        </form>
+                    </div>
+                    <small class="text-muted d-block mt-2">Already have an account? <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Pattern/Upload">Sign in</a></small>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        </div>
+    }
+
+
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <h2>Create Your Needlepoint Pattern</h2>
+            <p class="lead">Upload a photo to get started</p>
+
+            <form method="post" enctype="multipart/form-data" asp-action="ProcessUpload" id="uploadForm">
+                <!-- Step 1: File Selection -->
+                <div id="uploadSection">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label for="imageFile" class="form-label">Choose an image</label>
+                                <input type="file"
+                                       class="form-control"
+                                       id="imageFile"
+                                       name="imageFile"
+                                       accept="image/jpeg,image/png,image/jpg"
+                                       required>
+                                <div class="form-text">
+                                    JPG or PNG format, recommended size: 500-2000 pixels
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2: Cropping Interface (hidden initially) -->
+                <div id="cropSection" style="display: none;">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Crop Your Image</h5>
+                            <small class="text-muted">Drag to select the area you want to stitch</small>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-9">
+                                    <div style="max-height: 500px; overflow: hidden;">
+                                        <img id="cropImage" style="max-width: 100%;">
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <h6>Crop Tools</h6>
+                                    <div class="d-grid gap-2">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="cropper.reset()">
+                                            Reset
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="cropper.clear()">
+                                            Clear
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="cropper.setDragMode('move')">
+                                            Move Image
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="cropper.setDragMode('crop')">
+                                            Crop Area
+                                        </button>
+                                    </div>
+
+                                    <hr>
+
+                                    <h6 class="mt-3">Aspect Ratio</h6>
+                                    <div class="d-grid gap-2">
+                                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="cropper.setAspectRatio(NaN)">
+                                            Free
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="cropper.setAspectRatio(1)">
+                                            Square (1:1)
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="cropper.setAspectRatio(4/3)">
+                                            4:3
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="cropper.setAspectRatio(16/9)">
+                                            16:9
+                                        </button>
+                                    </div>
+
+                                    <hr>
+
+                                    <div class="mt-3">
+                                        <small class="text-muted">
+                                            <strong>Crop Size:</strong><br>
+                                            <span id="cropInfo">Select an area</span>
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Hidden fields to store crop data -->
+                    <input type="hidden" name="cropX" id="cropX">
+                    <input type="hidden" name="cropY" id="cropY">
+                    <input type="hidden" name="cropWidth" id="cropWidth">
+                    <input type="hidden" name="cropHeight" id="cropHeight">
+                    <input type="hidden" name="originalWidth" id="originalWidth">
+                    <input type="hidden" name="originalHeight" id="originalHeight">
+                </div>
+
+                <div asp-validation-summary="All" class="text-danger mt-3"></div>
+
+                <!-- Action Buttons -->
+                <div class="d-grid gap-2 mt-3">
+                    <button type="button" onclick="console.log('Test button clicked')">Test Console</button>
+                    <button type="button" id="cancelCrop" class="btn btn-secondary" style="display: none;" onclick="cancelCrop()">
+                        Choose Different Image
+                    </button>
+                    <button type="submit" id="continueBtn" class="btn btn-primary btn-lg" style="display: none;">
+                        Continue to Settings
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let cropper = null;
+        let naturalWidth = 0;
+        let naturalHeight = 0;
+
+        // Handle file selection
+        document.getElementById('imageFile').addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // Validate file size (max 10MB)
+            if (file.size > 10 * 1024 * 1024) {
+                alert('File is too large. Please choose an image under 10MB.');
+                this.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function (event) {
+                // First, load image to get TRUE natural dimensions
+                const tempImg = new Image();
+                tempImg.onload = function () {
+                    // Store the true natural dimensions
+                    naturalWidth = tempImg.naturalWidth;
+                    naturalHeight = tempImg.naturalHeight;
+
+                    console.log('True image dimensions:', naturalWidth, 'x', naturalHeight);
+
+                    // Now show crop section
+                    document.getElementById('uploadSection').style.display = 'none';
+                    document.getElementById('cropSection').style.display = 'block';
+                    document.getElementById('cancelCrop').style.display = 'block';
+                    document.getElementById('continueBtn').style.display = 'block';
+
+                    // Set image and initialize cropper
+                    const image = document.getElementById('cropImage');
+                    image.src = event.target.result;
+
+                    // Destroy previous cropper if exists
+                    if (cropper) {
+                        cropper.destroy();
+                    }
+
+                    // Initialize Cropper.js
+                    cropper = new Cropper(image, {
+                        viewMode: 1,
+                        dragMode: 'move',
+                        aspectRatio: NaN,
+                        autoCropArea: 0.8,
+                        restore: false,
+                        guides: true,
+                        center: true,
+                        highlight: false,
+                        cropBoxMovable: true,
+                        cropBoxResizable: true,
+                        toggleDragModeOnDblclick: false,
+                        ready: function () {
+                            // Store original dimensions
+                            document.getElementById('originalWidth').value = naturalWidth;
+                            document.getElementById('originalHeight').value = naturalHeight;
+                            console.log('Cropper ready. Natural size:', naturalWidth, 'x', naturalHeight);
+                        },
+                        crop: function (event) {
+                            // Cropper.js getData() returns coordinates in natural image size!
+                            const data = cropper.getData();
+
+                            console.log('getData() result:', data);
+                            console.log('Natural dimensions:', naturalWidth, 'x', naturalHeight);
+
+                            // Round to integers and constrain to bounds
+                            let cropX = Math.max(0, Math.round(data.x));
+                            let cropY = Math.max(0, Math.round(data.y));
+                            let cropWidth = Math.round(data.width);
+                            let cropHeight = Math.round(data.height);
+
+                            // Ensure crop doesn't exceed image bounds
+                            if (cropX + cropWidth > naturalWidth) {
+                                cropWidth = naturalWidth - cropX;
+                            }
+                            if (cropY + cropHeight > naturalHeight) {
+                                cropHeight = naturalHeight - cropY;
+                            }
+
+                            console.log('Final crop:', { cropX, cropY, cropWidth, cropHeight });
+                            console.log('Bounds check:',
+                                'X+W:', cropX + cropWidth, '<=', naturalWidth, '?', (cropX + cropWidth <= naturalWidth),
+                                'Y+H:', cropY + cropHeight, '<=', naturalHeight, '?', (cropY + cropHeight <= naturalHeight)
+                            );
+
+                            // Update display
+                            document.getElementById('cropInfo').innerHTML =
+                                `Crop: ${cropWidth} × ${cropHeight}px`;
+
+                            // Store crop data
+                            document.getElementById('cropX').value = cropX;
+                            document.getElementById('cropY').value = cropY;
+                            document.getElementById('cropWidth').value = cropWidth;
+                            document.getElementById('cropHeight').value = cropHeight;
+                        }
+                    });
+                };
+                tempImg.src = event.target.result;
+            };
+
+            reader.readAsDataURL(file);
+        });
+
+        // Cancel crop and go back to file selection
+        function cancelCrop() {
+            if (cropper) {
+                cropper.destroy();
+                cropper = null;
+            }
+
+            document.getElementById('imageFile').value = '';
+            document.getElementById('uploadSection').style.display = 'block';
+            document.getElementById('cropSection').style.display = 'none';
+            document.getElementById('cancelCrop').style.display = 'none';
+            document.getElementById('continueBtn').style.display = 'none';
+            naturalWidth = 0;
+            naturalHeight = 0;
+        }
+
+        // Validate crop data before form submission
+        document.getElementById('uploadForm').addEventListener('submit', function (e) {
+            console.log('Form submitting. Crop data:', {
+                cropX: document.getElementById('cropX').value,
+                cropY: document.getElementById('cropY').value,
+                cropWidth: document.getElementById('cropWidth').value,
+                cropHeight: document.getElementById('cropHeight').value,
+                originalWidth: document.getElementById('originalWidth').value,
+                originalHeight: document.getElementById('originalHeight').value
+            });
+
+            if (!cropper) {
+                e.preventDefault();
+                alert('Please select and crop an image first.');
+                return false;
+            }
+
+            // Ensure crop data is set
+            const cropWidth = parseInt(document.getElementById('cropWidth').value);
+            const cropHeight = parseInt(document.getElementById('cropHeight').value);
+            const cropX = parseInt(document.getElementById('cropX').value);
+            const cropY = parseInt(document.getElementById('cropY').value);
+
+            if (!cropWidth || cropWidth <= 0 || !cropHeight || cropHeight <= 0) {
+                e.preventDefault();
+                alert('Please select a valid crop area.');
+                return false;
+            }
+
+            // Client-side bounds check
+            if (cropX + cropWidth > naturalWidth || cropY + cropHeight > naturalHeight) {
+                e.preventDefault();
+                alert(`Crop area (${cropX + cropWidth} x ${cropY + cropHeight}) exceeds image bounds (${naturalWidth} x ${naturalHeight}). Please try again.`);
+                console.error('Crop bounds exceeded!');
+                return false;
+            }
+
+            console.log('Validation passed, submitting...');
+        });
+    </script>
+}

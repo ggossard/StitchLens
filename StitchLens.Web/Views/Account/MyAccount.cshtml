@@ -1,0 +1,79 @@
+﻿@model StitchLens.Web.Models.MyAccountViewModel
+@{
+    ViewData["Title"] = "My Account";
+}
+
+<div class="container mt-4">
+    <h2>My Account</h2>
+
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Account Information</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <tr>
+                            <td><strong>Email:</strong></td>
+                            <td>@Model.Email</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Plan:</strong></td>
+                            <td>
+                                <span class="badge bg-@(Model.PlanType == "Free" ? "secondary" : "primary")">
+                                    @Model.PlanType
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Account Type:</strong></td>
+                            <td>@Model.UserType</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Member Since:</strong></td>
+                            <td>@Model.CreatedAt.ToLocalTime().ToString("MMMM d, yyyy")</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Patterns Created:</strong></td>
+                            <td>@Model.PatternCount</td>
+                        </tr>
+                    </table>
+
+                    @if (Model.PlanType == "Free") {
+                        <div class="alert alert-info mt-3">
+                            <h6>Upgrade to Premium</h6>
+                            <p class="mb-2">Get unlimited patterns, priority support, and more!</p>
+                            <button class="btn btn-sm btn-primary" disabled>Coming Soon</button>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a asp-controller="Pattern" asp-action="Upload" class="btn btn-primary">
+                            Create New Pattern
+                        </a>
+                        <a asp-action="MyPatterns" class="btn btn-outline-primary">
+                            View My Patterns
+                        </a>
+                        <hr>
+                        <button class="btn btn-outline-secondary" disabled>
+                            Change Password (Coming Soon)
+                        </button>
+                        <button class="btn btn-outline-secondary" disabled>
+                            Billing History (Coming Soon)
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

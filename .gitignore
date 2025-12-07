@@ -1,0 +1,63 @@
+# Visual Studio / .NET
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Build outputs
+bin/
+obj/
+
+# Rider / VSCode
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# NuGet
+*.nupkg
+.nuget/
+
+# EF / local DB
+*.db
+*.sqlite
+*.db-journal
+
+# Runtime uploads & artifacts
+StitchLens.Web/uploads/
+**/uploads/
+temp/
+patterns/
+
+# Secrets
+secrets.json
+appsettings.*.Local.json
+appsettings.*.UserSecrets.json
+
+# Logs
+*.log
+
+# Ignore generated files from Razor compilation in obj
+**/obj/**/Razor/**
+
+# Git LFS pointer files (if using LFS for large binaries)
+*.psd
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.zip
+*.tar
+*.gz
+
+# Ignore IDE workspace files
+*.sublime-workspace
+
+# Ignore JetBrains Rider caches
+.idea/
+
+# Keep package lock files
+!**/package-lock.json

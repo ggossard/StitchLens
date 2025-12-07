@@ -1,0 +1,91 @@
+﻿@model StitchLens.Web.Models.RegisterViewModel
+@{
+    ViewData["Title"] = "Create Account";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow">
+                <div class="card-body p-5">
+                    <h2 class="text-center mb-4">Create Your Account</h2>
+                    <p class="text-center text-muted mb-4">Start creating beautiful patterns</p>
+
+                    <!-- Social Login Buttons -->
+                    <form asp-action="ExternalLogin" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post">
+                        <div class="d-grid gap-2 mb-3">
+                            <button type="submit" name="provider" value="Google"
+                                    class="btn btn-outline-danger btn-lg">
+                                <i class="fab fa-google me-2"></i>
+                                Sign up with Google
+                            </button>
+                            <button type="submit" name="provider" value="Facebook"
+                                    class="btn btn-outline-primary btn-lg">
+                                <i class="fab fa-facebook-f me-2"></i>
+                                Sign up with Facebook
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Divider -->
+                    <div class="d-flex align-items-center my-4">
+                        <hr class="flex-grow-1">
+                        <span class="px-3 text-muted small">OR</span>
+                        <hr class="flex-grow-1">
+                    </div>
+
+                    <!-- Traditional Registration Form -->
+                    <form asp-action="Register" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post">
+                        <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="Email" class="form-label">Email</label>
+                            <input asp-for="Email" class="form-control form-control-lg" placeholder="you@example.com" />
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Password" class="form-label">Password</label>
+                            <input asp-for="Password" class="form-control form-control-lg" placeholder="••••••••" />
+                            <span asp-validation-for="Password" class="text-danger"></span>
+                            <small class="form-text text-muted">
+                                At least 6 characters with one number
+                            </small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="ConfirmPassword" class="form-label">Confirm Password</label>
+                            <input asp-for="ConfirmPassword" class="form-control form-control-lg" placeholder="••••••••" />
+                            <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                        </div>
+
+                        <div class="d-grid mb-3">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                Create Account
+                            </button>
+                        </div>
+
+                        <div class="text-center">
+                            <small class="text-muted">
+                                Already have an account?
+                                <a asp-action="Login" asp-route-returnUrl="@ViewData["ReturnUrl"]">Sign in</a>
+                            </small>
+                        </div>
+
+                        <div class="text-center mt-3">
+                            <small class="text-muted">
+                                By continuing, you agree to our
+                                <a asp-controller="Home" asp-action="Terms">Terms of Service</a> and
+                                <a asp-controller="Home" asp-action="Privacy">Privacy Policy</a>
+                            </small>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
