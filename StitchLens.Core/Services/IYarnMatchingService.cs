@@ -1,10 +1,13 @@
-﻿namespace StitchLens.Core.Services;
+﻿using StitchLens.Data.Models;
+
+namespace StitchLens.Core.Services;
 
 public interface IYarnMatchingService {
     Task<List<YarnMatch>> MatchColorsToYarnAsync(
         List<ColorInfo> palette,
         int yarnBrandId,
-        int totalStitchesInPattern);  // Add this parameter
+        int totalStitchesInPattern,
+        CraftType craftType);
 }
 
 public class YarnMatch {

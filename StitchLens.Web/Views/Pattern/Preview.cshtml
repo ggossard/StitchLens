@@ -1,12 +1,17 @@
 ﻿@model StitchLens.Web.Models.PreviewViewModel
+@using StitchLens.Data.Models
 @{
     ViewData["Title"] = "Pattern Preview";
+    var craftName = Model.CraftType == CraftType.Needlepoint ? "Needlepoint" : "Cross-Stitch";
+    var materialName = Model.CraftType == CraftType.Needlepoint ? "Canvas" : "Fabric";
+    var countLabel = Model.CraftType == CraftType.Needlepoint ? "Mesh Count" : "Fabric Count";
+    var threadType = Model.CraftType == CraftType.Needlepoint ? "Yarn" : "Floss";
 }
 
 <div class="container mt-4">
-    <h2>Your Needlepoint Pattern</h2>
+    <h2>Your @craftName Pattern</h2>
     <p class="lead">@Model.Project.Title</p>
-    
+
     <div class="row">
         <!-- Original Image -->
         <div class="col-md-6">
@@ -15,14 +20,14 @@
                     <h5>Original Image</h5>
                 </div>
                 <div class="card-body text-center">
-                    <img src="/uploads/@System.IO.Path.GetFileName(Model.Project.OriginalImagePath)" 
-                         alt="Original" 
+                    <img src="/uploads/@System.IO.Path.GetFileName(Model.Project.OriginalImagePath)"
+                         alt="Original"
                          class="img-fluid"
                          style="max-height: 400px;">
                 </div>
             </div>
         </div>
-        
+
         <!-- Quantized Preview -->
         <div class="col-md-6">
             <div class="card">
@@ -30,31 +35,29 @@
                     <h5>Pattern Preview (@Model.Project.MaxColors Colors)</h5>
                 </div>
                 <div class="card-body text-center">
-                    @if (!string.IsNullOrEmpty(Model.Project.ProcessedImagePath))
-                    {
-                        <img src="/uploads/@System.IO.Path.GetFileName(Model.Project.ProcessedImagePath)" 
-                             alt="Quantized" 
+                    @if (!string.IsNullOrEmpty(Model.Project.ProcessedImagePath)) {
+                        <img src="/uploads/@System.IO.Path.GetFileName(Model.Project.ProcessedImagePath)"
+                             alt="Quantized"
                              class="img-fluid"
                              style="max-height: 400px;">
                     }
-                    else
-                    {
+                    else {
                         <p class="text-muted">Processing...</p>
                     }
                 </div>
             </div>
         </div>
     </div>
-    
+
     <!-- Pattern Info -->
     <div class="row mt-4">
         <div class="col-md-4">
             <div class="card">
                 <div class="card-body">
-                    <h5>Canvas Specifications</h5>
+                    <h5>@materialName Specifications</h5>
                     <table class="table table-sm">
                         <tr>
-                            <td><strong>Mesh Count:</strong></td>
+                            <td><strong>@countLabel:</strong></td>
                             <td>@Model.Project.MeshCount count</td>
                         </tr>
                         <tr>
@@ -73,13 +76,12 @@
                 </div>
             </div>
         </div>
-        
-        @if (Model.HasYarnMatching)
-        {
+
+        @if (Model.HasYarnMatching) {
             <div class="col-md-4">
                 <div class="card">
                     <div class="card-body">
-                        <h5>Yarn Summary</h5>
+                        <h5>@threadType Summary</h5>
                         <table class="table table-sm">
                             <tr>
                                 <td><strong>Brand:</strong></td>
@@ -101,43 +103,76 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="col-md-4">
-                <div class="card bg-success text-white">
-                    <div class="card-body text-center">
-                        <h5>Ready to Stitch!</h5>
-                        <p class="mb-2">Your pattern is complete with yarn matching</p>
-                        <a asp-action="DownloadPdf" asp-route-id="@Model.Project.Id"
-                           class="btn btn-light btn-lg mt-2">
-                            <i class="bi bi-file-pdf"></i> Download PDF
-                        </a>
+                @if (Model.QuotaExceeded) {
+                    <div class="card bg-warning text-dark border-warning">
+                        <div class="card-body text-center">
+                            <h5><i class="bi bi-exclamation-triangle"></i> Download Limit Reached</h5>
+                            <p class="mb-2">
+                                You've used <strong>@Model.DownloadsUsed of @Model.DownloadLimit</strong> downloads this month
+                            </p>
+                            <a asp-controller="Home" asp-action="Pricing" class="btn btn-dark btn-lg mt-2">
+                                <i class="bi bi-arrow-up-circle"></i> Upgrade to Download
+                            </a>
+                            <p class="mt-3 mb-0 small">
+                                @if (Model.CurrentTier == SubscriptionTier.Free) {
+                                    <text>Upgrade to get 10-100 downloads per month!</text>
+                                }
+                                else {
+                                    <text>Your downloads will reset on your next billing date</text>
+                                }
+                            </p>
+                        </div>
                     </div>
-                </div>
+                }
+                else {
+                    <div class="card bg-success text-white">
+                        <div class="card-body text-center">
+                            <h5>Ready to Stitch!</h5>
+                            <p class="mb-2">Your pattern is complete with @threadType.ToLower() matching</p>
+                            <div class="mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="useColoredGrid" checked>
+                                    <label class="form-check-label" for="useColoredGrid">
+                                        <i class="bi bi-palette"></i> Show colors in grid (recommended for color printers)
+                                    </label>
+                                    <div class="form-text">Uncheck for black & white printers - shows symbols only</div>
+                                </div>
+                            </div>
+
+                            <a href="#" id="downloadPdfBtn" class="btn btn-light btn-lg mt-2">
+                                <i class="bi bi-file-pdf"></i> Download PDF
+                            </a>
+                            <p class="mt-3 mb-0 small">
+                                <strong>@Model.DownloadsUsed of @Model.DownloadLimit</strong> downloads used this month
+                            </p>
+                        </div>
+                    </div>
+                }
             </div>
         }
-        else
-        {
+        else {
             <div class="col-md-8">
                 <div class="card bg-warning">
                     <div class="card-body">
-                        <h5>⚠️ No Yarn Brand Selected</h5>
-                        <p>Go back to settings and select a yarn brand to get your shopping list!</p>
+                        <h5>⚠️ No @threadType Brand Selected</h5>
+                        <p>Go back to settings and select a @threadType.ToLower() brand to get your shopping list!</p>
                         <a asp-action="Configure" asp-route-id="@Model.Project.Id" class="btn btn-primary">
-                            Select Yarn Brand
+                            Select @threadType Brand
                         </a>
                     </div>
                 </div>
             </div>
         }
     </div>
-    
-    <!-- Yarn Shopping List -->
-    @if (Model.HasYarnMatching)
-    {
+
+    <!-- Shopping List -->
+    @if (Model.HasYarnMatching) {
         <div class="card mt-4">
             <div class="card-header">
                 <h5>
-                    <i class="bi bi-cart"></i> Shopping List - @Model.Project.YarnBrand?.Name Yarn
+                    <i class="bi bi-cart"></i> Shopping List - @Model.Project.YarnBrand?.Name @threadType
                 </h5>
             </div>
             <div class="card-body">
@@ -155,22 +190,21 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var yarn in Model.YarnMatches!)
-                            {
-                                var percentage = Model.TotalStitches > 0 
-                                    ? (yarn.StitchCount * 100.0 / Model.TotalStitches).ToString("F1")
-                                    : "0";
-                                
-                                var matchQuality = yarn.DeltaE < 2.0 ? "Excellent" 
-                                    : yarn.DeltaE < 5.0 ? "Good" 
-                                    : yarn.DeltaE < 10.0 ? "Fair" 
-                                    : "Poor";
-                                
-                                var matchBadgeClass = yarn.DeltaE < 2.0 ? "success" 
-                                    : yarn.DeltaE < 5.0 ? "info" 
-                                    : yarn.DeltaE < 10.0 ? "warning" 
-                                    : "danger";
-                                
+                            @foreach (var yarn in Model.YarnMatches!) {
+                                var percentage = Model.TotalStitches > 0
+                                ? (yarn.StitchCount * 100.0 / Model.TotalStitches).ToString("F1")
+                                : "0";
+
+                                var matchQuality = yarn.DeltaE < 2.0 ? "Excellent"
+                                : yarn.DeltaE < 5.0 ? "Good"
+                                : yarn.DeltaE < 10.0 ? "Fair"
+                                : "Poor";
+
+                                var matchBadgeClass = yarn.DeltaE < 2.0 ? "success"
+                                : yarn.DeltaE < 5.0 ? "info"
+                                : yarn.DeltaE < 10.0 ? "warning"
+                                : "danger";
+
                                 <tr>
                                     <td>
                                         <div class="d-flex align-items-center">
@@ -213,36 +247,34 @@
                 <div class="alert alert-info mt-3">
                     <h6><i class="bi bi-info-circle"></i> Shopping Tips:</h6>
                     <ul class="mb-0">
-                        <li><strong>Match Quality</strong> shows how close the yarn color is to your image</li>
+                        <li><strong>Match Quality</strong> shows how close the @threadType.ToLower() color is to your image</li>
                         <li><span class="badge bg-success">Excellent</span> = Nearly identical (ΔE &lt; 2)</li>
                         <li><span class="badge bg-info">Good</span> = Very close match (ΔE 2-5)</li>
                         <li><span class="badge bg-warning">Fair</span> = Acceptable (ΔE 5-10)</li>
                         <li><span class="badge bg-danger">Poor</span> = Noticeable difference (ΔE &gt; 10)</li>
-                        <li>Yarn estimates include a small buffer - you may need less</li>
+                        <li>@threadType estimates include a small buffer - you may need less</li>
                         <li>Consider buying an extra skein of your most-used colors</li>
-                        <li>Dye lots can vary - buy all yarn for one project at once</li>
+                        <li>Dye lots can vary - buy all @threadType.ToLower() for one project at once</li>
                     </ul>
                 </div>
             </div>
         </div>
     }
-    
+
     <!-- Color Palette (if no yarn matching) -->
-    @if (!Model.HasYarnMatching && Model.UnmatchedColors != null)
-    {
+    @if (!Model.HasYarnMatching && Model.UnmatchedColors != null) {
         <div class="card mt-4">
             <div class="card-header">
                 <h5>Color Palette (@Model.UnmatchedColors.Count colors)</h5>
             </div>
             <div class="card-body">
                 <div class="row">
-                    @foreach (var color in Model.UnmatchedColors)
-                    {
+                    @foreach (var color in Model.UnmatchedColors) {
                         var hexColor = $"#{color.R:X2}{color.G:X2}{color.B:X2}";
-                        var percentage = Model.TotalStitches > 0 
-                            ? (color.PixelCount * 100.0 / Model.TotalStitches).ToString("F1")
-                            : "0";
-                        
+                        var percentage = Model.TotalStitches > 0
+                        ? (color.PixelCount * 100.0 / Model.TotalStitches).ToString("F1")
+                        : "0";
+
                         <div class="col-md-3 col-sm-4 col-6 mb-3">
                             <div class="d-flex align-items-center">
                                 <div style="width: 60px; height: 60px; background-color: @hexColor; border: 1px solid #ccc; border-radius: 4px; margin-right: 10px;"></div>
@@ -257,7 +289,7 @@
             </div>
         </div>
     }
-    
+
     <!-- Action Buttons -->
     <div class="mt-4 d-flex gap-2">
         <a asp-action="Configure" asp-route-id="@Model.Project.Id" class="btn btn-secondary">
@@ -267,16 +299,37 @@
             <i class="bi bi-upload"></i> Start New Pattern
         </a>
         @if (Model.HasYarnMatching) {
-            <a asp-action="DownloadPdf" asp-route-id="@Model.Project.Id"
-               class="btn btn-success">
-                <i class="bi bi-file-pdf"></i> Download Pattern PDF
-            </a>
+            @if (Model.QuotaExceeded) {
+                <a asp-controller="Home" asp-action="Pricing" class="btn btn-warning">
+                    <i class="bi bi-lock"></i> Upgrade to Download (@Model.DownloadsUsed/@Model.DownloadLimit Used)
+                </a>
+            }
+            else {
+                <a href="#" class="btn btn-success download-pdf-btn">
+                    <i class="bi bi-file-pdf"></i> Download Pattern PDF
+                </a>
+            }
         }
     </div>
 </div>
 
 @section Scripts {
     <script>
+        // Handle all download PDF buttons
+        document.querySelectorAll('.download-pdf-btn, #downloadPdfBtn').forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+
+                var useColor = document.getElementById('useColoredGrid').checked;
+                var projectId = @Model.Project.Id;
+
+                // Build download URL with color preference
+                var url = '@Url.Action("DownloadPdf", "Pattern")?id=' + projectId + '&useColor=' + useColor;
+
+                window.location.href = url;
+            });
+        });
+
         // Print function for shopping list
         function printShoppingList() {
             window.print();

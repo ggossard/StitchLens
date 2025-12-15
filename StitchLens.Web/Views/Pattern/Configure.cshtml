@@ -1,4 +1,4 @@
-@model StitchLens.Web.Models.ConfigureViewModel
+ï»¿@model StitchLens.Web.Models.ConfigureViewModel
 @{
     ViewData["Title"] = "Configure Pattern";
 }
@@ -6,6 +6,11 @@
 <div class="container mt-4">
     <h2>Configure Your Pattern</h2>
     <p class="lead">Set your canvas dimensions and color preferences</p>
+
+    <script type="text/javascript">
+        // Serialize the brands
+        var allYarnBrands = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.AllYarnBrands));
+    </script>
 
     <div class="row">
         <!-- Left side: Image preview -->
@@ -27,11 +32,11 @@
                     <h6>Pattern Size</h6>
                     <p class="mb-1">
                         <strong>Canvas:</strong>
-                        <span id="canvasSize">@Model.WidthInches.ToString("F1")" × @Model.HeightInches.ToString("F1")"</span>
+                        <span id="canvasSize">@Model.WidthInches.ToString("F1")" x @Model.HeightInches.ToString("F1")"</span>
                     </p>
                     <p class="mb-0">
                         <strong>Stitches:</strong>
-                        <span id="stitchCount">@Model.WidthStitches × @Model.HeightStitches</span>
+                        <span id="stitchCount">@Model.WidthStitches x @Model.HeightStitches</span>
                         (<span id="totalStitches">@((Model.WidthStitches * Model.HeightStitches).ToString("N0"))</span> total)
                     </p>
                 </div>
@@ -50,7 +55,7 @@
                         <h5>Project Information</h5>
                     </div>
                     <div class="card-body">
-                        <div class="mb-0">
+                        <div class="mb-4">
                             <label asp-for="Title" class="form-label">Project Title</label>
                             <input asp-for="Title"
                                    type="text"
@@ -62,23 +67,38 @@
                                 Give your pattern a memorable name (e.g., "Sunset Landscape", "Family Pet Portrait")
                             </div>
                         </div>
+
+                        <div class="mb-0">
+                            <label asp-for="CraftType" class="form-label">Choose your craft type.  I'm making a:</label>
+                            <select asp-for="CraftType"
+                                    asp-items="Model.CraftTypeOptions"
+                                    class="form-select"
+                                    id="craftType">
+                            </select>
+                            <div class="form-text">
+                                <strong>Needlepoint:</strong> Wool yarn on canvas, tent/basketweave stitch<br>
+                                <strong>Cross-Stitch:</strong> Cotton floss on fabric, counted cross stitches
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <div class="card">
                     <div class="card-header">
-                        <h5>Canvas Settings</h5>
+                        <h5><span id="canvasLabel">Canvas Settings</span></h5>
                     </div>
                     <div class="card-body">
                         <!-- Mesh Count -->
                         <div class="mb-3">
-                            <label asp-for="MeshCount" class="form-label">Mesh Count</label>
+                            <label asp-for="MeshCount" class="form-label">
+                                <span id="meshLabel">Mesh Count</span>
+                            </label>
                             <select asp-for="MeshCount"
                                     asp-items="Model.MeshCountOptions"
                                     class="form-select"
                                     id="meshCount">
                             </select>
-                            <div class="form-text">
+                            <div class="form-text" id="meshHelp">
                                 Higher mesh = smaller stitches and more detail
                             </div>
                         </div>
@@ -112,7 +132,9 @@
                             <label asp-for="StitchType" class="form-label">Stitch Type</label>
                             <select asp-for="StitchType"
                                     asp-items="Model.StitchTypeOptions"
-                                    class="form-select">
+                                    class="form-select"
+                                    id="StitchType">
+                                <!-- ADD THIS ID -->
                             </select>
                         </div>
 
@@ -135,13 +157,17 @@
 
                         <!-- Yarn Brand -->
                         <div class="mb-3">
-                            <label asp-for="YarnBrandId" class="form-label">Yarn Brand</label>
+                            <label asp-for="YarnBrandId" class="form-label">
+                                <span id="yarnLabel">Yarn Brand</span>
+                            </label>
                             <select asp-for="YarnBrandId"
                                     asp-items="Model.YarnBrands"
-                                    class="form-select">
+                                    class="form-select"
+                                    id="YarnBrandId">
+                                <!-- ADD THIS ID -->
                                 <option value="">-- Select a brand --</option>
                             </select>
-                            <div class="form-text">
+                            <div class="form-text" id="yarnHelp">
                                 Choose your preferred yarn brand for color matching
                             </div>
                         </div>
@@ -164,7 +190,148 @@
 </div>
 
 @section Scripts {
-    <script>// Update color count display as slider moves
+    <script>
+        // Terminology mappings
+        const terminology = {
+            needlepoint: {
+                canvas: 'Canvas',
+                mesh: 'Mesh Count',
+                meshHelp: 'Higher mesh = smaller stitches and more detail',
+                yarn: 'Yarn Brand',
+                yarnHelp: 'Choose your preferred yarn brand for color matching',
+                meshOptions: [
+                    { value: '10', text: '10 mesh (large stitches)' },
+                    { value: '13', text: '13 mesh (standard)' },
+                    { value: '14', text: '14 mesh' },
+                    { value: '18', text: '18 mesh (fine detail)' }
+                ],
+                stitchOptions: [
+                    { value: 'Tent', text: 'Tent Stitch' },
+                    { value: 'Basketweave', text: 'Basketweave' },
+                    { value: 'Continental', text: 'Continental' }
+                ]
+            },
+            crossstitch: {
+                canvas: 'Fabric',
+                mesh: 'Fabric Count',
+                meshHelp: 'Higher count = smaller stitches and more detail',
+                yarn: 'Floss Brand',
+                yarnHelp: 'Choose your preferred floss brand for color matching',
+                meshOptions: [
+                    { value: '11', text: '11 count' },
+                    { value: '14', text: '14 count (standard)' },
+                    { value: '16', text: '16 count' },
+                    { value: '18', text: '18 count (fine detail)' },
+                    { value: '28', text: '28 count' }
+                ],
+                stitchOptions: [
+                    { value: 'Full Cross', text: 'Full Cross Stitch' },
+                    { value: 'Half Cross', text: 'Half Cross Stitch' },
+                    { value: 'Backstitch', text: 'Backstitch' }
+                ]
+            }
+        };
+
+                // Update yarn brand dropdown based on craft type
+                // Update yarn brand dropdown based on craft type
+        function updateYarnBrands(craftType) {
+            const yarnSelect = document.getElementById('YarnBrandId');
+            if (!yarnSelect) {
+                console.error('YarnBrandId select not found!');
+                return;
+            }
+
+            const currentValue = yarnSelect.value;
+
+            // Filter brands by craft type (0 = Needlepoint, 1 = CrossStitch)
+            // CHANGE: b.craftType â†’ b.CraftType (capital C and T)
+            const filteredBrands = allYarnBrands.filter(b => {
+                return b.CraftType === parseInt(craftType);
+            });
+
+            // Clear and repopulate
+            yarnSelect.innerHTML = '<option value="">-- Select a brand --</option>';
+            filteredBrands.forEach(brand => {
+                const option = new Option(brand.Name, brand.Id);  // CHANGE: brand.name â†’ brand.Name, brand.id â†’ brand.Id
+                yarnSelect.add(option);
+            });
+
+            // Restore selection if still valid for this craft type
+            const stillValid = filteredBrands.some(b => b.Id.toString() === currentValue);  // CHANGE: b.id â†’ b.Id
+            if (stillValid) {
+                yarnSelect.value = currentValue;
+            }
+        }
+
+        // Update stitch type dropdown based on craft type
+        function updateStitchTypes(terms) {
+            const stitchSelect = document.getElementById('StitchType');
+            if (!stitchSelect) return;
+
+            const currentValue = stitchSelect.value;
+
+            // Clear and repopulate
+            stitchSelect.innerHTML = '';
+            terms.stitchOptions.forEach(opt => {
+                const option = new Option(opt.text, opt.value);
+                stitchSelect.add(option);
+            });
+
+            // Restore selection if valid, otherwise use first option
+            if (terms.stitchOptions.some(opt => opt.value === currentValue)) {
+                stitchSelect.value = currentValue;
+            } else {
+                stitchSelect.value = terms.stitchOptions[0].value;
+            }
+        }
+
+        // Update terminology based on craft selection
+        function updateTerminology() {
+            const craftType = document.getElementById('craftType').value;
+            const terms = craftType === '1' ? terminology.crossstitch : terminology.needlepoint;
+
+            // Update labels
+            document.getElementById('canvasLabel').textContent = terms.canvas + ' Settings';
+            document.getElementById('meshLabel').textContent = terms.mesh;
+            document.getElementById('meshHelp').textContent = terms.meshHelp;
+            document.getElementById('yarnLabel').textContent = terms.yarn;
+            document.getElementById('yarnHelp').textContent = terms.yarnHelp;
+
+            // Update mesh count options
+            const meshSelect = document.getElementById('meshCount');
+            const currentValue = meshSelect.value;
+
+            // Clear and repopulate
+            meshSelect.innerHTML = '';
+            terms.meshOptions.forEach(opt => {
+                const option = new Option(opt.text, opt.value);
+                meshSelect.add(option);
+            });
+
+            // Restore selection if valid, otherwise default to 14
+            if (terms.meshOptions.some(opt => opt.value === currentValue)) {
+                meshSelect.value = currentValue;
+            } else {
+                meshSelect.value = '14';
+            }
+
+            // Update stitch type options
+            updateStitchTypes(terms);
+
+            // Update yarn brands for this craft type
+            updateYarnBrands(craftType);
+
+            // Trigger calculation update
+            updateCalculations();
+        }
+
+        // Listen for craft type changes
+        document.getElementById('craftType').addEventListener('change', updateTerminology);
+
+        // Initialize on page load
+        updateTerminology();
+
+        // Update color count display as slider moves
         document.getElementById('maxColors').addEventListener('input', function(e) {
             document.getElementById('colorDisplay').textContent = e.target.value;
         });
@@ -181,9 +348,9 @@
                 const totalStitches = widthStitches * heightStitches;
 
                 document.getElementById('canvasSize').textContent =
-                    widthInches.toFixed(1) + '" × ' + heightInches.toFixed(1) + '"';
+                    widthInches.toFixed(1) + '" Ã— ' + heightInches.toFixed(1) + '"';
                 document.getElementById('stitchCount').textContent =
-                    widthStitches + ' × ' + heightStitches;
+                    widthStitches + ' Ã— ' + heightStitches;
                 document.getElementById('totalStitches').textContent =
                     totalStitches.toLocaleString();
             }
@@ -191,5 +358,6 @@
 
         document.getElementById('meshCount').addEventListener('change', updateCalculations);
         document.getElementById('widthInches').addEventListener('input', updateCalculations);
-        document.getElementById('heightInches').addEventListener('input', updateCalculations);</script>
+        document.getElementById('heightInches').addEventListener('input', updateCalculations);
+    </script>
 }

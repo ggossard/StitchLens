@@ -31,6 +31,9 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Pattern" asp-action="Upload">Create Pattern</a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Pricing">Pricing</a>
+                        </li>
                     </ul>
                     <ul class="navbar-nav">
                         @if (User.Identity?.IsAuthenticated == true) {
@@ -39,7 +42,7 @@
                                     @User.Identity.Name
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                                    <li><a class="dropdown-item" asp-controller="Account" asp-action="MyAccount">My Account</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Account" asp-action="Dashboard">My Account</a></li>
                                     <li><a class="dropdown-item" asp-controller="Account" asp-action="MyPatterns">My Patterns</a></li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li>
@@ -68,6 +71,9 @@
             @RenderBody()
         </main>
     </div>
+
+    <!-- MASSIVE SPACER - Add this right here -->
+    <div style="height: 175px; background-color: white;"></div>
 
     <footer class="border-top footer text-muted">
         <div class="container">

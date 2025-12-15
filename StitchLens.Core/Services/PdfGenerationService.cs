@@ -3,6 +3,7 @@ using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using StitchLens.Data.Models;  // For CraftType enum
 
 namespace StitchLens.Core.Services;
 
@@ -13,6 +14,12 @@ public class PdfGenerationService : IPdfGenerationService {
 
     public async Task<byte[]> GeneratePatternPdfAsync(PatternPdfData data) {
         return await Task.Run(() => {
+            // Determine craft-specific terminology
+            var craftName = data.CraftType == Data.Models.CraftType.Needlepoint ? "Needlepoint" : "Cross-Stitch";
+            var materialName = data.CraftType == Data.Models.CraftType.Needlepoint ? "Canvas" : "Fabric";
+            var countLabel = data.CraftType == Data.Models.CraftType.Needlepoint ? "Mesh" : "Count";
+            var threadType = data.CraftType == Data.Models.CraftType.Needlepoint ? "Yarn" : "Floss";
+
             var document = Document.Create(container => {
                 container.Page(page => {
                     page.Size(PageSizes.Letter);
@@ -21,22 +28,22 @@ public class PdfGenerationService : IPdfGenerationService {
                     page.DefaultTextStyle(x => x.FontSize(10));
 
                     page.Header().Column(column => {
-                        column.Item().Text("StitchLens Needlepoint Pattern")
+                        column.Item().Text($"StitchLens {craftName} Pattern")  // UPDATED
                             .FontSize(20).Bold().FontColor(Colors.Blue.Darken3);
 
                         column.Item().PaddingTop(10).Text(data.Title).FontSize(14).SemiBold();
 
                         column.Item().PaddingTop(10).Row(row => {
                             row.RelativeItem().Column(col => {
-                                col.Item().Text("Canvas Specifications").Bold();
-                                col.Item().Text($"Mesh: {data.MeshCount} count");
+                                col.Item().Text($"{materialName} Specifications").Bold();  // UPDATED
+                                col.Item().Text($"{countLabel}: {data.MeshCount} count");  // UPDATED
                                 col.Item().Text($"Size: {data.WidthInches:F1}\" × {data.HeightInches:F1}\"");
                                 col.Item().Text($"Stitches: {data.WidthStitches} × {data.HeightStitches}");
                             });
 
                             row.RelativeItem().Column(col => {
                                 col.Item().Text("Materials").Bold();
-                                col.Item().Text($"Brand: {data.YarnBrand}");
+                                col.Item().Text($"{threadType} Brand: {data.YarnBrand}");  // UPDATED
                                 col.Item().Text($"Colors: {data.YarnMatches.Count}");
                                 col.Item().Text($"Total Skeins: {data.YarnMatches.Sum(m => m.EstimatedSkeins)}");
                             });
@@ -52,7 +59,7 @@ public class PdfGenerationService : IPdfGenerationService {
 
                         if (data.QuantizedImageData != null && data.QuantizedImageData.Length > 0) {
                             column.Item().PaddingTop(5).PaddingBottom(10)
-                                .Height(4, Unit.Inch)  // Larger image
+                                .Height(4, Unit.Inch)
                                 .AlignCenter()
                                 .Image(data.QuantizedImageData, ImageScaling.FitArea);
                         }
@@ -67,18 +74,16 @@ public class PdfGenerationService : IPdfGenerationService {
                         // Shopping List Table
                         column.Item().PaddingTop(10).Table(table =>
                         {
-                            // Define columns - adjusted widths to fit with color swatch
                             table.ColumnsDefinition(columns =>
                             {
-                                columns.ConstantColumn(30);  // Color swatch
-                                columns.ConstantColumn(50);  // Code (reduced from 60)
-                                columns.RelativeColumn(2);   // Name (reduced relative size)
-                                columns.ConstantColumn(60);  // Stitches (reduced from 70)
-                                columns.ConstantColumn(45);  // Yards (reduced from 50)
-                                columns.ConstantColumn(45);  // Skeins (reduced from 50)
+                                columns.ConstantColumn(30);
+                                columns.ConstantColumn(50);
+                                columns.RelativeColumn(2);
+                                columns.ConstantColumn(60);
+                                columns.ConstantColumn(45);
+                                columns.ConstantColumn(45);
                             });
 
-                            // Header - smaller padding
                             table.Header(header =>
                             {
                                 header.Cell().Background(Colors.Blue.Darken3)
@@ -95,13 +100,11 @@ public class PdfGenerationService : IPdfGenerationService {
                                     .Padding(3).Text("Skeins").FontColor(Colors.White).FontSize(8).Bold();
                             });
 
-                            // Rows - smaller padding and font
                             foreach (var yarn in data.YarnMatches) {
                                 var bgColor = data.YarnMatches.IndexOf(yarn) % 2 == 0
                                     ? Colors.White
                                     : Colors.Grey.Lighten4;
 
-                                // Color swatch cell
                                 table.Cell().Background(bgColor).Padding(3)
                                     .Background(yarn.HexColor)
                                     .Border(1)
@@ -119,10 +122,9 @@ public class PdfGenerationService : IPdfGenerationService {
                                     .Text(yarn.EstimatedSkeins.ToString()).FontSize(8).Bold();
                             }
 
-                            // Footer
                             table.Footer(footer =>
                             {
-                                footer.Cell().Background(Colors.Grey.Lighten2).Padding(3); // Empty for color column
+                                footer.Cell().Background(Colors.Grey.Lighten2).Padding(3);
                                 footer.Cell().ColumnSpan(2).Background(Colors.Grey.Lighten2)
                                     .Padding(3).Text("TOTALS:").FontSize(8).Bold();
                                 footer.Cell().Background(Colors.Grey.Lighten2)
@@ -134,26 +136,47 @@ public class PdfGenerationService : IPdfGenerationService {
                             });
                         });
 
-                        // Instructions
+                        // Instructions - CRAFT SPECIFIC
                         column.Item().PageBreak();
                         column.Item().Text("Stitching Instructions").FontSize(14).Bold();
 
                         column.Item().PaddingTop(10).Column(instructions =>
                         {
-                            instructions.Item().Text("Getting Started:").Bold();
-                            instructions.Item().PaddingLeft(15).Text("1. Cut canvas 2-3 inches larger on all sides");
-                            instructions.Item().PaddingLeft(15).Text("2. Bind edges with masking tape");
-                            instructions.Item().PaddingLeft(15).Text("3. Mark the center of your canvas");
+                            if (data.CraftType == Data.Models.CraftType.Needlepoint) {
+                                // Needlepoint instructions
+                                instructions.Item().Text("Getting Started:").Bold();
+                                instructions.Item().PaddingLeft(15).Text("1. Cut canvas 2-3 inches larger on all sides");
+                                instructions.Item().PaddingLeft(15).Text("2. Bind edges with masking tape");
+                                instructions.Item().PaddingLeft(15).Text("3. Mark the center of your canvas");
 
-                            instructions.Item().PaddingTop(10).Text("Stitching Tips:").Bold();
-                            instructions.Item().PaddingLeft(15).Text("• Work from center outward");
-                            instructions.Item().PaddingLeft(15).Text("• Use 18-inch strands of yarn");
-                            instructions.Item().PaddingLeft(15).Text("• Keep consistent tension");
+                                instructions.Item().PaddingTop(10).Text("Stitching Tips:").Bold();
+                                instructions.Item().PaddingLeft(15).Text("• Work from center outward");
+                                instructions.Item().PaddingLeft(15).Text("• Use 18-inch strands of yarn");
+                                instructions.Item().PaddingLeft(15).Text("• Keep consistent tension");
 
-                            instructions.Item().PaddingTop(10).Text("Finishing:").Bold();
-                            instructions.Item().PaddingLeft(15).Text("• Block by dampening and pinning to shape");
-                            instructions.Item().PaddingLeft(15).Text("• Allow to dry completely");
-                            instructions.Item().PaddingLeft(15).Text("• Professional framing recommended");
+                                instructions.Item().PaddingTop(10).Text("Finishing:").Bold();
+                                instructions.Item().PaddingLeft(15).Text("• Block by dampening and pinning to shape");
+                                instructions.Item().PaddingLeft(15).Text("• Allow to dry completely");
+                                instructions.Item().PaddingLeft(15).Text("• Professional framing recommended");
+                            }
+                            else {
+                                // Cross-stitch instructions
+                                instructions.Item().Text("Getting Started:").Bold();
+                                instructions.Item().PaddingLeft(15).Text("1. Find the center of your fabric by folding in half both ways");
+                                instructions.Item().PaddingLeft(15).Text("2. Mark center with a water-soluble pen or by basting");
+                                instructions.Item().PaddingLeft(15).Text("3. Use an embroidery hoop to keep fabric taut");
+
+                                instructions.Item().PaddingTop(10).Text("Stitching Tips:").Bold();
+                                instructions.Item().PaddingLeft(15).Text("• Start from the center and work outward");
+                                instructions.Item().PaddingLeft(15).Text("• Use 2 strands of floss (6-strand divisible)");
+                                instructions.Item().PaddingLeft(15).Text("• Keep all top stitches facing the same direction");
+                                instructions.Item().PaddingLeft(15).Text("• Work in rows for best coverage");
+
+                                instructions.Item().PaddingTop(10).Text("Finishing:").Bold();
+                                instructions.Item().PaddingLeft(15).Text("• Gently hand wash in cool water if needed");
+                                instructions.Item().PaddingLeft(15).Text("• Press face-down on a towel while damp");
+                                instructions.Item().PaddingLeft(15).Text("• Frame or mount as desired");
+                            }
                         });
 
                         // Color Legend with Symbols
@@ -165,11 +188,11 @@ public class PdfGenerationService : IPdfGenerationService {
                         {
                             table.ColumnsDefinition(columns =>
                             {
-                                columns.ConstantColumn(30);  // Color swatch
-                                columns.ConstantColumn(45);  // Code
-                                columns.RelativeColumn(2);   // Name
-                                columns.ConstantColumn(40);  // Symbol
-                                columns.ConstantColumn(60);  // Usage %
+                                columns.ConstantColumn(30);
+                                columns.ConstantColumn(45);
+                                columns.RelativeColumn(2);
+                                columns.ConstantColumn(40);
+                                columns.ConstantColumn(60);
                             });
 
                             table.Header(header =>
@@ -198,7 +221,6 @@ public class PdfGenerationService : IPdfGenerationService {
 
                                 var rowColor = i % 2 == 0 ? Colors.White : Colors.Grey.Lighten4;
 
-                                // Color swatch
                                 table.Cell().Background(rowColor).Padding(3)
                                     .Background(yarn.HexColor)
                                     .Border(1)

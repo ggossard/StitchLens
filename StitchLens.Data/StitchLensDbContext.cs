@@ -17,6 +17,9 @@ public class StitchLensDbContext : IdentityDbContext<User, IdentityRole<int>, in
     public DbSet<YarnBrand> YarnBrands => Set<YarnBrand>();
     public DbSet<YarnColor> YarnColors => Set<YarnColor>();
     public DbSet<PartnerConfig> PartnerConfigs => Set<PartnerConfig>();
+    public DbSet<Subscription> Subscriptions => Set<Subscription>();
+    public DbSet<PaymentHistory> PaymentHistory => Set<PaymentHistory>();
+    public DbSet<TierConfiguration> TierConfigurations => Set<TierConfiguration>();  // ADD THIS
 
     protected override void OnModelCreating(ModelBuilder modelBuilder) {
         // CRITICAL: Call base.OnModelCreating first to set up Identity tables
@@ -29,6 +32,15 @@ public class StitchLensDbContext : IdentityDbContext<User, IdentityRole<int>, in
             entity.HasIndex(e => e.Email).IsUnique();
             entity.Property(e => e.Email).HasMaxLength(255);
 
+            // Subscription-related properties
+            entity.Property(e => e.CurrentTier)
+                .HasConversion<int>();
+
+            entity.HasOne(e => e.ActiveSubscription)
+                .WithOne()
+                .HasForeignKey<User>(e => e.ActiveSubscriptionId)
+                .OnDelete(DeleteBehavior.SetNull);
+
             // One-to-One relationship with PartnerConfig
             entity.HasOne(e => e.PartnerConfig)
                 .WithOne(p => p.User)
@@ -37,21 +49,25 @@ public class StitchLensDbContext : IdentityDbContext<User, IdentityRole<int>, in
         });
 
         // Project configuration
-        modelBuilder.Entity<Project>(entity => {
+        modelBuilder.Entity<Project>(entity =>
+        {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Title).HasMaxLength(200);
             entity.Property(e => e.WidthInches).HasPrecision(10, 2);
             entity.Property(e => e.HeightInches).HasPrecision(10, 2);
+            entity.Property(e => e.CraftType).HasConversion<int>();
 
             entity.HasOne(e => e.User)
                 .WithMany(u => u.Projects)
                 .HasForeignKey(e => e.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.SetNull)  // CHANGED from Cascade
+                .IsRequired(false);  // ADDED - makes relationship optional
 
             entity.HasOne(e => e.YarnBrand)
                 .WithMany()
                 .HasForeignKey(e => e.YarnBrandId)
-                .OnDelete(DeleteBehavior.SetNull);
+                .OnDelete(DeleteBehavior.SetNull)
+                .IsRequired(false);  // ADDED - makes relationship optional
         });
 
         // PartnerConfig configuration
@@ -64,7 +80,6 @@ public class StitchLensDbContext : IdentityDbContext<User, IdentityRole<int>, in
 
             // Ensure ApiKey is unique
             entity.HasIndex(e => e.ApiKey).IsUnique();
-
             // Ensure one config per user
             entity.HasIndex(e => e.UserId).IsUnique();
         });
@@ -73,6 +88,8 @@ public class StitchLensDbContext : IdentityDbContext<User, IdentityRole<int>, in
         modelBuilder.Entity<YarnBrand>(entity => {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Name).HasMaxLength(100);
+            entity.Property(e => e.CraftType).HasConversion<int>();
+            entity.Property(e => e.YardsPerStitch).HasPrecision(10, 3);
         });
 
         // YarnColor configuration
@@ -86,6 +103,104 @@ public class StitchLensDbContext : IdentityDbContext<User, IdentityRole<int>, in
                 .WithMany(b => b.Colors)
                 .HasForeignKey(e => e.YarnBrandId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // Subscription configuration
+        modelBuilder.Entity<Subscription>(entity => {
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Tier)
+                .HasConversion<int>();
+
+            entity.Property(e => e.Status)
+                .HasConversion<string>()
+                .HasMaxLength(50);
+
+            entity.Property(e => e.MonthlyPrice)
+                .HasPrecision(10, 2);
+
+            entity.Property(e => e.CustomTierName)
+                .HasMaxLength(100);
+
+            entity.Property(e => e.CustomTierNotes)
+                .HasMaxLength(500);
+
+            entity.HasOne(e => e.User)
+                .WithMany(u => u.Subscriptions)
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(e => e.StripeSubscriptionId)
+                .IsUnique()
+                .HasFilter("[StripeSubscriptionId] IS NOT NULL");
+        });
+
+        // PaymentHistory configuration
+        modelBuilder.Entity<PaymentHistory>(entity => {
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Type)
+                .HasConversion<string>()
+                .HasMaxLength(50);
+
+            entity.Property(e => e.Status)
+                .HasConversion<string>()
+                .HasMaxLength(50);
+
+            entity.Property(e => e.Amount)
+                .HasPrecision(10, 2);
+
+            entity.Property(e => e.RefundAmount)
+                .HasPrecision(10, 2);
+
+            entity.Property(e => e.Currency)
+                .HasMaxLength(3);
+
+            entity.Property(e => e.Description)
+                .HasMaxLength(500);
+
+            entity.HasOne(e => e.User)
+                .WithMany()
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.Subscription)
+                .WithMany(s => s.Payments)
+                .HasForeignKey(e => e.SubscriptionId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasOne(e => e.Project)
+                .WithMany()
+                .HasForeignKey(e => e.ProjectId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasIndex(e => e.StripePaymentIntentId)
+                .IsUnique()
+                .HasFilter("[StripePaymentIntentId] IS NOT NULL");
+        });
+
+        // TierConfiguration configuration
+        modelBuilder.Entity<TierConfiguration>(entity => {
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Tier)
+                .HasConversion<int>();
+
+            entity.Property(e => e.Name)
+                .HasMaxLength(100);
+
+            entity.Property(e => e.Description)
+                .HasMaxLength(500);
+
+            entity.Property(e => e.MonthlyPrice)
+                .HasPrecision(10, 2);
+
+            entity.Property(e => e.StripePriceId)
+                .HasMaxLength(100);
+
+            // Ensure each tier has only one config
+            entity.HasIndex(e => e.Tier)
+                .IsUnique();
         });
     }
 }

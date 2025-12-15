@@ -2,10 +2,14 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 using StitchLens.Core.Services;
 using StitchLens.Data;
 using StitchLens.Data.Models;
 using StitchLens.Web.Models;
+using System.Security.Claims;
+using static StitchLens.Web.Models.ConfigureViewModel;
 
 namespace StitchLens.Web.Controllers;
 
@@ -17,6 +21,7 @@ public class PatternController : Controller {
     private readonly IPdfGenerationService _pdfService;
     private readonly IGridGenerationService _gridService;
     private readonly UserManager<User> _userManager;
+    private readonly ITierConfigurationService _tierConfigService;
 
     public PatternController(
         StitchLensDbContext context,
@@ -25,7 +30,8 @@ public class PatternController : Controller {
         IYarnMatchingService yarnMatchingService,
         IPdfGenerationService pdfService,
         IGridGenerationService gridService,
-        UserManager<User> userManager) {
+        UserManager<User> userManager,
+        ITierConfigurationService tierConfigService) {
         _context = context;
         _imageService = imageService;
         _colorService = colorService;
@@ -33,6 +39,7 @@ public class PatternController : Controller {
         _pdfService = pdfService;
         _gridService = gridService;
         _userManager = userManager;
+        _tierConfigService = tierConfigService;
     }
 
     // Step 1: Show upload form
@@ -108,7 +115,8 @@ public class PatternController : Controller {
             OriginalImagePath = filePath,
             CreatedAt = DateTime.UtcNow,
             WidthInches = processed.Width / 96m,
-            HeightInches = processed.Height / 96m
+            HeightInches = processed.Height / 96m,
+            YarnBrandId = null
         };
 
         _context.Projects.Add(project);
@@ -124,28 +132,49 @@ public class PatternController : Controller {
         if (project == null)
             return NotFound();
 
-        // Get available yarn brands
-        var yarnBrands = await _context.YarnBrands
+        // Get ALL yarn brands with their craft type for client-side filtering
+        var allBrands = await _context.YarnBrands
             .Where(b => b.IsActive)
             .OrderBy(b => b.Name)
+            .Select(b => new YarnBrandOption {
+                Id = b.Id,
+                Name = b.Name,
+                CraftType = (int)b.CraftType
+            })
+            .ToListAsync();
+
+        // Debug: Log what we found
+        Console.WriteLine($"Found {allBrands.Count} yarn brands:");
+        foreach (var brand in allBrands) {
+            Console.WriteLine($"  - {brand.Name} (CraftType: {brand.CraftType})");
+        }
+
+        // Get brands for current craft type (for initial display)
+        var currentCraftBrands = allBrands
+            .Where(b => b.CraftType == (int)project.CraftType)
             .Select(b => new SelectListItem {
                 Value = b.Id.ToString(),
                 Text = b.Name
             })
-            .ToListAsync();
+            .ToList();
 
         var viewModel = new ConfigureViewModel {
             ProjectId = project.Id,
             ImageUrl = $"/uploads/{Path.GetFileName(project.OriginalImagePath)}",
             Title = project.Title,
+            CraftType = project.CraftType,
             MeshCount = project.MeshCount,
             WidthInches = Math.Round(project.WidthInches, 1),
             HeightInches = Math.Round(project.HeightInches, 1),
             MaxColors = project.MaxColors,
             StitchType = project.StitchType,
             YarnBrandId = project.YarnBrandId,
-            YarnBrands = yarnBrands
+            YarnBrands = currentCraftBrands,
+            AllYarnBrands = allBrands  // CRITICAL: Set this
         };
+
+        // Debug: Verify it's set
+        Console.WriteLine($"ViewModel.AllYarnBrands count: {viewModel.AllYarnBrands.Count}");
 
         return View(viewModel);
     }
@@ -172,6 +201,7 @@ public class PatternController : Controller {
 
         // Update project with settings
         project.Title = model.Title;
+        project.CraftType = model.CraftType;
         project.MeshCount = model.MeshCount;
         project.WidthInches = model.WidthInches;
         project.HeightInches = model.HeightInches;
@@ -181,9 +211,36 @@ public class PatternController : Controller {
 
         await _context.SaveChangesAsync();
 
+        // Calculate actual stitch dimensions
+        int stitchWidth = (int)(project.WidthInches * project.MeshCount);
+        int stitchHeight = (int)(project.HeightInches * project.MeshCount);
+        int totalStitches = stitchWidth * stitchHeight;
+
+        Console.WriteLine($"Pattern dimensions: {stitchWidth} x {stitchHeight} = {totalStitches} stitches");
+
         // Generate quantized pattern
         var imageBytes = await System.IO.File.ReadAllBytesAsync(project.OriginalImagePath);
         var quantized = await _colorService.QuantizeAsync(imageBytes, project.MaxColors);
+
+        // CALCULATE SCALING FACTOR
+        // Original image might be 500x500 pixels, but pattern is only 70x106 stitches
+        var originalImage = await Image.LoadAsync<Rgb24>(project.OriginalImagePath);
+        int originalPixels = originalImage.Width * originalImage.Height;
+        double scaleFactor = (double)totalStitches / originalPixels;
+
+        Console.WriteLine($"Original image: {originalImage.Width}x{originalImage.Height} = {originalPixels} pixels");
+        Console.WriteLine($"Scale factor: {scaleFactor:F6}");
+
+        // Scale the pixel counts in the palette to match stitch counts
+        foreach (var color in quantized.Palette) {
+            int originalCount = color.PixelCount;
+            color.PixelCount = (int)Math.Round(color.PixelCount * scaleFactor);
+            Console.WriteLine($"Color: {color.R},{color.G},{color.B} - Original: {originalCount}, Scaled: {color.PixelCount}");
+        }
+
+        // Verify the total
+        int paletteTotal = quantized.Palette.Sum(c => c.PixelCount);
+        Console.WriteLine($"Palette total after scaling: {paletteTotal} (should be ~{totalStitches})");
 
         // Save quantized image
         var quantizedFileName = $"{Path.GetFileNameWithoutExtension(project.OriginalImagePath)}_quantized.png";
@@ -193,14 +250,11 @@ public class PatternController : Controller {
 
         // Match colors to yarns if brand selected
         if (project.YarnBrandId.HasValue) {
-            // Calculate total stitches
-            int totalStitches = (int)(project.WidthInches * project.MeshCount *
-                                     project.HeightInches * project.MeshCount);
-
             var yarnMatches = await _yarnMatchingService.MatchColorsToYarnAsync(
                 quantized.Palette,
                 project.YarnBrandId.Value,
-                totalStitches);
+                totalStitches,
+                project.CraftType);
 
             // Store matched yarn info as JSON
             project.PaletteJson = System.Text.Json.JsonSerializer.Serialize(yarnMatches);
@@ -224,8 +278,30 @@ public class PatternController : Controller {
         if (project == null)
             return NotFound();
 
+        // Get current user for quota check
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        User? user = null;
+        if (!string.IsNullOrEmpty(userId)) {
+            user = await _context.Users
+                .Include(u => u.ActiveSubscription)
+                .FirstOrDefaultAsync(u => u.Id == int.Parse(userId));
+
+            // Reset counter if new month
+            if (user != null && (user.LastDownloadDate.Month != DateTime.UtcNow.Month ||
+                user.LastDownloadDate.Year != DateTime.UtcNow.Year)) {
+                user.DownloadsThisMonth = 0;
+                user.LastDownloadDate = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
+            }
+        }
+
         var viewModel = new PreviewViewModel {
-            Project = project
+            Project = project,
+            CraftType = project.CraftType,
+            DownloadsUsed = user?.DownloadsThisMonth ?? 0,
+            CurrentTier = user?.CurrentTier ?? SubscriptionTier.Free,
+            DownloadLimit = user?.ActiveSubscription?.DownloadQuota
+                 ?? await _tierConfigService.GetDownloadQuotaAsync(user?.CurrentTier ?? SubscriptionTier.Free)
         };
 
         // Deserialize palette data
@@ -246,13 +322,46 @@ public class PatternController : Controller {
     }
 
     // Action for PDF download
-    public async Task<IActionResult> DownloadPdf(int id) {
+    public async Task<IActionResult> DownloadPdf(int id, bool useColor = true) {
         var project = await _context.Projects
             .Include(p => p.YarnBrand)
             .FirstOrDefaultAsync(p => p.Id == id);
 
         if (project == null)
             return NotFound();
+
+        // Get current user and check download quota
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId)) {
+            // Not logged in - redirect to login
+            return RedirectToAction("Login", "Account", new { returnUrl = Url.Action("DownloadPdf", "Pattern", new { id }) });
+        }
+
+        var user = await _context.Users
+            .Include(u => u.ActiveSubscription)
+            .FirstOrDefaultAsync(u => u.Id == int.Parse(userId));
+
+        if (user == null)
+            return NotFound();
+
+        // Reset counter if new month
+        if (user.LastDownloadDate.Month != DateTime.UtcNow.Month ||
+            user.LastDownloadDate.Year != DateTime.UtcNow.Year) {
+            user.DownloadsThisMonth = 0;
+            user.LastDownloadDate = DateTime.UtcNow;
+        }
+
+        // Check quota based on tier
+        int downloadLimit = await _tierConfigService.GetDownloadQuotaAsync(user.CurrentTier);
+
+        if (user.DownloadsThisMonth >= downloadLimit) {
+            // Exceeded quota - redirect to upgrade page
+            TempData["ErrorMessage"] = user.CurrentTier == SubscriptionTier.Free
+                ? "You've used your 1 free download. Upgrade to download more patterns!"
+                : $"You've reached your monthly limit of {downloadLimit} downloads. Upgrade for more!";
+
+            return RedirectToAction("Pricing", "Home");
+        }
 
         // Deserialize yarn matches
         var yarnMatches = new List<YarnMatch>();
@@ -281,21 +390,27 @@ public class PatternController : Controller {
         // Create PDF data
         var pdfData = new PatternPdfData {
             Title = project.Title,
+            CraftType = project.CraftType,
             MeshCount = project.MeshCount,
             WidthInches = project.WidthInches,
             HeightInches = project.HeightInches,
-            WidthStitches = stitchWidth,
+            WidthStitches = stitchWidth,  // Fixed typo
             HeightStitches = stitchHeight,
             StitchType = project.StitchType,
             QuantizedImageData = imageData,
             YarnMatches = yarnMatches,
             YarnBrand = project.YarnBrand?.Name ?? "Unknown",
             StitchGrid = stitchGrid,
-            UseColoredGrid = true
+            UseColoredGrid = useColor
         };
 
         // Generate PDF
         var pdfBytes = await _pdfService.GeneratePatternPdfAsync(pdfData);
+
+        // Increment download counter AFTER successful generation
+        user.DownloadsThisMonth++;
+        user.LastDownloadDate = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
 
         // Return as download
         var fileName = $"StitchLens_Pattern_{project.Id}_{DateTime.Now:yyyyMMdd}.pdf";

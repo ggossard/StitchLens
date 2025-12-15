@@ -1,4 +1,6 @@
-﻿namespace StitchLens.Core.Services;
+﻿using StitchLens.Data.Models;
+
+namespace StitchLens.Core.Services;
 
 public interface IPdfGenerationService {
     Task<byte[]> GeneratePatternPdfAsync(PatternPdfData data);
@@ -7,6 +9,7 @@ public interface IPdfGenerationService {
 public class PatternPdfData {
     public string Title { get; set; } = "Needlepoint Pattern";
     public int MeshCount { get; set; }
+    public CraftType CraftType { get; set; } = CraftType.Needlepoint;
     public decimal WidthInches { get; set; }
     public decimal HeightInches { get; set; }
     public int WidthStitches { get; set; }

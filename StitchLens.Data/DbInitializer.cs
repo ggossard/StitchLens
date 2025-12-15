@@ -7,36 +7,124 @@ public static class DbInitializer {
     public static void Initialize(StitchLensDbContext context, string contentRootPath) {
         context.Database.EnsureCreated();
 
+        // Seed tier configurations FIRST
+        if (!context.TierConfigurations.Any()) {
+            var tiers = new[]
+            {
+                new TierConfiguration
+                {
+                    Tier = SubscriptionTier.Free,
+                    Name = "Free",
+                    Description = "Try it out",
+                    DownloadQuota = 1,
+                    PatternCreationDailyLimit = 3,
+                    AllowCommercialUse = false,
+                    PrioritySupport = false,
+                    MonthlyPrice = 0,
+                    StripePriceId = null
+                },
+                new TierConfiguration
+                {
+                    Tier = SubscriptionTier.Hobbyist,
+                    Name = "Hobbyist",
+                    Description = "For regular stitchers",
+                    DownloadQuota = 10,
+                    PatternCreationDailyLimit = 20,
+                    AllowCommercialUse = false,
+                    PrioritySupport = false,
+                    MonthlyPrice = 12.99m,
+                    StripePriceId = "price_1SbpSSFiTiD9qoU887veIxiO"
+                },
+                new TierConfiguration
+                {
+                    Tier = SubscriptionTier.Creator,
+                    Name = "Creator",
+                    Description = "Sell your finished pieces",
+                    DownloadQuota = 100,
+                    PatternCreationDailyLimit = 100,
+                    AllowCommercialUse = true,
+                    PrioritySupport = true,
+                    MonthlyPrice = 49.99m,
+                    StripePriceId = "price_1SbpSaFiTiD9qoU8yrkT8tOE"
+                },
+                new TierConfiguration
+                {
+                    Tier = SubscriptionTier.Custom,
+                    Name = "Custom",
+                    Description = "Enterprise solutions",
+                    DownloadQuota = int.MaxValue,
+                    PatternCreationDailyLimit = int.MaxValue,
+                    AllowCommercialUse = true,
+                    PrioritySupport = true,
+                    MonthlyPrice = 0,
+                    StripePriceId = null
+                }
+            };
+
+            context.TierConfigurations.AddRange(tiers);
+            context.SaveChanges();
+            Console.WriteLine("Seeded tier configurations");
+        }
+
         // Check if brands already exist
         if (context.YarnBrands.Any())
             return;
 
-        // Define yarn brands to load
+        // Define yarn brands to load - CRAFT SPECIFIC
         var brandsToLoad = new[]
         {
+            // NEEDLEPOINT BRANDS
             new YarnBrandConfig
             {
-                Name = "DMC",
+                Name = "DMC Tapestry Wool",
                 Country = "France",
                 FileName = "dmc-colors.json",
-                YardsPerSkein = 8,
+                YardsPerSkein = 9,  // 8.8 rounded up
+                YardsPerStitch = 0.007m,  // CORRECTED
+                CraftType = CraftType.Needlepoint,
                 IsActive = true
             },
             new YarnBrandConfig
             {
-                Name = "Appleton",
+                Name = "Appleton Crewel Wool",
                 Country = "UK",
                 FileName = "appleton-colors.json",
-                YardsPerSkein = 8, // Update with actual value if different
+                YardsPerSkein = 8,
+                YardsPerStitch = 0.007m,  // CORRECTED
+                CraftType = CraftType.Needlepoint,
                 IsActive = true
             },
             new YarnBrandConfig
             {
-                Name = "Paternayan",
+                Name = "Paternayan Persian Wool",
                 Country = "USA",
                 FileName = "paternayan-colors.json",
-                YardsPerSkein = 8, // 8.8 yards per skein (10 strands x 32" each)
+                YardsPerSkein = 8,
+                YardsPerStitch = 0.007m,  // CORRECTED
+                CraftType = CraftType.Needlepoint,
                 IsActive = true
+            },
+    
+            // CROSS-STITCH BRANDS
+            new YarnBrandConfig
+            {
+                Name = "DMC Embroidery Floss",
+                Country = "France",
+                FileName = "dmc-colors.json",
+                YardsPerSkein = 9,  // 8.7 rounded up
+                YardsPerStitch = 0.006m,  // CORRECTED (was 0.083!)
+                CraftType = CraftType.CrossStitch,
+                IsActive = true
+            },
+            new YarnBrandConfig
+            {
+                Name = "Anchor Embroidery Floss",
+                Country = "UK",
+                FileName = "anchor-colors.json",
+                YardsPerSkein = 9,
+                YardsPerStitch = 0.006m,  // CORRECTED
+                CraftType = CraftType.CrossStitch,
+                IsActive = false
             }
         };
 
@@ -54,8 +142,9 @@ public static class DbInitializer {
         var brand = new YarnBrand {
             Name = config.Name,
             Country = config.Country,
-            IsActive = config.IsActive,
-            YardsPerSkein = config.YardsPerSkein
+            CraftType = config.CraftType,
+            YardsPerStitch = config.YardsPerStitch,
+            IsActive = config.IsActive
         };
 
         context.YarnBrands.Add(brand);
@@ -87,12 +176,12 @@ public static class DbInitializer {
                     Lab_L = color.lab_l,
                     Lab_A = color.lab_a,
                     Lab_B = color.lab_b,
-                    YardsPerSkein = brand.YardsPerSkein
+                    YardsPerSkein = config.YardsPerSkein
                 });
             }
 
             context.SaveChanges();
-            Console.WriteLine($"✓ Seeded {colorData.Count} {config.Name} colors");
+            Console.WriteLine($"✓ Seeded {colorData.Count} colors for {config.Name} ({config.CraftType})");
         }
         catch (Exception ex) {
             Console.WriteLine($"Error loading {config.Name} colors: {ex.Message}");
@@ -105,6 +194,8 @@ public static class DbInitializer {
         public string Country { get; set; } = "";
         public string FileName { get; set; } = "";
         public int YardsPerSkein { get; set; }
+        public decimal YardsPerStitch { get; set; }
+        public CraftType CraftType { get; set; }
         public bool IsActive { get; set; } = true;
     }
 
