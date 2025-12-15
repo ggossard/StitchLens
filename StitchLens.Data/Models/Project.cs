@@ -9,6 +9,7 @@ public class Project
     public string Title { get; set; } = "Untitled Pattern";
     public string OriginalImagePath { get; set; } = string.Empty;
     public string? ProcessedImagePath { get; set; }
+    public CraftType CraftType { get; set; } = CraftType.Needlepoint;  // Default to needlepoint
 
     // Canvas settings
     public int MeshCount { get; set; } = 14;

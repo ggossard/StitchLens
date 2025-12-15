@@ -1,0 +1,325 @@
+﻿@model StitchLens.Web.Models.DashboardViewModel
+@using StitchLens.Data.Models
+@{
+    ViewData["Title"] = "My Account";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>My Account</h2>
+        @if (Model.CurrentTier != SubscriptionTier.Free) {
+            <span class="badge bg-primary" style="font-size: 1rem; padding: 0.5rem 1rem;">
+                @Model.TierDisplayName Member
+            </span>
+        }
+    </div>
+
+    <!-- Top Row: Subscription Status + Account Information -->
+    <div class="row mb-4">
+        <!-- Left: Current Plan Card -->
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-star me-2"></i>Current Plan</h5>
+                </div>
+                <div class="card-body">
+                    <h4>@Model.TierDisplayName</h4>
+                    <p class="text-muted mb-3">@Model.TierDescription</p>
+
+                    @if (Model.HasActiveSubscription) {
+                        <table class="table table-sm table-borderless">
+                            <tr>
+                                <td><strong>Monthly Price:</strong></td>
+                                <td class="text-end">$@Model.MonthlyPrice.ToString("F2")</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Next Billing:</strong></td>
+                                <td class="text-end">@Model.NextBillingDate?.ToString("MMM d, yyyy")</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Status:</strong></td>
+                                <td class="text-end">
+                                    <span class="badge bg-success">Active</span>
+                                </td>
+                            </tr>
+                        </table>
+                    }
+                    else if (Model.CurrentTier == SubscriptionTier.Free) {
+                        <div class="alert alert-info">
+                            <p class="mb-2"><strong>Ready to unlock more?</strong></p>
+                            <p class="small mb-0">Upgrade to get higher download limits and premium features.</p>
+                        </div>
+                    }
+
+                    <div class="d-grid gap-2 mt-3">
+                        @if (Model.CurrentTier == SubscriptionTier.Free) {
+                            <a asp-controller="Home" asp-action="Pricing" class="btn btn-primary">
+                                <i class="fas fa-arrow-up me-2"></i>Upgrade Now
+                            </a>
+                        }
+                        else {
+                            <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#cancelModal">
+                                <i class="fas fa-times me-2"></i>Cancel Subscription
+                            </button>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Account Information Card -->
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0"><i class="fas fa-user me-2"></i>Account Information</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm table-borderless">
+                        <tr>
+                            <td><strong>Email:</strong></td>
+                            <td class="text-end">@Model.User.Email</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Account Type:</strong></td>
+                            <td class="text-end">@Model.User.UserType</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Member Since:</strong></td>
+                            <td class="text-end">@Model.User.CreatedAt.ToLocalTime().ToString("MMM d, yyyy")</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Total Patterns:</strong></td>
+                            <td class="text-end">
+                                <span class="badge bg-primary">@Model.User.Projects.Count</span>
+                            </td>
+                        </tr>
+                        @if (!string.IsNullOrEmpty(Model.User.StripeCustomerId)) {
+                            <tr>
+                                <td><strong>Stripe Customer:</strong></td>
+                                <td class="text-end">
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-check me-1"></i>Connected
+                                    </span>
+                                </td>
+                            </tr>
+                        }
+                    </table>
+
+                    <div class="d-grid gap-2 mt-3">
+                        <button class="btn btn-outline-secondary" disabled>
+                            <i class="fas fa-key me-2"></i>Change Password (Coming Soon)
+                        </button>
+                        <a asp-action="MyPatterns" class="btn btn-outline-primary">
+                            <i class="fas fa-folder me-2"></i>View My Patterns
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Usage Stats Row -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Usage This Month</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Pattern Downloads</h6>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span>@Model.DownloadsUsed of @Model.DownloadQuota</span>
+                                <span class="text-muted">@Model.DownloadsRemaining remaining</span>
+                            </div>
+                            <div class="progress" style="height: 25px;">
+                                <div class="progress-bar @(Model.DownloadPercentage > 80 ? "bg-warning" : "bg-success")"
+                                     role="progressbar"
+                                     style="width: @Model.DownloadPercentage%"
+                                     aria-valuenow="@Model.DownloadPercentage"
+                                     aria-valuemin="0"
+                                     aria-valuemax="100">
+                                    @Model.DownloadPercentage%
+                                </div>
+                            </div>
+                            @if (Model.DownloadPercentage > 80) {
+                                <small class="text-warning">
+                                    <i class="fas fa-exclamation-triangle me-1"></i>
+                                    You're running low on downloads this month!
+                                </small>
+                            }
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Patterns Created Today</h6>
+                            <div class="d-flex align-items-center">
+                                <div class="display-4 text-primary me-3">@Model.PatternsCreatedToday</div>
+                                <div>
+                                    <small class="text-muted d-block">patterns created</small>
+                                    <small class="text-muted">on @DateTime.Today.ToString("MMM d, yyyy")</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-bolt me-2"></i>Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-2">
+                        <div class="col-md-3">
+                            <a asp-controller="Pattern" asp-action="Upload" class="btn btn-primary w-100">
+                                <i class="fas fa-plus-circle me-2"></i>Create Pattern
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a asp-action="MyPatterns" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-folder-open me-2"></i>View Patterns
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-outline-secondary w-100" disabled>
+                                <i class="fas fa-cog me-2"></i>Settings
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            @if (Model.CurrentTier == SubscriptionTier.Free) {
+                                <a asp-controller="Home" asp-action="Pricing" class="btn btn-success w-100">
+                                    <i class="fas fa-arrow-up me-2"></i>Upgrade Plan
+                                </a>
+                            }
+                            else {
+                                <button class="btn btn-outline-info w-100" disabled>
+                                    <i class="fas fa-receipt me-2"></i>Billing History
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Payments -->
+    @if (Model.RecentPayments.Any()) {
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-credit-card me-2"></i>Recent Payments</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Description</th>
+                                        <th>Type</th>
+                                        <th class="text-end">Amount</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var payment in Model.RecentPayments) {
+                                        <tr>
+                                            <td>@payment.CreatedAt.ToLocalTime().ToString("MMM d, yyyy")</td>
+                                            <td>@payment.Description</td>
+                                            <td>
+                                                @switch (payment.Type) {
+                                                    case PaymentType.SubscriptionRecurring:
+                                                        <span class="badge bg-primary">
+                                                            <i class="fas fa-sync me-1"></i>Recurring
+                                                        </span>
+                                                        break;
+                                                    case PaymentType.SubscriptionInitial:
+                                                        <span class="badge bg-info">
+                                                            <i class="fas fa-star me-1"></i>Initial
+                                                        </span>
+                                                        break;
+                                                    case PaymentType.OneTimePattern:
+                                                        <span class="badge bg-secondary">
+                                                            <i class="fas fa-file me-1"></i>One-Time
+                                                        </span>
+                                                        break;
+                                                    case PaymentType.Refund:
+                                                        <span class="badge bg-warning">
+                                                            <i class="fas fa-undo me-1"></i>Refund
+                                                        </span>
+                                                        break;
+                                                }
+                                            </td>
+                                            <td class="text-end"><strong>$@payment.Amount.ToString("F2")</strong></td>
+                                            <td>
+                                                @switch (payment.Status) {
+                                                    case PaymentStatus.Succeeded:
+                                                        <span class="badge bg-success">
+                                                            <i class="fas fa-check me-1"></i>Succeeded
+                                                        </span>
+                                                        break;
+                                                    case PaymentStatus.Pending:
+                                                        <span class="badge bg-warning">
+                                                            <i class="fas fa-clock me-1"></i>Pending
+                                                        </span>
+                                                        break;
+                                                    case PaymentStatus.Failed:
+                                                        <span class="badge bg-danger">
+                                                            <i class="fas fa-times me-1"></i>Failed
+                                                        </span>
+                                                        break;
+                                                    case PaymentStatus.Refunded:
+                                                        <span class="badge bg-info">
+                                                            <i class="fas fa-undo me-1"></i>Refunded
+                                                        </span>
+                                                        break;
+                                                    case PaymentStatus.PartiallyRefunded:
+                                                        <span class="badge bg-warning">
+                                                            <i class="fas fa-exclamation-triangle me-1"></i>Partial Refund
+                                                        </span>
+                                                        break;
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Cancel Subscription Modal -->
+<div class="modal fade" id="cancelModal" tabindex="-1" aria-labelledby="cancelModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="cancelModalLabel">Cancel Subscription</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to cancel your subscription?</p>
+                <p class="text-muted small">
+                    You'll continue to have access until @Model.NextBillingDate?.ToString("MMMM d, yyyy"),
+                    then your account will revert to the Free tier.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Keep Subscription</button>
+                <form asp-action="CancelSubscription" method="post">
+                    <button type="submit" class="btn btn-danger">Yes, Cancel</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

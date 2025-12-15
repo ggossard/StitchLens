@@ -11,8 +11,8 @@ using StitchLens.Data;
 namespace StitchLens.Data.Migrations
 {
     [DbContext(typeof(StitchLensDbContext))]
-    [Migration("20251206204509_AddIdentitySystem")]
-    partial class AddIdentitySystem
+    [Migration("20251215052858_InitialWithOptionalRelationships")]
+    partial class InitialWithOptionalRelationships
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -212,10 +212,86 @@ namespace StitchLens.Data.Migrations
                     b.ToTable("PartnerConfigs");
                 });
 
+            modelBuilder.Entity("StitchLens.Data.Models.PaymentHistory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("ProcessedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("ProjectId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal?>("RefundAmount")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("RefundedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("StripeInvoiceId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("StripePaymentIntentId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("SubscriptionId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProjectId");
+
+                    b.HasIndex("StripePaymentIntentId")
+                        .IsUnique()
+                        .HasFilter("[StripePaymentIntentId] IS NOT NULL");
+
+                    b.HasIndex("SubscriptionId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("PaymentHistory");
+                });
+
             modelBuilder.Entity("StitchLens.Data.Models.Project", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("CraftType")
                         .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("CreatedAt")
@@ -272,6 +348,141 @@ namespace StitchLens.Data.Migrations
                     b.ToTable("Projects");
                 });
 
+            modelBuilder.Entity("StitchLens.Data.Models.Subscription", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("AllowCommercialUse")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("CancellationReason")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("CancelledAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CurrentPeriodEnd")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CurrentPeriodStart")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("CustomTierName")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("CustomTierNotes")
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("DownloadQuota")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("MonthlyPrice")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("NextBillingDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("StripePaymentMethodId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("StripePriceId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("StripeSubscriptionId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Tier")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StripeSubscriptionId")
+                        .IsUnique()
+                        .HasFilter("[StripeSubscriptionId] IS NOT NULL");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Subscriptions");
+                });
+
+            modelBuilder.Entity("StitchLens.Data.Models.TierConfiguration", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("AllowCommercialUse")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("DownloadQuota")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("MonthlyPrice")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("PatternCreationDailyLimit")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("PrioritySupport")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("StripePriceId")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Tier")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Tier")
+                        .IsUnique();
+
+                    b.ToTable("TierConfigurations");
+                });
+
             modelBuilder.Entity("StitchLens.Data.Models.User", b =>
                 {
                     b.Property<int>("Id")
@@ -281,6 +492,9 @@ namespace StitchLens.Data.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int?>("ActiveSubscriptionId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("TEXT");
@@ -288,12 +502,24 @@ namespace StitchLens.Data.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("CurrentTier")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("DownloadsThisMonth")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Email")
                         .HasMaxLength(255)
                         .HasColumnType("TEXT");
 
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("LastDownloadDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("LastPatternDate")
+                        .HasColumnType("TEXT");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("INTEGER");
@@ -312,6 +538,9 @@ namespace StitchLens.Data.Migrations
                     b.Property<string>("PasswordHash")
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("PatternsCreatedToday")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("PhoneNumber")
                         .HasColumnType("TEXT");
 
@@ -325,6 +554,9 @@ namespace StitchLens.Data.Migrations
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("StripeCustomerId")
+                        .HasColumnType("TEXT");
+
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("INTEGER");
 
@@ -336,6 +568,9 @@ namespace StitchLens.Data.Migrations
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ActiveSubscriptionId")
+                        .IsUnique();
 
                     b.HasIndex("Email")
                         .IsUnique();
@@ -360,6 +595,9 @@ namespace StitchLens.Data.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("CraftType")
+                        .HasColumnType("INTEGER");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("INTEGER");
 
@@ -370,6 +608,10 @@ namespace StitchLens.Data.Migrations
 
                     b.Property<int>("YardsPerSkein")
                         .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("YardsPerStitch")
+                        .HasPrecision(10, 3)
+                        .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
@@ -481,12 +723,37 @@ namespace StitchLens.Data.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("StitchLens.Data.Models.PaymentHistory", b =>
+                {
+                    b.HasOne("StitchLens.Data.Models.Project", "Project")
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("StitchLens.Data.Models.Subscription", "Subscription")
+                        .WithMany("Payments")
+                        .HasForeignKey("SubscriptionId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("StitchLens.Data.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Project");
+
+                    b.Navigation("Subscription");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("StitchLens.Data.Models.Project", b =>
                 {
                     b.HasOne("StitchLens.Data.Models.User", "User")
                         .WithMany("Projects")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("StitchLens.Data.Models.YarnBrand", "YarnBrand")
                         .WithMany()
@@ -496,6 +763,27 @@ namespace StitchLens.Data.Migrations
                     b.Navigation("User");
 
                     b.Navigation("YarnBrand");
+                });
+
+            modelBuilder.Entity("StitchLens.Data.Models.Subscription", b =>
+                {
+                    b.HasOne("StitchLens.Data.Models.User", "User")
+                        .WithMany("Subscriptions")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("StitchLens.Data.Models.User", b =>
+                {
+                    b.HasOne("StitchLens.Data.Models.Subscription", "ActiveSubscription")
+                        .WithOne()
+                        .HasForeignKey("StitchLens.Data.Models.User", "ActiveSubscriptionId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("ActiveSubscription");
                 });
 
             modelBuilder.Entity("StitchLens.Data.Models.YarnColor", b =>
@@ -509,11 +797,18 @@ namespace StitchLens.Data.Migrations
                     b.Navigation("YarnBrand");
                 });
 
+            modelBuilder.Entity("StitchLens.Data.Models.Subscription", b =>
+                {
+                    b.Navigation("Payments");
+                });
+
             modelBuilder.Entity("StitchLens.Data.Models.User", b =>
                 {
                     b.Navigation("PartnerConfig");
 
                     b.Navigation("Projects");
+
+                    b.Navigation("Subscriptions");
                 });
 
             modelBuilder.Entity("StitchLens.Data.Models.YarnBrand", b =>

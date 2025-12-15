@@ -1,0 +1,218 @@
+﻿@using StitchLens.Data.Models
+@model StitchLens.Web.Models.PricingViewModel
+@{
+    ViewData["Title"] = "Pricing";
+}
+
+<div class="container my-5">
+
+    @if (TempData["ErrorMessage"] != null) {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <strong>Download Limit Reached!</strong> @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["SuccessMessage"] != null) {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Header -->
+    <div class="text-center mb-5">
+        <h1 class="display-4 fw-bold">Choose Your Plan</h1>
+        <p class="lead text-muted">
+            Transform your photos into beautiful needlepoint and cross-stitch patterns
+        </p>
+    </div>
+
+    <!-- Pricing Cards -->
+    <div class="row g-4 mb-5">
+        @foreach (var tier in Model.Tiers) {
+            <div class="col-lg-3 col-md-6">
+                <div class="card h-100 shadow-sm @(tier.IsPopular ? "border-primary" : "") position-relative">
+                    @if (tier.IsPopular) {
+                        <div class="position-absolute top-0 start-50 translate-middle">
+                            <span class="badge bg-primary rounded-pill px-3 py-2">
+                                <i class="fas fa-star me-1"></i>Most Popular
+                            </span>
+                        </div>
+                    }
+                    @if (tier.IsCurrent) {
+                        <div class="position-absolute top-0 end-0 m-3">
+                            <span class="badge bg-success">
+                                <i class="fas fa-check me-1"></i>Current
+                            </span>
+                        </div>
+                    }
+
+                    <div class="card-body d-flex flex-column">
+                        <!-- Tier Name -->
+                        <h3 class="card-title text-center mb-3 @(tier.IsPopular ? "mt-4" : "")">
+                            @tier.Name
+                        </h3>
+
+                        <!-- Price -->
+                        <div class="text-center mb-3">
+                            @if (tier.Tier == SubscriptionTier.Free) {
+                                <div class="display-4 fw-bold">Free</div>
+                                <small class="text-muted">Forever</small>
+                            }
+                            else if (tier.Tier == SubscriptionTier.Custom) {
+                                <div class="display-6 fw-bold">Custom</div>
+                                <small class="text-muted">Let's talk</small>
+                            }
+                            else {
+                                <div class="display-4 fw-bold">
+                                    $@tier.MonthlyPrice.ToString("F2")
+                                </div>
+                                <small class="text-muted">per month</small>
+                            }
+                        </div>
+
+                        <!-- Description -->
+                        <p class="text-center text-muted mb-4">@tier.Description</p>
+
+                        <!-- Features List -->
+                        <ul class="list-unstyled mb-4 flex-grow-1">
+                            @foreach (var feature in tier.Features) {
+                                <li class="mb-2">
+                                    <i class="fas fa-check text-success me-2"></i>
+                                    <span>@feature</span>
+                                </li>
+                            }
+                        </ul>
+
+                        <!-- CTA Button -->
+                        <div class="d-grid">
+                            @if (tier.IsCurrent) {
+                                <button class="btn @tier.ButtonClass btn-lg" disabled>
+                                    <i class="fas fa-check me-2"></i>@tier.ButtonText
+                                </button>
+                            }
+                            else if (tier.Tier == SubscriptionTier.Custom) {
+                                <a href="mailto:sales@stitchlens.com" class="btn @tier.ButtonClass btn-lg">
+                                    <i class="fas fa-envelope me-2"></i>@tier.ButtonText
+                                </a>
+                            }
+                            else if (tier.Tier == SubscriptionTier.Free) {
+                                @if (!Model.IsAuthenticated) {
+                                    <a asp-controller="Account" asp-action="Register" class="btn @tier.ButtonClass btn-lg">
+                                        <i class="fas fa-user-plus me-2"></i>@tier.ButtonText
+                                    </a>
+                                }
+                                else {
+                                    <button class="btn @tier.ButtonClass btn-lg" disabled>
+                                        Current Plan
+                                    </button>
+                                }
+                            }
+                            else {
+                                @if (Model.IsAuthenticated) {
+                                    <a asp-controller="Account" asp-action="Subscribe" asp-route-tier="@tier.Tier" class="btn @tier.ButtonClass btn-lg">
+                                        <i class="fas fa-rocket me-2"></i>@tier.ButtonText
+                                    </a>
+                                }
+                                else {
+                                    <a asp-controller="Account" asp-action="Register" asp-route-returnUrl="@Url.Action("Subscribe", "Account", new { tier = tier.Tier })" class="btn @tier.ButtonClass btn-lg">
+                                        <i class="fas fa-user-plus me-2"></i>Sign Up to Subscribe
+                                    </a>
+                                }
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- FAQ / Additional Info -->
+    <div class="row mt-5">
+        <div class="col-lg-8 offset-lg-2">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <h4 class="mb-4"><i class="fas fa-question-circle me-2"></i>Frequently Asked Questions</h4>
+
+                    <div class="accordion" id="pricingFaq">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                                    What happens when I reach my download limit?
+                                </button>
+                            </h2>
+                            <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#pricingFaq">
+                                <div class="accordion-body">
+                                    You can still create and preview patterns, but PDF downloads will be blocked until the next billing cycle or you upgrade to a higher tier.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                                    Can I change plans anytime?
+                                </button>
+                            </h2>
+                            <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#pricingFaq">
+                                <div class="accordion-body">
+                                    Yes! You can upgrade or downgrade at any time. Upgrades take effect immediately, while downgrades occur at your next billing date.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                                    What payment methods do you accept?
+                                </button>
+                            </h2>
+                            <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#pricingFaq">
+                                <div class="accordion-body">
+                                    We accept all major credit cards (Visa, Mastercard, American Express) through our secure Stripe payment processor.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
+                                    Is there a refund policy?
+                                </button>
+                            </h2>
+                            <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#pricingFaq">
+                                <div class="accordion-body">
+                                    We offer a 14-day money-back guarantee. If you're not satisfied, contact us within 14 days of your first payment for a full refund.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq5">
+                                    What's included in the commercial license?
+                                </button>
+                            </h2>
+                            <div id="faq5" class="accordion-collapse collapse" data-bs-parent="#pricingFaq">
+                                <div class="accordion-body">
+                                    Creator tier includes rights to sell finished pieces made from your patterns (e.g., on Etsy). You cannot resell the digital patterns themselves without a Custom enterprise agreement.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Call to Action -->
+    <div class="text-center mt-5 py-5">
+        <h3 class="mb-3">Still have questions?</h3>
+        <p class="text-muted mb-4">Our team is here to help you choose the perfect plan</p>
+        <a href="mailto:support@stitchlens.com" class="btn btn-lg btn-outline-primary">
+            <i class="fas fa-envelope me-2"></i>Contact Support
+        </a>
+    </div>
+</div>

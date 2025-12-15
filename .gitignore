@@ -36,6 +36,8 @@ patterns/
 secrets.json
 appsettings.*.Local.json
 appsettings.*.UserSecrets.json
+appsettings.Development.json
+appsettings.*.json
 
 # Logs
 *.log

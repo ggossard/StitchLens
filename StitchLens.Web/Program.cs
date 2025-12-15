@@ -7,6 +7,9 @@ using StitchLens.Data.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Configure Stripe API key
+Stripe.StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
+
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
@@ -62,6 +65,8 @@ builder.Services.AddScoped<IColorQuantizationService, ColorQuantizationService>(
 builder.Services.AddScoped<IYarnMatchingService, YarnMatchingService>();
 builder.Services.AddScoped<IPdfGenerationService, PdfGenerationService>();
 builder.Services.AddScoped<IGridGenerationService, GridGenerationService>();
+builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
+builder.Services.AddScoped<ITierConfigurationService, TierConfigurationService>();
 
 var uploadPath = Path.Combine(builder.Environment.ContentRootPath, "uploads");
 builder.Services.AddSingleton<IImageProcessingService>(

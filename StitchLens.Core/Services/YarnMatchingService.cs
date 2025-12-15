@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using StitchLens.Core.ColorScience;
 using StitchLens.Data;
+using StitchLens.Data.Models;
 
 namespace StitchLens.Core.Services;
 
@@ -12,17 +13,29 @@ public class YarnMatchingService : IYarnMatchingService {
     }
 
     public async Task<List<YarnMatch>> MatchColorsToYarnAsync(
-        List<ColorInfo> palette,
-        int yarnBrandId,
-        int totalStitchesInPattern)  // Add this parameter
-    {
-        // Load all yarn colors for the brand
+    List<ColorInfo> palette,
+    int yarnBrandId,
+    int totalStitches,
+    CraftType craftType)  // ADD THIS PARAMETER
+{
+        // Load yarn colors for the brand AND matching craft type
+        var yarnBrand = await _context.YarnBrands
+            .FirstOrDefaultAsync(b => b.Id == yarnBrandId);
+
+        if (yarnBrand == null)
+            throw new InvalidOperationException($"Yarn brand {yarnBrandId} not found");
+
+        // Verify brand matches craft type
+        if (yarnBrand.CraftType != craftType) {
+            throw new InvalidOperationException(
+                $"Yarn brand '{yarnBrand.Name}' is for {yarnBrand.CraftType}, but pattern is for {craftType}");
+        }
+
         var yarnColors = await _context.YarnColors
             .Where(y => y.YarnBrandId == yarnBrandId)
             .ToListAsync();
 
         var matches = new List<YarnMatch>();
-        var totalPixels = palette.Sum(p => p.PixelCount);
 
         foreach (var paletteColor in palette) {
             // Find best matching yarn using ΔE2000
@@ -36,22 +49,8 @@ public class YarnMatchingService : IYarnMatchingService {
                 .OrderBy(m => m.DeltaE)
                 .First();
 
-            // Calculate actual stitch count for this color
-            // Proportion of pixels = proportion of stitches
-            double colorProportion = (double)paletteColor.PixelCount / totalPixels;
-            int actualStitchCount = (int)Math.Round(totalStitchesInPattern * colorProportion);
-
-            // Calculate yarn needed
-            // For tent stitch: 1 yard of yarn covers approximately 100 stitches
-            double stitchesPerYard = 100.0;
-            double baseYardsNeeded = actualStitchCount / stitchesPerYard;
-
-            // Add 15% buffer for waste, mistakes, and coverage variations
-            int yardsNeeded = (int)Math.Ceiling(baseYardsNeeded * 1.15);
-
-            // Minimum 1 yard per color (can't buy less than that)
-            if (yardsNeeded < 1) yardsNeeded = 1;
-
+            // Calculate yarn needed using BRAND-SPECIFIC yards per stitch
+            int yardsNeeded = (int)Math.Ceiling(paletteColor.PixelCount * (double)yarnBrand.YardsPerStitch);
             int skeinsNeeded = (int)Math.Ceiling((double)yardsNeeded / bestMatch.Yarn.YardsPerSkein);
 
             matches.Add(new YarnMatch {
@@ -65,7 +64,7 @@ public class YarnMatchingService : IYarnMatchingService {
                 Lab_L = bestMatch.Yarn.Lab_L,
                 Lab_A = bestMatch.Yarn.Lab_A,
                 Lab_B = bestMatch.Yarn.Lab_B,
-                StitchCount = actualStitchCount,
+                StitchCount = paletteColor.PixelCount,
                 DeltaE = bestMatch.DeltaE,
                 YardsNeeded = yardsNeeded,
                 EstimatedSkeins = skeinsNeeded
