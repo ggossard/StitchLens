@@ -22,4 +22,7 @@ public class PreviewViewModel {
     // Totals now allow fractional yards and skeins
     public double TotalYardsNeeded => YarnMatches?.Sum(m => m.YardsNeeded) ?? 0.0;
     public double TotalSkeinsNeeded => YarnMatches?.Sum(m => m.EstimatedSkeins) ?? 0.0;
+
+    // Integer skeins (rounded up to whole skeins per color)
+    public int TotalSkeinsRoundedUp => YarnMatches?.Sum(m => (int)Math.Ceiling(m.EstimatedSkeins)) ?? 0;
 }
