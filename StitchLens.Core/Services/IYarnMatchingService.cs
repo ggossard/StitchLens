@@ -23,6 +23,8 @@ public class YarnMatch {
     public double Lab_B { get; set; }
     public int StitchCount { get; set; }
     public double DeltaE { get; set; }
-    public int EstimatedSkeins { get; set; }
-    public int YardsNeeded { get; set; }
+    // Allow fractional skeins
+    public double EstimatedSkeins { get; set; }
+    // Allow fractional yards needed
+    public double YardsNeeded { get; set; }
 }
