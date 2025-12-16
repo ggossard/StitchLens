@@ -74,4 +74,4 @@ public class YarnMatchingService : IYarnMatchingService {
 
         return matches.OrderByDescending(m => m.StitchCount).ToList();
     }
-}}
+}
