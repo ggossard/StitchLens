@@ -19,6 +19,7 @@ public class PreviewViewModel {
         ? (int)(Project.WidthInches * Project.MeshCount * Project.HeightInches * Project.MeshCount)
         : 0;
 
-    public int TotalYardsNeeded => YarnMatches?.Sum(m => m.YardsNeeded) ?? 0;
-    public int TotalSkeinsNeeded => YarnMatches?.Sum(m => m.EstimatedSkeins) ?? 0;
+    // Totals now allow fractional yards and skeins
+    public double TotalYardsNeeded => YarnMatches?.Sum(m => m.YardsNeeded) ?? 0.0;
+    public double TotalSkeinsNeeded => YarnMatches?.Sum(m => m.EstimatedSkeins) ?? 0.0;
 }
