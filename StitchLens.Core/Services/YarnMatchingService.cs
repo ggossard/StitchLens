@@ -15,8 +15,8 @@ public class YarnMatchingService : IYarnMatchingService {
     public async Task<List<YarnMatch>> MatchColorsToYarnAsync(
     List<ColorInfo> palette,
     int yarnBrandId,
-    int totalStitches,
-    CraftType craftType)
+    int totalStitchesInPattern,
+    CraftType craftType) // ADD THIS PARAMETER
 {
         // Load yarn colors for the brand AND matching craft type
         var yarnBrand = await _context.YarnBrands
@@ -50,9 +50,12 @@ public class YarnMatchingService : IYarnMatchingService {
                 .First();
 
             // Calculate yarn needed using BRAND-SPECIFIC yards per stitch
-            double yardsNeeded = (double)paletteColor.PixelCount * (double)yarnBrand.YardsPerStitch;
-            // Allow fractional skeins (do not round up)
-            double skeinsNeeded = yardsNeeded / (double)bestMatch.Yarn.YardsPerSkein;
+            // Use fractional yards and skeins instead of forcing integer values
+            double yardsNeeded = paletteColor.PixelCount * (double)yarnBrand.YardsPerStitch;
+
+            double estimatedSkeins =0.0;
+            if (bestMatch.Yarn.YardsPerSkein >0)
+                estimatedSkeins = yardsNeeded / bestMatch.Yarn.YardsPerSkein;
 
             matches.Add(new YarnMatch {
                 YarnColorId = bestMatch.Yarn.Id,
@@ -67,8 +70,8 @@ public class YarnMatchingService : IYarnMatchingService {
                 Lab_B = bestMatch.Yarn.Lab_B,
                 StitchCount = paletteColor.PixelCount,
                 DeltaE = bestMatch.DeltaE,
-                YardsNeeded = yardsNeeded,
-                EstimatedSkeins = skeinsNeeded
+                YardsNeeded = Math.Round(yardsNeeded,2),
+                EstimatedSkeins = Math.Round(estimatedSkeins,2)
             });
         }
 
