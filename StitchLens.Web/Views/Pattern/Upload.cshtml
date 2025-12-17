@@ -1,62 +1,87 @@
 @{
-    ViewData["Title"] = "Upload Photo";
+    ViewData["Title"] = "Create Your Pattern";
 }
 
-<div class="container mt-5">
+<!-- Upload Hero Section -->
+<section class="upload-hero-section">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h1 class="upload-hero-title">Bring Your Vision to Life</h1>
+            <p class="upload-hero-subtitle">
+                Choose a treasured photo and we'll transform it into a beautiful needlepoint pattern.
+                <br>Every stitch tells a story.
+            </p>
+        </div>
+    </div>
+</section>
 
-    @* Add this sign-in prompt for guests *@
+<div class="container mb-5">
+    @* Sign-in prompt for guests - styled version *@
     @if (User.Identity?.IsAuthenticated != true) {
-        <div class="alert alert-info alert-dismissible fade show" role="alert">
-            <div class="d-flex align-items-start">
-                <i class="fas fa-info-circle me-3 mt-1" style="font-size: 1.5rem;"></i>
-                <div class="flex-grow-1">
-                    <h5 class="alert-heading mb-2">Save Your Patterns</h5>
-                    <p class="mb-2">Create a free account to save your patterns, download them anytime, and track your projects.</p>
-                    <div class="d-flex gap-2 flex-wrap">
-                        <a asp-controller="Account" asp-action="Register" class="btn btn-sm btn-primary">
+        <div class="save-patterns-prompt">
+            <div class="row align-items-center">
+                <div class="col-md-1 text-center">
+                    <i class="fas fa-heart prompt-icon"></i>
+                </div>
+                <div class="col-md-11">
+                    <h5 class="prompt-heading">Save Your Patterns Forever</h5>
+                    <p class="prompt-text">Create a free account to save your patterns, download them anytime, and build your personal collection.</p>
+                    <div class="prompt-buttons">
+                        <a asp-controller="Account" asp-action="Register" class="btn btn-primary btn-sm">
                             <i class="fas fa-user-plus me-1"></i> Create Free Account
                         </a>
-                        <span class="text-muted align-self-center">or</span>
+                        <span class="prompt-divider">or</span>
                         <form asp-controller="Account" asp-action="ExternalLogin" asp-route-returnUrl="/Pattern/Upload" method="post" class="d-inline">
-                            <button type="submit" name="provider" value="Google" class="btn btn-sm btn-outline-danger">
-                                <i class="fab fa-google me-1"></i> Sign in with Google
+                            <button type="submit" name="provider" value="Google" class="btn btn-outline-danger btn-sm">
+                                <i class="fab fa-google me-1"></i> Google
                             </button>
                         </form>
                         <form asp-controller="Account" asp-action="ExternalLogin" asp-route-returnUrl="/Pattern/Upload" method="post" class="d-inline">
-                            <button type="submit" name="provider" value="Facebook" class="btn btn-sm btn-outline-primary">
-                                <i class="fab fa-facebook-f me-1"></i> Sign in with Facebook
+                            <button type="submit" name="provider" value="Facebook" class="btn btn-outline-primary btn-sm">
+                                <i class="fab fa-facebook-f me-1"></i> Facebook
                             </button>
                         </form>
                     </div>
-                    <small class="text-muted d-block mt-2">Already have an account? <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Pattern/Upload">Sign in</a></small>
+                    <small class="prompt-signin">Already have an account? <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Pattern/Upload">Sign in here</a></small>
                 </div>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         </div>
     }
 
-
     <div class="row justify-content-center">
-        <div class="col-md-10">
-            <h2>Create Your Needlepoint Pattern</h2>
-            <p class="lead">Upload a photo to get started</p>
-
+        <div class="col-lg-10">
             <form method="post" enctype="multipart/form-data" asp-action="ProcessUpload" id="uploadForm">
+
                 <!-- Step 1: File Selection -->
                 <div id="uploadSection">
-                    <div class="card">
-                        <div class="card-body">
-                            <div class="mb-3">
-                                <label for="imageFile" class="form-label">Choose an image</label>
+                    <div class="upload-card">
+                        <div class="upload-card-header">
+                            <div class="step-indicator">
+                                <span class="step-number">1</span>
+                                <span class="step-label">Choose Your Photo</span>
+                            </div>
+                        </div>
+                        <div class="upload-card-body">
+                            <div class="upload-dropzone">
+                                <div class="upload-icon">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                </div>
+                                <h4 class="upload-instruction">Select a Photo to Transform</h4>
+                                <p class="upload-help">
+                                    Choose a favorite memory - family portraits, beloved pets, or special places work beautifully.
+                                </p>
+                                <label for="imageFile" class="btn btn-primary btn-lg upload-btn">
+                                    <i class="fas fa-image me-2"></i> Browse Your Photos
+                                </label>
                                 <input type="file"
-                                       class="form-control"
+                                       class="d-none"
                                        id="imageFile"
                                        name="imageFile"
                                        accept="image/jpeg,image/png,image/jpg"
                                        required>
-                                <div class="form-text">
-                                    JPG or PNG format, recommended size: 500-2000 pixels
-                                </div>
+                                <p class="upload-format-note mt-3">
+                                    <i class="fas fa-info-circle"></i> JPG or PNG format • Recommended: 500-2000 pixels
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -64,60 +89,66 @@
 
                 <!-- Step 2: Cropping Interface (hidden initially) -->
                 <div id="cropSection" style="display: none;">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5>Crop Your Image</h5>
-                            <small class="text-muted">Drag to select the area you want to stitch</small>
+                    <div class="upload-card">
+                        <div class="upload-card-header">
+                            <div class="step-indicator">
+                                <span class="step-number">2</span>
+                                <span class="step-label">Perfect Your Composition</span>
+                            </div>
+                            <p class="crop-instruction">Drag to select the area you want to stitch. We'll handle the rest!</p>
                         </div>
-                        <div class="card-body">
+                        <div class="upload-card-body">
                             <div class="row">
-                                <div class="col-md-9">
-                                    <div style="max-height: 500px; overflow: hidden;">
+                                <div class="col-lg-9 mb-4 mb-lg-0">
+                                    <div class="crop-image-container">
                                         <img id="cropImage" style="max-width: 100%;">
                                     </div>
                                 </div>
-                                <div class="col-md-3">
-                                    <h6>Crop Tools</h6>
-                                    <div class="d-grid gap-2">
-                                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="cropper.reset()">
-                                            Reset
-                                        </button>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="cropper.clear()">
-                                            Clear
-                                        </button>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="cropper.setDragMode('move')">
-                                            Move Image
-                                        </button>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="cropper.setDragMode('crop')">
-                                            Crop Area
-                                        </button>
-                                    </div>
+                                <div class="col-lg-3">
+                                    <div class="crop-tools-panel">
+                                        <h6 class="tools-heading">Crop Tools</h6>
+                                        <div class="tool-group">
+                                            <button type="button" class="tool-btn" onclick="cropper.reset()">
+                                                <i class="fas fa-undo"></i> Reset
+                                            </button>
+                                            <button type="button" class="tool-btn" onclick="cropper.clear()">
+                                                <i class="fas fa-times"></i> Clear
+                                            </button>
+                                            <button type="button" class="tool-btn" onclick="cropper.setDragMode('move')">
+                                                <i class="fas fa-arrows-alt"></i> Move Image
+                                            </button>
+                                            <button type="button" class="tool-btn" onclick="cropper.setDragMode('crop')">
+                                                <i class="fas fa-crop"></i> Crop Area
+                                            </button>
+                                        </div>
 
-                                    <hr>
+                                        <div class="tools-divider"></div>
 
-                                    <h6 class="mt-3">Aspect Ratio</h6>
-                                    <div class="d-grid gap-2">
-                                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="cropper.setAspectRatio(NaN)">
-                                            Free
-                                        </button>
-                                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="cropper.setAspectRatio(1)">
-                                            Square (1:1)
-                                        </button>
-                                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="cropper.setAspectRatio(4/3)">
-                                            4:3
-                                        </button>
-                                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="cropper.setAspectRatio(16/9)">
-                                            16:9
-                                        </button>
-                                    </div>
+                                        <h6 class="tools-heading">Aspect Ratio</h6>
+                                        <div class="tool-group">
+                                            <button type="button" class="tool-btn tool-btn-aspect" onclick="cropper.setAspectRatio(NaN)">
+                                                Free Form
+                                            </button>
+                                            <button type="button" class="tool-btn tool-btn-aspect" onclick="cropper.setAspectRatio(1)">
+                                                Square (1:1)
+                                            </button>
+                                            <button type="button" class="tool-btn tool-btn-aspect" onclick="cropper.setAspectRatio(4/3)">
+                                                Standard (4:3)
+                                            </button>
+                                            <button type="button" class="tool-btn tool-btn-aspect" onclick="cropper.setAspectRatio(16/9)">
+                                                Wide (16:9)
+                                            </button>
+                                        </div>
 
-                                    <hr>
+                                        <div class="tools-divider"></div>
 
-                                    <div class="mt-3">
-                                        <small class="text-muted">
-                                            <strong>Crop Size:</strong><br>
-                                            <span id="cropInfo">Select an area</span>
-                                        </small>
+                                        <div class="crop-info-box">
+                                            <i class="fas fa-ruler-combined"></i>
+                                            <div>
+                                                <strong>Crop Size</strong>
+                                                <div id="cropInfo" class="crop-size-text">Select an area</div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -136,13 +167,12 @@
                 <div asp-validation-summary="All" class="text-danger mt-3"></div>
 
                 <!-- Action Buttons -->
-                <div class="d-grid gap-2 mt-3">
-                    <button type="button" onclick="console.log('Test button clicked')">Test Console</button>
-                    <button type="button" id="cancelCrop" class="btn btn-secondary" style="display: none;" onclick="cancelCrop()">
-                        Choose Different Image
+                <div class="upload-actions">
+                    <button type="button" id="cancelCrop" class="btn btn-outline-secondary btn-lg" style="display: none;" onclick="cancelCrop()">
+                        <i class="fas fa-chevron-left me-2"></i> Choose Different Photo
                     </button>
                     <button type="submit" id="continueBtn" class="btn btn-primary btn-lg" style="display: none;">
-                        Continue to Settings
+                        Continue to Canvas Settings <i class="fas fa-chevron-right ms-2"></i>
                     </button>
                 </div>
             </form>
@@ -182,8 +212,11 @@
                     // Now show crop section
                     document.getElementById('uploadSection').style.display = 'none';
                     document.getElementById('cropSection').style.display = 'block';
-                    document.getElementById('cancelCrop').style.display = 'block';
-                    document.getElementById('continueBtn').style.display = 'block';
+                    document.getElementById('cancelCrop').style.display = 'inline-block';
+                    document.getElementById('continueBtn').style.display = 'inline-block';
+
+                    // Smooth scroll to crop section
+                    document.getElementById('cropSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
 
                     // Set image and initialize cropper
                     const image = document.getElementById('cropImage');
@@ -242,7 +275,7 @@
 
                             // Update display
                             document.getElementById('cropInfo').innerHTML =
-                                `Crop: ${cropWidth} × ${cropHeight}px`;
+                                `${cropWidth} × ${cropHeight}px`;
 
                             // Store crop data
                             document.getElementById('cropX').value = cropX;
@@ -272,6 +305,9 @@
             document.getElementById('continueBtn').style.display = 'none';
             naturalWidth = 0;
             naturalHeight = 0;
+
+            // Scroll back to top
+            document.getElementById('uploadSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
         // Validate crop data before form submission

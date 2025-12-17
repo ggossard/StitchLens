@@ -75,27 +75,69 @@
     <!-- MASSIVE SPACER - Add this right here -->
     <div style="height: 175px; background-color: white;"></div>
 
-    <footer class="border-top footer text-muted">
+    <footer class="footer">
         <div class="container">
-            <div class="row py-4">
-                <div class="col-md-4">
-                    <h5>StitchLens</h5>
-                    <p class="small">Transform your photos into beautiful needlepoint patterns.</p>
+            <div class="row">
+                <div class="col-md-3 mb-3 mb-md-0">
+                    <h5 class="footer-brand">StitchLens</h5>
+                    <p class="footer-tagline">
+                        Photo to pattern, beautifully simple.
+                    </p>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3 mb-3 mb-md-0">
+                    <h6>Product</h6>
+                    <ul class="list-unstyled">
+                        <li>
+                            <a asp-controller="Pattern" asp-action="Upload">
+                                <i class="fas fa-upload footer-icon"></i>Create Pattern
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-controller="Home" asp-action="Pricing">
+                                <i class="fas fa-tag footer-icon"></i>Pricing
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-controller="Home" asp-action="HowItWorks">
+                                <i class="fas fa-question-circle footer-icon"></i>How It Works
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="col-md-3 mb-3 mb-md-0">
                     <h6>Legal</h6>
-                    <ul class="list-unstyled small">
-                        <li><a asp-controller="Home" asp-action="Privacy" class="text-muted">Privacy Policy</a></li>
-                        <li><a asp-controller="Home" asp-action="Terms" class="text-muted">Terms of Service</a></li>
+                    <ul class="list-unstyled">
+                        <li>
+                            <a asp-controller="Home" asp-action="Privacy">
+                                <i class="fas fa-shield-alt footer-icon"></i>Privacy Policy
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-controller="Home" asp-action="Terms">
+                                <i class="fas fa-file-contract footer-icon"></i>Terms of Service
+                            </a>
+                        </li>
                     </ul>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <h6>Support</h6>
-                    <ul class="list-unstyled small">
-                        <li><a href="mailto:support@stitchlens.com" class="text-muted">Contact Support</a></li>
-                        <li class="text-muted">&copy; @DateTime.Now.Year - StitchLens</li>
+                    <ul class="list-unstyled">
+                        <li>
+                            <a href="mailto:support@stitchlens.com">
+                                <i class="fas fa-envelope footer-icon"></i>Contact Us
+                            </a>
+                        </li>
+                        <li>
+                            <a href="mailto:hello@stitchlens.com">
+                                <i class="fas fa-comment footer-icon"></i>Feedback
+                            </a>
+                        </li>
                     </ul>
                 </div>
+            </div>
+
+            <div class="footer-bottom">
+                © @DateTime.Now.Year StitchLens · Made with <i class="fas fa-heart" style="color: var(--color-dusty-rose);"></i> for crafters
             </div>
         </div>
     </footer>

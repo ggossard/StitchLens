@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using StitchLens.Core.Services;
@@ -105,5 +105,22 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+
+if (app.Environment.IsDevelopment()) {
+    var urls = app.Urls;
+    var webhookUrl = urls.FirstOrDefault()?.Replace("https://", "http://") ?? "http://localhost:5094";
+
+    Console.ForegroundColor = ConsoleColor.Yellow;
+    Console.WriteLine();
+    Console.WriteLine("═══════════════════════════════════════════════════════════");
+    Console.WriteLine("  ⚠️  REMINDER: Start Stripe CLI in another terminal:");
+    Console.WriteLine();
+    Console.WriteLine($"     stripe listen --forward-to {webhookUrl}/api/webhook/stripe");
+    Console.WriteLine();
+    Console.WriteLine("═══════════════════════════════════════════════════════════");
+    Console.WriteLine();
+    Console.ResetColor();
+}
 
 app.Run();

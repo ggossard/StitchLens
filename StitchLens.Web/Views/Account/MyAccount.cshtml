@@ -3,74 +3,218 @@
     ViewData["Title"] = "My Account";
 }
 
-<div class="container mt-4">
-    <h2>My Account</h2>
+<!-- My Account Hero Section -->
+<section class="account-hero-section">
+    <div class="container">
+        <div class="account-hero-content">
+            <div>
+                <h1 class="account-hero-title">My Account</h1>
+                <p class="account-hero-subtitle">Manage your profile and preferences</p>
+            </div>
+            <div class="account-status-badge">
+                <i class="fas fa-user-check"></i>
+                <span>Active Account</span>
+            </div>
+        </div>
+    </div>
+</section>
 
-    <div class="row mt-4">
+<div class="container account-container">
+    <div class="row g-4">
+
+        <!-- Account Information Card -->
         <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">
-                    <h5>Account Information</h5>
+            <div class="account-card">
+                <div class="account-card-header">
+                    <i class="fas fa-user-circle card-header-icon"></i>
+                    <h3>Account Information</h3>
                 </div>
-                <div class="card-body">
-                    <table class="table table-sm">
-                        <tr>
-                            <td><strong>Email:</strong></td>
-                            <td>@Model.Email</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Plan:</strong></td>
-                            <td>
-                                <span class="badge bg-@(Model.PlanType == "Free" ? "secondary" : "primary")">
-                                    @Model.PlanType
-                                </span>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><strong>Account Type:</strong></td>
-                            <td>@Model.UserType</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Member Since:</strong></td>
-                            <td>@Model.CreatedAt.ToLocalTime().ToString("MMMM d, yyyy")</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Patterns Created:</strong></td>
-                            <td>@Model.PatternCount</td>
-                        </tr>
-                    </table>
+                <div class="account-card-body">
+
+                    <div class="account-info-list">
+                        <div class="account-info-item">
+                            <div class="info-icon-wrapper">
+                                <i class="fas fa-envelope"></i>
+                            </div>
+                            <div class="info-content">
+                                <div class="info-label">Email Address</div>
+                                <div class="info-value">@Model.Email</div>
+                            </div>
+                        </div>
+
+                        <div class="account-info-item">
+                            <div class="info-icon-wrapper">
+                                <i class="fas fa-crown"></i>
+                            </div>
+                            <div class="info-content">
+                                <div class="info-label">Current Plan</div>
+                                <div class="info-value">
+                                    <span class="plan-badge plan-badge-@Model.PlanType.ToLower()">
+                                        @Model.PlanType
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="account-info-item">
+                            <div class="info-icon-wrapper">
+                                <i class="fas fa-id-card"></i>
+                            </div>
+                            <div class="info-content">
+                                <div class="info-label">Account Type</div>
+                                <div class="info-value">@Model.UserType</div>
+                            </div>
+                        </div>
+
+                        <div class="account-info-item">
+                            <div class="info-icon-wrapper">
+                                <i class="fas fa-calendar-check"></i>
+                            </div>
+                            <div class="info-content">
+                                <div class="info-label">Member Since</div>
+                                <div class="info-value">@Model.CreatedAt.ToLocalTime().ToString("MMMM d, yyyy")</div>
+                            </div>
+                        </div>
+
+                        <div class="account-info-item">
+                            <div class="info-icon-wrapper">
+                                <i class="fas fa-folder"></i>
+                            </div>
+                            <div class="info-content">
+                                <div class="info-label">Total Patterns</div>
+                                <div class="info-value">
+                                    <span class="pattern-count-badge">@Model.PatternCount</span> patterns created
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
                     @if (Model.PlanType == "Free") {
-                        <div class="alert alert-info mt-3">
-                            <h6>Upgrade to Premium</h6>
-                            <p class="mb-2">Get unlimited patterns, priority support, and more!</p>
-                            <button class="btn btn-sm btn-primary" disabled>Coming Soon</button>
+                        <div class="upgrade-callout">
+                            <div class="upgrade-callout-icon">
+                                <i class="fas fa-arrow-up"></i>
+                            </div>
+                            <div class="upgrade-callout-content">
+                                <h5>Upgrade to Premium</h5>
+                                <p>Get unlimited patterns, priority support, and exclusive features!</p>
+                                <a asp-controller="Home" asp-action="Pricing" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-star me-2"></i>View Plans
+                                </a>
+                            </div>
                         </div>
                     }
                 </div>
             </div>
         </div>
 
+        <!-- Quick Actions Card -->
         <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">
-                    <h5>Quick Actions</h5>
+            <div class="account-card">
+                <div class="account-card-header">
+                    <i class="fas fa-bolt card-header-icon"></i>
+                    <h3>Quick Actions</h3>
                 </div>
-                <div class="card-body">
-                    <div class="d-grid gap-2">
-                        <a asp-controller="Pattern" asp-action="Upload" class="btn btn-primary">
-                            Create New Pattern
+                <div class="account-card-body">
+
+                    <div class="account-actions-grid">
+                        <a asp-controller="Pattern" asp-action="Upload" class="account-action-card action-card-primary">
+                            <div class="action-card-icon">
+                                <i class="fas fa-plus-circle"></i>
+                            </div>
+                            <div class="action-card-content">
+                                <h5>Create Pattern</h5>
+                                <p>Upload a new photo</p>
+                            </div>
+                            <i class="fas fa-arrow-right action-card-arrow"></i>
                         </a>
-                        <a asp-action="MyPatterns" class="btn btn-outline-primary">
-                            View My Patterns
+
+                        <a asp-action="MyPatterns" class="account-action-card action-card-secondary">
+                            <div class="action-card-icon">
+                                <i class="fas fa-folder-open"></i>
+                            </div>
+                            <div class="action-card-content">
+                                <h5>My Patterns</h5>
+                                <p>View all patterns</p>
+                            </div>
+                            <i class="fas fa-arrow-right action-card-arrow"></i>
                         </a>
-                        <hr>
-                        <button class="btn btn-outline-secondary" disabled>
-                            Change Password (Coming Soon)
+
+                        <button class="account-action-card action-card-disabled" disabled>
+                            <div class="action-card-icon">
+                                <i class="fas fa-key"></i>
+                            </div>
+                            <div class="action-card-content">
+                                <h5>Change Password</h5>
+                                <p>Coming soon</p>
+                            </div>
+                            <i class="fas fa-lock action-card-arrow"></i>
                         </button>
-                        <button class="btn btn-outline-secondary" disabled>
-                            Billing History (Coming Soon)
+
+                        <button class="account-action-card action-card-disabled" disabled>
+                            <div class="action-card-icon">
+                                <i class="fas fa-receipt"></i>
+                            </div>
+                            <div class="action-card-content">
+                                <h5>Billing History</h5>
+                                <p>Coming soon</p>
+                            </div>
+                            <i class="fas fa-lock action-card-arrow"></i>
                         </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Account Stats Card -->
+    <div class="row g-4 mt-2">
+        <div class="col-12">
+            <div class="account-card">
+                <div class="account-card-header">
+                    <i class="fas fa-chart-line card-header-icon"></i>
+                    <h3>Account Activity</h3>
+                </div>
+                <div class="account-card-body">
+                    <div class="activity-stats-grid">
+                        <div class="activity-stat">
+                            <div class="activity-stat-icon">
+                                <i class="fas fa-images"></i>
+                            </div>
+                            <div class="activity-stat-content">
+                                <div class="activity-stat-number">@Model.PatternCount</div>
+                                <div class="activity-stat-label">Patterns Created</div>
+                            </div>
+                        </div>
+
+                        <div class="activity-stat">
+                            <div class="activity-stat-icon">
+                                <i class="fas fa-calendar-day"></i>
+                            </div>
+                            <div class="activity-stat-content">
+                                <div class="activity-stat-number">@((DateTime.Now - Model.CreatedAt).Days)</div>
+                                <div class="activity-stat-label">Days Active</div>
+                            </div>
+                        </div>
+
+                        <div class="activity-stat">
+                            <div class="activity-stat-icon">
+                                <i class="fas fa-crown"></i>
+                            </div>
+                            <div class="activity-stat-content">
+                                <div class="activity-stat-number">@Model.PlanType</div>
+                                <div class="activity-stat-label">Current Tier</div>
+                            </div>
+                        </div>
+
+                        <div class="activity-stat">
+                            <div class="activity-stat-icon">
+                                <i class="fas fa-user-check"></i>
+                            </div>
+                            <div class="activity-stat-content">
+                                <div class="activity-stat-number">Active</div>
+                                <div class="activity-stat-label">Account Status</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

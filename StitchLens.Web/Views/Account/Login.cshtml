@@ -1,84 +1,91 @@
 ﻿@model StitchLens.Web.Models.LoginViewModel
 @{
-    ViewData["Title"] = "Login";
+    ViewData["Title"] = "Sign In";
 }
 
-<div class="container mt-5">
+<!-- Login Hero Section -->
+<section class="auth-hero-section">
+    <div class="container">
+        <div class="text-center">
+            <div class="auth-icon-badge">
+                <i class="fas fa-door-open"></i>
+            </div>
+            <h1 class="auth-hero-title">Welcome Back!</h1>
+            <p class="auth-hero-subtitle">
+                Sign in to continue your creative journey
+            </p>
+        </div>
+    </div>
+</section>
+
+<div class="container auth-container">
     <div class="row justify-content-center">
         <div class="col-md-6 col-lg-5">
-            <div class="card shadow">
-                <div class="card-body p-5">
-                    <h2 class="text-center mb-4">Welcome Back</h2>
-                    <p class="text-center text-muted mb-4">Sign in to access your patterns</p>
+            <div class="auth-card">
 
-                    <!-- Social Login Buttons -->
-                    <form asp-action="ExternalLogin" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post">
-                        <div class="d-grid gap-2 mb-3">
-                            <button type="submit" name="provider" value="Google"
-                                    class="btn btn-outline-danger btn-lg">
-                                <i class="fab fa-google me-2"></i>
-                                Continue with Google
-                            </button>
-                            <button type="submit" name="provider" value="Facebook"
-                                    class="btn btn-outline-primary btn-lg">
-                                <i class="fab fa-facebook-f me-2"></i>
-                                Continue with Facebook
-                            </button>
-                        </div>
-                    </form>
+                <!-- Social Login Buttons -->
+                <form asp-action="ExternalLogin" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post">
+                    <div class="social-login-section">
+                        <button type="submit" name="provider" value="Google" class="btn-social btn-social-google">
+                            <i class="fab fa-google"></i>
+                            <span>Continue with Google</span>
+                        </button>
+                        <button type="submit" name="provider" value="Facebook" class="btn-social btn-social-facebook">
+                            <i class="fab fa-facebook-f"></i>
+                            <span>Continue with Facebook</span>
+                        </button>
+                    </div>
+                </form>
 
-                    <!-- Divider -->
-                    <div class="d-flex align-items-center my-4">
-                        <hr class="flex-grow-1">
-                        <span class="px-3 text-muted small">OR</span>
-                        <hr class="flex-grow-1">
+                <!-- Divider -->
+                <div class="auth-divider">
+                    <span>or sign in with email</span>
+                </div>
+
+                <!-- Traditional Login Form -->
+                <form asp-action="Login" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post">
+                    <div asp-validation-summary="All" class="alert alert-danger auth-alert"></div>
+
+                    <div class="auth-form-group">
+                        <label asp-for="Email" class="auth-label">
+                            <i class="fas fa-envelope"></i> Email Address
+                        </label>
+                        <input asp-for="Email" class="auth-input" placeholder="you@example.com" />
+                        <span asp-validation-for="Email" class="auth-error"></span>
                     </div>
 
-                    <!-- Traditional Login Form -->
-                    <form asp-action="Login" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post">
-                        <div asp-validation-summary="All" class="text-danger mb-3"></div>
+                    <div class="auth-form-group">
+                        <label asp-for="Password" class="auth-label">
+                            <i class="fas fa-lock"></i> Password
+                        </label>
+                        <input asp-for="Password" class="auth-input" placeholder="Enter your password" />
+                        <span asp-validation-for="Password" class="auth-error"></span>
+                    </div>
 
-                        <div class="mb-3">
-                            <label asp-for="Email" class="form-label">Email</label>
-                            <input asp-for="Email" class="form-control form-control-lg" placeholder="you@example.com" />
-                            <span asp-validation-for="Email" class="text-danger"></span>
-                        </div>
+                    <div class="auth-checkbox">
+                        <input asp-for="RememberMe" class="auth-checkbox-input" id="rememberMe" />
+                        <label asp-for="RememberMe" class="auth-checkbox-label" for="rememberMe">
+                            Keep me signed in
+                        </label>
+                    </div>
 
-                        <div class="mb-3">
-                            <label asp-for="Password" class="form-label">Password</label>
-                            <input asp-for="Password" class="form-control form-control-lg" placeholder="••••••••" />
-                            <span asp-validation-for="Password" class="text-danger"></span>
-                        </div>
+                    <button type="submit" class="btn-auth-primary">
+                        <i class="fas fa-sign-in-alt me-2"></i> Sign In
+                    </button>
 
-                        <div class="mb-3 form-check">
-                            <input asp-for="RememberMe" class="form-check-input" />
-                            <label asp-for="RememberMe" class="form-check-label">
-                                Keep me signed in
-                            </label>
-                        </div>
+                    <div class="auth-footer-links">
+                        <p>
+                            Don't have an account?
+                            <a asp-action="Register" asp-route-returnUrl="@ViewData["ReturnUrl"]">Create one</a>
+                        </p>
+                    </div>
 
-                        <div class="d-grid mb-3">
-                            <button type="submit" class="btn btn-primary btn-lg">
-                                Sign In
-                            </button>
-                        </div>
-
-                        <div class="text-center">
-                            <small class="text-muted">
-                                Don't have an account?
-                                <a asp-action="Register" asp-route-returnUrl="@ViewData["ReturnUrl"]">Create one</a>
-                            </small>
-                        </div>
-
-                        <div class="text-center mt-3">
-                            <small class="text-muted">
-                                By continuing, you agree to our
-                                <a asp-controller="Home" asp-action="Terms">Terms of Service</a> and
-                                <a asp-controller="Home" asp-action="Privacy">Privacy Policy</a>
-                            </small>
-                        </div>
-                    </form>
-                </div>
+                    <div class="auth-legal">
+                        By continuing, you agree to our
+                        <a asp-controller="Home" asp-action="Terms">Terms</a> and
+                        <a asp-controller="Home" asp-action="Privacy">Privacy Policy</a>
+                    </div>
+                </form>
             </div>
         </div>
     </div>

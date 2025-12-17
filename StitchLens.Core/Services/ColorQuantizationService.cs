@@ -9,9 +9,10 @@ namespace StitchLens.Core.Services;
 public class ColorQuantizationService : IColorQuantizationService {
     public async Task<QuantizedResult> QuantizeAsync(byte[] imageData, int maxColors) {
         return await Task.Run(() => {
-            using var image = Image.Load<Rgb24>(imageData);
+            // CHANGED: Load as Rgba32 to preserve transparency
+            using var image = Image.Load<Rgba32>(imageData);
 
-            // Step 1: Extract all unique colors from image
+            // Step 1: Extract all unique colors from image (excluding transparent pixels)
             var pixels = ExtractPixels(image);
 
             // Step 2: Run K-means clustering in LAB space
@@ -38,15 +39,22 @@ public class ColorQuantizationService : IColorQuantizationService {
         });
     }
 
-    private List<LabPixel> ExtractPixels(Image<Rgb24> image) {
+    // CHANGED: Now accepts Rgba32 and skips transparent pixels
+    private List<LabPixel> ExtractPixels(Image<Rgba32> image) {
         var pixels = new List<LabPixel>();
 
-        image.ProcessPixelRows(accessor =>
-        {
+        image.ProcessPixelRows(accessor => {
             for (int y = 0; y < accessor.Height; y++) {
-                Span<Rgb24> row = accessor.GetRowSpan(y);
+                Span<Rgba32> row = accessor.GetRowSpan(y);
                 for (int x = 0; x < accessor.Width; x++) {
                     var pixel = row[x];
+
+                    // CHANGED: Skip transparent or semi-transparent pixels
+                    // Pixels with alpha < 128 (out of 255) are considered transparent
+                    if (pixel.A < 128) {
+                        continue; // Don't include in quantization
+                    }
+
                     var (l, a, b) = ColorConverter.RgbToLab(pixel.R, pixel.G, pixel.B);
 
                     pixels.Add(new LabPixel {
@@ -140,15 +148,22 @@ public class ColorQuantizationService : IColorQuantizationService {
         return clusters.OrderByDescending(c => c.PixelCount).ToList();
     }
 
-    private byte[] ApplyQuantization(Image<Rgb24> image, List<ColorCluster> clusters) {
+    // CHANGED: Now accepts Rgba32 and preserves transparency
+    private byte[] ApplyQuantization(Image<Rgba32> image, List<ColorCluster> clusters) {
         using var quantizedImage = image.Clone();
 
-        quantizedImage.ProcessPixelRows(accessor =>
-        {
+        quantizedImage.ProcessPixelRows(accessor => {
             for (int y = 0; y < accessor.Height; y++) {
-                Span<Rgb24> row = accessor.GetRowSpan(y);
+                Span<Rgba32> row = accessor.GetRowSpan(y);
                 for (int x = 0; x < accessor.Width; x++) {
                     var pixel = row[x];
+
+                    // CHANGED: Keep transparent pixels transparent
+                    if (pixel.A < 128) {
+                        row[x] = new Rgba32(255, 255, 255, 0); // Fully transparent white
+                        continue;
+                    }
+
                     var (l, a, b) = ColorConverter.RgbToLab(pixel.R, pixel.G, pixel.B);
 
                     // Find nearest cluster
@@ -156,13 +171,13 @@ public class ColorQuantizationService : IColorQuantizationService {
                         .OrderBy(c => ColorConverter.CalculateLabDistance(l, a, b, c.Lab_L, c.Lab_A, c.Lab_B))
                         .First();
 
-                    // Replace with cluster color
-                    row[x] = new Rgb24(nearestCluster.R, nearestCluster.G, nearestCluster.B);
+                    // CHANGED: Replace with cluster color, preserve full opacity
+                    row[x] = new Rgba32(nearestCluster.R, nearestCluster.G, nearestCluster.B, 255);
                 }
             }
         });
 
-        // Convert to byte array
+        // Convert to byte array (PNG preserves transparency)
         using var ms = new MemoryStream();
         quantizedImage.SaveAsPng(ms);
         return ms.ToArray();

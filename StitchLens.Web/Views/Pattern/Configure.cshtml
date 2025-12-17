@@ -1,174 +1,284 @@
 ﻿@model StitchLens.Web.Models.ConfigureViewModel
 @{
-    ViewData["Title"] = "Configure Pattern";
+    ViewData["Title"] = "Customize Your Pattern";
 }
 
-<div class="container mt-4">
-    <h2>Configure Your Pattern</h2>
-    <p class="lead">Set your canvas dimensions and color preferences</p>
+<script type="text/javascript">
+    // Serialize the brands
+    var allYarnBrands = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.AllYarnBrands));
+</script>
 
-    <script type="text/javascript">
-        // Serialize the brands
-        var allYarnBrands = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.AllYarnBrands));
-    </script>
+<!-- Configure Hero Section -->
+<section class="configure-hero-section">
+    <div class="container">
+        <div class="text-center">
+            <h1 class="configure-hero-title">Perfect Your Canvas</h1>
+            <p class="configure-hero-subtitle">
+                Customize every detail to match your vision. We'll handle the technical work—
+                <br>you focus on creating something beautiful.
+            </p>
+        </div>
+    </div>
+</section>
 
+<div class="container mb-5">
     <div class="row">
-        <!-- Left side: Image preview -->
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">
-                    <h5>Your Image</h5>
+        <!-- Left side: Image preview & Info -->
+        <div class="col-lg-5 mb-4 mb-lg-0">
+            <!-- Image Preview Card -->
+            <div class="configure-card sticky-preview">
+                <div class="configure-card-header">
+                    <div class="preview-icon">
+                        <i class="fas fa-image"></i>
+                    </div>
+                    <h5 class="preview-title">Your Design</h5>
                 </div>
-                <div class="card-body text-center">
-                    <img src="@Model.ImageUrl"
-                         alt="Uploaded image"
-                         class="img-fluid"
-                         style="max-height: 400px;">
+                <div class="configure-card-body text-center">
+                    <div class="image-preview-container">
+                        <img src="@Model.ImageUrl"
+                             alt="Your uploaded image"
+                             class="img-fluid preview-image">
+                    </div>
                 </div>
             </div>
 
-            <div class="card mt-3">
-                <div class="card-body">
-                    <h6>Pattern Size</h6>
-                    <p class="mb-1">
-                        <strong>Canvas:</strong>
-                        <span id="canvasSize">@Model.WidthInches.ToString("F1")" x @Model.HeightInches.ToString("F1")"</span>
-                    </p>
-                    <p class="mb-0">
-                        <strong>Stitches:</strong>
-                        <span id="stitchCount">@Model.WidthStitches x @Model.HeightStitches</span>
-                        (<span id="totalStitches">@((Model.WidthStitches * Model.HeightStitches).ToString("N0"))</span> total)
+            <!-- Pattern Size Info Card -->
+            <div class="configure-card mt-3">
+                <div class="configure-card-body">
+                    <div class="pattern-info-header">
+                        <i class="fas fa-ruler-combined"></i>
+                        <h6>Pattern Specifications</h6>
+                    </div>
+
+                    <div class="pattern-spec">
+                        <span class="spec-label">Canvas Size:</span>
+                        <span class="spec-value" id="canvasSize">@Model.WidthInches.ToString("F1")" × @Model.HeightInches.ToString("F1")"</span>
+                    </div>
+
+                    <div class="pattern-spec">
+                        <span class="spec-label">Grid Dimensions:</span>
+                        <span class="spec-value" id="stitchCount">@Model.WidthStitches × @Model.HeightStitches stitches</span>
+                    </div>
+
+                    <div class="pattern-spec-total">
+                        <span class="spec-label-total">Total Stitches:</span>
+                        <span class="spec-value-total" id="totalStitches">@((Model.WidthStitches * Model.HeightStitches).ToString("N0"))</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Helpful Tip Card -->
+            <div class="helpful-tip-card mt-3">
+                <div class="tip-icon">
+                    <i class="fas fa-lightbulb"></i>
+                </div>
+                <div class="tip-content">
+                    <h6 class="tip-title">Crafting Tip</h6>
+                    <p class="tip-text">
+                        Not sure about size? A 10" × 10" pattern at 14 count makes a lovely pillow front.
+                        Smaller works beautifully as ornaments or framed pieces!
                     </p>
                 </div>
             </div>
         </div>
 
         <!-- Right side: Settings form -->
-        <div class="col-md-6">
+        <div class="col-lg-7">
             <form asp-action="Configure" method="post" id="configureForm">
                 <input type="hidden" asp-for="ProjectId" />
                 <input type="hidden" asp-for="ImageUrl" />
 
-                <!-- CARD FOR PROJECT TITLE -->
-                <div class="card mb-3">
-                    <div class="card-header">
-                        <h5>Project Information</h5>
+                <!-- Step 1: Project Information -->
+                <div class="configure-card mb-3">
+                    <div class="configure-card-header">
+                        <div class="step-indicator-small">
+                            <span class="step-number-small">1</span>
+                            <span class="step-label-small">Project Information</span>
+                        </div>
                     </div>
-                    <div class="card-body">
-                        <div class="mb-4">
-                            <label asp-for="Title" class="form-label">Project Title</label>
+                    <div class="configure-card-body">
+                        <div class="form-group-custom mb-3">
+                            <label asp-for="Title" class="form-label-custom">
+                                <i class="fas fa-tag label-icon"></i>
+                                Project Title
+                            </label>
                             <input asp-for="Title"
                                    type="text"
-                                   class="form-control"
-                                   placeholder="Enter a name for your pattern"
+                                   class="form-control-custom"
+                                   placeholder="e.g., 'Sunset Beach Memory' or 'Bella's Portrait'"
                                    maxlength="200">
                             <span asp-validation-for="Title" class="text-danger"></span>
-                            <div class="form-text">
-                                Give your pattern a memorable name (e.g., "Sunset Landscape", "Family Pet Portrait")
+                            <div class="form-help-text">
+                                <i class="fas fa-info-circle"></i>
+                                Give your pattern a name that captures the memory
                             </div>
                         </div>
 
-                        <div class="mb-0">
-                            <label asp-for="CraftType" class="form-label">Choose your craft type.  I'm making a:</label>
+                        <div class="form-group-custom mb-0">
+                            <label asp-for="CraftType" class="form-label-custom">
+                                <i class="fas fa-palette label-icon"></i>
+                                I'm Making A
+                            </label>
                             <select asp-for="CraftType"
                                     asp-items="Model.CraftTypeOptions"
-                                    class="form-select"
+                                    class="form-select-custom"
                                     id="craftType">
                             </select>
-                            <div class="form-text">
-                                <strong>Needlepoint:</strong> Wool yarn on canvas, tent/basketweave stitch<br>
-                                <strong>Cross-Stitch:</strong> Cotton floss on fabric, counted cross stitches
+                            <div class="craft-type-info">
+                                <div class="craft-type-option">
+                                    <strong>Needlepoint:</strong> Wool yarn on canvas with tent/basketweave stitches
+                                </div>
+                                <div class="craft-type-option">
+                                    <strong>Cross-Stitch:</strong> Cotton floss on fabric with counted crosses
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="card">
-                    <div class="card-header">
-                        <h5><span id="canvasLabel">Canvas Settings</span></h5>
+                <!-- Step 2: Canvas Settings -->
+                <div class="configure-card mb-3">
+                    <div class="configure-card-header">
+                        <div class="step-indicator-small">
+                            <span class="step-number-small">2</span>
+                            <span class="step-label-small" id="canvasLabel">Canvas Settings</span>
+                        </div>
                     </div>
-                    <div class="card-body">
+                    <div class="configure-card-body">
                         <!-- Mesh Count -->
-                        <div class="mb-3">
-                            <label asp-for="MeshCount" class="form-label">
+                        <div class="form-group-custom mb-3">
+                            <label asp-for="MeshCount" class="form-label-custom">
+                                <i class="fas fa-th label-icon"></i>
                                 <span id="meshLabel">Mesh Count</span>
                             </label>
                             <select asp-for="MeshCount"
                                     asp-items="Model.MeshCountOptions"
-                                    class="form-select"
+                                    class="form-select-custom"
                                     id="meshCount">
                             </select>
-                            <div class="form-text" id="meshHelp">
-                                Higher mesh = smaller stitches and more detail
+                            <div class="form-help-text" id="meshHelp">
+                                <i class="fas fa-info-circle"></i>
+                                Higher mesh = smaller stitches and more intricate detail
                             </div>
                         </div>
 
                         <!-- Dimensions -->
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label asp-for="WidthInches" class="form-label">Width (inches)</label>
+                                <label asp-for="WidthInches" class="form-label-custom">
+                                    <i class="fas fa-arrows-alt-h label-icon"></i>
+                                    Width (inches)
+                                </label>
                                 <input asp-for="WidthInches"
                                        type="number"
                                        step="0.1"
                                        min="1"
                                        max="36"
-                                       class="form-control dimension-input"
+                                       class="form-control-custom dimension-input"
                                        id="widthInches">
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label asp-for="HeightInches" class="form-label">Height (inches)</label>
+                                <label asp-for="HeightInches" class="form-label-custom">
+                                    <i class="fas fa-arrows-alt-v label-icon"></i>
+                                    Height (inches)
+                                </label>
                                 <input asp-for="HeightInches"
                                        type="number"
                                        step="0.1"
                                        min="1"
                                        max="36"
-                                       class="form-control dimension-input"
+                                       class="form-control-custom dimension-input"
                                        id="heightInches">
                             </div>
                         </div>
 
                         <!-- Stitch Type -->
-                        <div class="mb-3">
-                            <label asp-for="StitchType" class="form-label">Stitch Type</label>
+                        <div class="form-group-custom mb-0">
+                            <label asp-for="StitchType" class="form-label-custom">
+                                <i class="fas fa-grip-lines label-icon"></i>
+                                Stitch Type
+                            </label>
                             <select asp-for="StitchType"
                                     asp-items="Model.StitchTypeOptions"
-                                    class="form-select"
+                                    class="form-select-custom"
                                     id="StitchType">
-                                <!-- ADD THIS ID -->
                             </select>
                         </div>
+                    </div>
+                </div>
 
-                        <!-- Max Colors -->
-                        <div class="mb-3">
-                            <label asp-for="MaxColors" class="form-label">
-                                Maximum Colors: <span id="colorDisplay">@Model.MaxColors</span>
+                <!-- Step 3: Color & Materials -->
+                <div class="configure-card mb-3">
+                    <div class="configure-card-header">
+                        <div class="step-indicator-small">
+                            <span class="step-number-small">3</span>
+                            <span class="step-label-small">Colors & Materials</span>
+                        </div>
+                    </div>
+                    <div class="configure-card-body">
+                        <!-- Max Colors with Visual Slider -->
+                        <div class="form-group-custom mb-3">
+                            <label asp-for="MaxColors" class="form-label-custom">
+                                <i class="fas fa-fill-drip label-icon"></i>
+                                Color Complexity: <span class="color-count-badge" id="colorDisplay">@Model.MaxColors colors</span>
                             </label>
                             <input asp-for="MaxColors"
                                    type="range"
                                    min="10"
                                    max="60"
                                    step="1"
-                                   class="form-range"
+                                   class="form-range-custom"
                                    id="maxColors">
-                            <div class="form-text">
-                                Fewer colors = simpler pattern, more colors = more detail
+                            <div class="range-labels">
+                                <span class="range-label-start">
+                                    <i class="fas fa-circle-notch"></i> Simpler (10)
+                                </span>
+                                <span class="range-label-end">
+                                    More Detail (60) <i class="fas fa-circle"></i>
+                                </span>
+                            </div>
+                            <div class="form-help-text">
+                                <i class="fas fa-info-circle"></i>
+                                Fewer colors create a simplified, artistic look. More colors capture fine details.
                             </div>
                         </div>
 
                         <!-- Yarn Brand -->
-                        <div class="mb-3">
-                            <label asp-for="YarnBrandId" class="form-label">
+                        <div class="form-group-custom mb-3">
+                            <label asp-for="YarnBrandId" class="form-label-custom">
+                                <i class="fas fa-store label-icon"></i>
                                 <span id="yarnLabel">Yarn Brand</span>
                             </label>
                             <select asp-for="YarnBrandId"
                                     asp-items="Model.YarnBrands"
-                                    class="form-select"
+                                    class="form-select-custom"
                                     id="YarnBrandId">
-                                <!-- ADD THIS ID -->
                                 <option value="">-- Select a brand --</option>
                             </select>
-                            <div class="form-text" id="yarnHelp">
-                                Choose your preferred yarn brand for color matching
+                            <div class="form-help-text" id="yarnHelp">
+                                <i class="fas fa-info-circle"></i>
+                                We'll match colors to your preferred brand's real yarns
+                            </div>
+                        </div>
+
+                        <!-- Transparency Support -->
+                        <div class="form-group-custom mb-0">
+                            <div class="custom-checkbox-card">
+                                <div class="checkbox-wrapper">
+                                    <input asp-for="PreserveTransparency"
+                                           type="checkbox"
+                                           class="form-check-input-custom"
+                                           id="preserveTransparency">
+                                    <label asp-for="PreserveTransparency" class="checkbox-label-custom">
+                                        <div class="checkbox-title">
+                                            <i class="fas fa-cut"></i>
+                                            Preserve Transparent Areas
+                                        </div>
+                                        <div class="checkbox-description">
+                                            Leave transparent areas unstitched for shaped designs (ornaments, bookmarks, irregular projects)
+                                        </div>
+                                    </label>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -176,12 +286,13 @@
 
                 <div asp-validation-summary="All" class="text-danger mt-3"></div>
 
-                <div class="d-grid gap-2 mt-3">
-                    <button type="submit" class="btn btn-primary btn-lg">
-                        Generate Pattern
+                <!-- Action Buttons -->
+                <div class="configure-actions">
+                    <button type="submit" class="btn btn-primary btn-lg btn-generate">
+                        <i class="fas fa-magic me-2"></i> Generate My Pattern
                     </button>
-                    <a asp-action="Upload" class="btn btn-outline-secondary">
-                        Start Over
+                    <a asp-action="Upload" class="btn btn-outline-secondary btn-lg">
+                        <i class="fas fa-chevron-left me-2"></i> Start Over
                     </a>
                 </div>
             </form>
@@ -196,9 +307,9 @@
             needlepoint: {
                 canvas: 'Canvas',
                 mesh: 'Mesh Count',
-                meshHelp: 'Higher mesh = smaller stitches and more detail',
+                meshHelp: 'Higher mesh = smaller stitches and more intricate detail',
                 yarn: 'Yarn Brand',
-                yarnHelp: 'Choose your preferred yarn brand for color matching',
+                yarnHelp: 'We\'ll match colors to your preferred brand\'s real yarns',
                 meshOptions: [
                     { value: '10', text: '10 mesh (large stitches)' },
                     { value: '13', text: '13 mesh (standard)' },
@@ -214,9 +325,9 @@
             crossstitch: {
                 canvas: 'Fabric',
                 mesh: 'Fabric Count',
-                meshHelp: 'Higher count = smaller stitches and more detail',
+                meshHelp: 'Higher count = smaller stitches and more intricate detail',
                 yarn: 'Floss Brand',
-                yarnHelp: 'Choose your preferred floss brand for color matching',
+                yarnHelp: 'We\'ll match colors to your preferred brand\'s real floss',
                 meshOptions: [
                     { value: '11', text: '11 count' },
                     { value: '14', text: '14 count (standard)' },
@@ -232,8 +343,7 @@
             }
         };
 
-                // Update yarn brand dropdown based on craft type
-                // Update yarn brand dropdown based on craft type
+        // Update yarn brand dropdown based on craft type
         function updateYarnBrands(craftType) {
             const yarnSelect = document.getElementById('YarnBrandId');
             if (!yarnSelect) {
@@ -244,7 +354,6 @@
             const currentValue = yarnSelect.value;
 
             // Filter brands by craft type (0 = Needlepoint, 1 = CrossStitch)
-            // CHANGE: b.craftType → b.CraftType (capital C and T)
             const filteredBrands = allYarnBrands.filter(b => {
                 return b.CraftType === parseInt(craftType);
             });
@@ -252,12 +361,12 @@
             // Clear and repopulate
             yarnSelect.innerHTML = '<option value="">-- Select a brand --</option>';
             filteredBrands.forEach(brand => {
-                const option = new Option(brand.Name, brand.Id);  // CHANGE: brand.name → brand.Name, brand.id → brand.Id
+                const option = new Option(brand.Name, brand.Id);
                 yarnSelect.add(option);
             });
 
             // Restore selection if still valid for this craft type
-            const stillValid = filteredBrands.some(b => b.Id.toString() === currentValue);  // CHANGE: b.id → b.Id
+            const stillValid = filteredBrands.some(b => b.Id.toString() === currentValue);
             if (stillValid) {
                 yarnSelect.value = currentValue;
             }
@@ -293,9 +402,9 @@
             // Update labels
             document.getElementById('canvasLabel').textContent = terms.canvas + ' Settings';
             document.getElementById('meshLabel').textContent = terms.mesh;
-            document.getElementById('meshHelp').textContent = terms.meshHelp;
+            document.getElementById('meshHelp').innerHTML = '<i class="fas fa-info-circle"></i> ' + terms.meshHelp;
             document.getElementById('yarnLabel').textContent = terms.yarn;
-            document.getElementById('yarnHelp').textContent = terms.yarnHelp;
+            document.getElementById('yarnHelp').innerHTML = '<i class="fas fa-info-circle"></i> ' + terms.yarnHelp;
 
             // Update mesh count options
             const meshSelect = document.getElementById('meshCount');
@@ -333,7 +442,7 @@
 
         // Update color count display as slider moves
         document.getElementById('maxColors').addEventListener('input', function(e) {
-            document.getElementById('colorDisplay').textContent = e.target.value;
+            document.getElementById('colorDisplay').textContent = e.target.value + ' colors';
         });
 
         // Update stitch count calculations when dimensions or mesh change
@@ -350,7 +459,7 @@
                 document.getElementById('canvasSize').textContent =
                     widthInches.toFixed(1) + '" × ' + heightInches.toFixed(1) + '"';
                 document.getElementById('stitchCount').textContent =
-                    widthStitches + ' × ' + heightStitches;
+                    widthStitches + ' × ' + heightStitches + ' stitches';
                 document.getElementById('totalStitches').textContent =
                     totalStitches.toLocaleString();
             }

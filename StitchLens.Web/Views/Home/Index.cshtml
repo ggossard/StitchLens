@@ -1,8 +1,211 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Turn Your Memories Into Heirloom Needlepoint";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center min-vh-75">
+            <div class="col-lg-6">
+                <h1 class="hero-title">Turn Your Memories Into Heirloom Needlepoint</h1>
+                <p class="hero-subtitle">
+                    Transform your cherished photos into professional needlepoint patterns.
+                    Create something beautiful that will last for generations.
+                </p>
+                <div class="hero-buttons">
+                    <a asp-controller="Pattern" asp-action="Upload" class="btn btn-primary btn-lg">
+                        Start Your Pattern <i class="fas fa-arrow-right ms-2"></i>
+                    </a>
+                    <a asp-controller="Home" asp-action="HowItWorks" class="btn btn-outline-secondary btn-lg ms-3">
+                        See How It Works
+                    </a>
+                </div>
+                <p class="hero-note mt-3">
+                    <i class="fas fa-check-circle text-success"></i> No credit card required to try
+                </p>
+            </div>
+            <div class="col-lg-6">
+                <div class="hero-image-container">
+                    <!-- Placeholder for sample pattern image -->
+                    <div class="sample-pattern-preview">
+                        <div class="pattern-before">
+                            <span class="pattern-label">Your Photo</span>
+                        </div>
+                        <div class="pattern-arrow">
+                            <i class="fas fa-arrow-right"></i>
+                        </div>
+                        <div class="pattern-after">
+                            <span class="pattern-label">Your Pattern</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="how-it-works-section">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="section-title">Creating Your Pattern is Simple</h2>
+            <p class="section-subtitle">Three easy steps to your custom needlepoint pattern</p>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <div class="step-icon">
+                        <i class="fas fa-upload"></i>
+                    </div>
+                    <h3 class="step-title">Upload Your Photo</h3>
+                    <p class="step-description">
+                        Choose a favorite memory - a family portrait, beloved pet,
+                        or special place. Any photo works beautifully.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <div class="step-icon">
+                        <i class="fas fa-sliders-h"></i>
+                    </div>
+                    <h3 class="step-title">Customize Your Canvas</h3>
+                    <p class="step-description">
+                        Choose your canvas size, mesh count, and colors.
+                        We'll match them perfectly to DMC, Paternayan, or Appleton yarns.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <div class="step-icon">
+                        <i class="fas fa-download"></i>
+                    </div>
+                    <h3 class="step-title">Download & Stitch</h3>
+                    <p class="step-description">
+                        Get your professional pattern as a PDF with shopping list,
+                        color guide, and stitch chart. Start creating!
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Why Choose Section -->
+<section class="why-choose-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h2 class="section-title">Why Stitchers Love StitchLens</h2>
+                <p class="lead mb-4">
+                    We're not just another pattern generator. We're made by stitchers, for stitchers.
+                </p>
+
+                <div class="feature-list">
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <i class="fas fa-palette"></i>
+                        </div>
+                        <div class="feature-content">
+                            <h4>Perfect Color Matching</h4>
+                            <p>Our advanced color algorithm matches your photo to real yarn colors using professional color science (ΔE2000).</p>
+                        </div>
+                    </div>
+
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <i class="fas fa-ruler-combined"></i>
+                        </div>
+                        <div class="feature-content">
+                            <h4>Professional Quality Patterns</h4>
+                            <p>Multi-page PDFs with shopping lists, accurate yarn calculations, and detailed stitch charts.</p>
+                        </div>
+                    </div>
+
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <i class="fas fa-store"></i>
+                        </div>
+                        <div class="feature-content">
+                            <h4>Commercial Licensing Available</h4>
+                            <p>Sell your finished pieces on Etsy or at craft shows with our commercial license option.</p>
+                        </div>
+                    </div>
+
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <i class="fas fa-heart"></i>
+                        </div>
+                        <div class="feature-content">
+                            <h4>Made for Needlepoint</h4>
+                            <p>Unlike cross-stitch converters, we understand canvas, mesh counts, and needlepoint yarns.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="testimonial-card">
+                    <div class="testimonial-stars">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <blockquote class="testimonial-text">
+                        "I turned my grandmother's wedding photo into a needlepoint pillow.
+                        The pattern was perfect, and the color matching was incredible.
+                        It's now a family treasure."
+                    </blockquote>
+                    <div class="testimonial-author">
+                        <strong>Sarah M.</strong>
+                        <span>Needlepoint Enthusiast</span>
+                    </div>
+                </div>
+
+                <div class="stats-box mt-4">
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <div class="stat-number">500+</div>
+                            <div class="stat-label">Patterns Created</div>
+                        </div>
+                        <div class="col-4">
+                            <div class="stat-number">100%</div>
+                            <div class="stat-label">Satisfaction</div>
+                        </div>
+                        <div class="col-4">
+                            <div class="stat-number">3</div>
+                            <div class="stat-label">Yarn Brands</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta-section">
+    <div class="container">
+        <div class="cta-box">
+            <h2 class="cta-title">Ready to Stitch Your Story?</h2>
+            <p class="cta-subtitle">
+                Join hundreds of stitchers who've transformed their memories into beautiful needlepoint.
+            </p>
+            <a asp-controller="Pattern" asp-action="Upload" class="btn btn-primary btn-lg">
+                Create Your Pattern Now <i class="fas fa-arrow-right ms-2"></i>
+            </a>
+            <p class="cta-note mt-3">
+                Starting at $15 per pattern • Commercial licensing available
+            </p>
+        </div>
+    </div>
+</section>
