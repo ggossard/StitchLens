@@ -63,3 +63,8 @@ appsettings.*.json
 
 # Keep package lock files
 !**/package-lock.json
+
+
+*.db-wal
+*.db-shm
+*.db-journal
