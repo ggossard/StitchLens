@@ -1219,6 +1219,48 @@ h1, h2, h3, h4, h5, h6 {
     flex: 1;
 }
 
+.generate-overlay {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(61, 57, 53, 0.66);
+    backdrop-filter: blur(2px);
+    z-index: 3000;
+    padding: 1rem;
+}
+
+.generate-overlay.is-visible {
+    display: flex;
+}
+
+.generate-overlay-card {
+    width: min(420px, 100%);
+    background: linear-gradient(145deg, var(--color-sage-green-dark) 0%, var(--color-dusty-rose-dark) 100%);
+    color: var(--color-white);
+    border-radius: 16px;
+    padding: 1.5rem 1.25rem;
+    text-align: center;
+    box-shadow: 0 14px 36px rgba(0, 0, 0, 0.26);
+}
+
+.generate-overlay-card .spinner-border {
+    width: 2.25rem;
+    height: 2.25rem;
+    margin-bottom: 0.85rem;
+}
+
+.generate-overlay-card h5 {
+    font-family: var(--font-heading);
+    margin-bottom: 0.5rem;
+}
+
+.generate-overlay-card p {
+    margin: 0;
+    opacity: 0.92;
+}
+
 /* Responsive */
 @media (max-width: 991px) {
     .configure-hero-title {

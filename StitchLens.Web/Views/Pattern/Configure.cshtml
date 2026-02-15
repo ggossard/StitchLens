@@ -288,7 +288,7 @@
 
                 <!-- Action Buttons -->
                 <div class="configure-actions">
-                    <button type="submit" class="btn btn-primary btn-lg btn-generate">
+                    <button type="submit" class="btn btn-primary btn-lg btn-generate" id="generateBtn">
                         <i class="fas fa-magic me-2"></i> Generate My Pattern
                     </button>
                     <a asp-action="Upload" class="btn btn-outline-secondary btn-lg">
@@ -296,6 +296,14 @@
                     </a>
                 </div>
             </form>
+
+            <div id="generateOverlay" class="generate-overlay" aria-live="polite" aria-hidden="true">
+                <div class="generate-overlay-card" role="status">
+                    <div class="spinner-border text-light" role="status" aria-hidden="true"></div>
+                    <h5>Generating your pattern...</h5>
+                    <p>This may take a little while.</p>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -468,5 +476,26 @@
         document.getElementById('meshCount').addEventListener('change', updateCalculations);
         document.getElementById('widthInches').addEventListener('input', updateCalculations);
         document.getElementById('heightInches').addEventListener('input', updateCalculations);
+
+        const configureForm = document.getElementById('configureForm');
+        const generateBtn = document.getElementById('generateBtn');
+        const generateOverlay = document.getElementById('generateOverlay');
+        let isSubmitting = false;
+
+        if (configureForm && generateBtn && generateOverlay) {
+            configureForm.addEventListener('submit', function (e) {
+                if (isSubmitting) {
+                    e.preventDefault();
+                    return;
+                }
+
+                isSubmitting = true;
+                generateOverlay.classList.add('is-visible');
+                generateOverlay.setAttribute('aria-hidden', 'false');
+                configureForm.setAttribute('aria-busy', 'true');
+                generateBtn.disabled = true;
+                generateBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Generating...';
+            });
+        }
     </script>
 }
