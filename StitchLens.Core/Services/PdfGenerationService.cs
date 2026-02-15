@@ -1,4 +1,4 @@
-﻿using QuestPDF.Fluent;
+using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using SixLabors.ImageSharp;
@@ -58,15 +58,14 @@ public class PdfGenerationService : IPdfGenerationService {
                         column.Item().PaddingTop(5).LineHorizontal(1).LineColor(Colors.Grey.Lighten2);
                     });
 
-                    page.Content().PaddingTop(10).Column(column =>
-                    {
+                    page.Content().PaddingTop(10).Column(column => {
                         column.Item().Text("Pattern Preview").FontSize(12).Bold();
 
                         if (data.QuantizedImageData != null && data.QuantizedImageData.Length > 0) {
                             column.Item().PaddingTop(5).PaddingBottom(10)
                             .Height(4, Unit.Inch)
                             .AlignCenter()
-                            .Image(data.QuantizedImageData, ImageScaling.FitArea);
+                            .Image(data.QuantizedImageData).FitArea();
                         }
                         else {
                             column.Item().PaddingTop(5).PaddingBottom(10)
@@ -77,10 +76,8 @@ public class PdfGenerationService : IPdfGenerationService {
                         }
 
                         // Shopping List Table
-                        column.Item().PaddingTop(10).Table(table =>
-                        {
-                            table.ColumnsDefinition(columns =>
-                            {
+                        column.Item().PaddingTop(10).Table(table => {
+                            table.ColumnsDefinition(columns => {
                                 columns.ConstantColumn(30);
                                 columns.ConstantColumn(50);
                                 columns.RelativeColumn(2);
@@ -89,8 +86,7 @@ public class PdfGenerationService : IPdfGenerationService {
                                 columns.ConstantColumn(70);
                             });
 
-                            table.Header(header =>
-                            {
+                            table.Header(header => {
                                 header.Cell().Background(Colors.Blue.Darken3)
                                 .Padding(3).Text("Color").FontColor(Colors.White).FontSize(8).Bold();
                                 header.Cell().Background(Colors.Blue.Darken3)
@@ -131,8 +127,7 @@ public class PdfGenerationService : IPdfGenerationService {
                                 .Text($"{(int)Math.Ceiling(yarn.EstimatedSkeins)} ({percentage}%)").FontSize(8).Bold();
                             }
 
-                            table.Footer(footer =>
-                            {
+                            table.Footer(footer => {
                                 footer.Cell().Background(Colors.Grey.Lighten2).Padding(3);
                                 footer.Cell().ColumnSpan(2).Background(Colors.Grey.Lighten2)
                                 .Padding(3).Text("TOTALS:").FontSize(8).Bold();
@@ -149,17 +144,16 @@ public class PdfGenerationService : IPdfGenerationService {
                         column.Item().PageBreak();
                         column.Item().Text("Stitching Instructions").FontSize(14).Bold();
 
-                        column.Item().PaddingTop(10).Column(instructions =>
-                        {
+                        column.Item().PaddingTop(10).Column(instructions => {
                             if (data.CraftType == Data.Models.CraftType.Needlepoint) {
                                 instructions.Item().Text("Getting Started:").Bold();
-                                instructions.Item().PaddingLeft(15).Text("1. Cut canvas2-3 inches larger on all sides");
+                                instructions.Item().PaddingLeft(15).Text("1. Cut canvas 2-3 inches larger on all sides");
                                 instructions.Item().PaddingLeft(15).Text("2. Bind edges with masking tape");
                                 instructions.Item().PaddingLeft(15).Text("3. Mark the center of your canvas");
 
                                 instructions.Item().PaddingTop(10).Text("Stitching Tips:").Bold();
                                 instructions.Item().PaddingLeft(15).Text("• Work from center outward");
-                                instructions.Item().PaddingLeft(15).Text("• Use18-inch strands of yarn");
+                                instructions.Item().PaddingLeft(15).Text("• Use 18-inch strands of yarn");
                                 instructions.Item().PaddingLeft(15).Text("• Keep consistent tension");
 
                                 instructions.Item().PaddingTop(10).Text("Finishing:").Bold();
@@ -175,7 +169,7 @@ public class PdfGenerationService : IPdfGenerationService {
 
                                 instructions.Item().PaddingTop(10).Text("Stitching Tips:").Bold();
                                 instructions.Item().PaddingLeft(15).Text("• Start from the center and work outward");
-                                instructions.Item().PaddingLeft(15).Text("• Use2 strands of floss (6-strand divisible)");
+                                instructions.Item().PaddingLeft(15).Text("• Use 2 strands of floss (6-strand divisible)");
                                 instructions.Item().PaddingLeft(15).Text("• Keep all top stitches facing the same direction");
                                 instructions.Item().PaddingLeft(15).Text("• Work in rows for best coverage");
 
@@ -191,10 +185,8 @@ public class PdfGenerationService : IPdfGenerationService {
                         column.Item().Text("Color Reference Guide").FontSize(14).Bold();
                         column.Item().PaddingTop(5).Text("Use this guide to identify colors while stitching").FontSize(9);
 
-                        column.Item().PaddingTop(10).Table(table =>
-                        {
-                            table.ColumnsDefinition(columns =>
-                            {
+                        column.Item().PaddingTop(10).Table(table => {
+                            table.ColumnsDefinition(columns => {
                                 columns.ConstantColumn(30);
                                 columns.ConstantColumn(45);
                                 columns.RelativeColumn(2);
@@ -202,8 +194,7 @@ public class PdfGenerationService : IPdfGenerationService {
                                 columns.ConstantColumn(60);
                             });
 
-                            table.Header(header =>
-                            {
+                            table.Header(header => {
                                 header.Cell().Background(Colors.Blue.Darken3).Padding(3)
                                 .Text("Color").FontColor(Colors.White).FontSize(8).Bold();
                                 header.Cell().Background(Colors.Blue.Darken3).Padding(3)
@@ -216,11 +207,11 @@ public class PdfGenerationService : IPdfGenerationService {
                                 .Text("Usage").FontColor(Colors.White).FontSize(8).Bold();
                             });
 
-                            var symbols = "•○◆◇■□▲△★☆●◉▪▫◘◙▼▽◊◈";
-
                             for (int i = 0; i < data.YarnMatches.Count; i++) {
                                 var yarn = data.YarnMatches[i];
-                                var symbol = i < symbols.Length ? symbols[i].ToString() : (i + 1).ToString();
+                                var symbol = i < PatternConstants.Symbols.Length
+                                    ? PatternConstants.Symbols[i].ToString()
+                                    : (i + 1).ToString();
                                 var percentage = totalStitches > 0
                                 ? (yarn.StitchCount * 100.0 / totalStitches).ToString("F1")
                                 : "0";
@@ -273,10 +264,13 @@ public class PdfGenerationService : IPdfGenerationService {
         int pagesWide = (int)Math.Ceiling((double)data.StitchGrid.Width / stitchesPerPageWidth);
         int pagesHigh = (int)Math.Ceiling((double)data.StitchGrid.Height / stitchesPerPageHeight);
 
+        // Calculate center coordinates (0-based indices)
+        int centerX = data.StitchGrid.Width / 2;
+        int centerY = data.StitchGrid.Height / 2;
+
         for (int pageY = 0; pageY < pagesHigh; pageY++) {
             for (int pageX = 0; pageX < pagesWide; pageX++) {
-                container.Page(page =>
-                {
+                container.Page(page => {
                     page.Size(PageSizes.Letter.Landscape());
                     page.Margin(0.4f, Unit.Inch);
                     page.PageColor(Colors.White);
@@ -286,10 +280,8 @@ public class PdfGenerationService : IPdfGenerationService {
                     int endX = Math.Min(startX + stitchesPerPageWidth, data.StitchGrid.Width);
                     int endY = Math.Min(startY + stitchesPerPageHeight, data.StitchGrid.Height);
 
-                    page.Header().Column(col =>
-                    {
-                        col.Item().Row(row =>
-                        {
+                    page.Header().Column(col => {
+                        col.Item().Row(row => {
                             row.RelativeItem().Text($"Stitch Chart - Section {pageX + 1},{pageY + 1}")
                             .FontSize(12).Bold();
                             row.RelativeItem().AlignRight()
@@ -299,23 +291,26 @@ public class PdfGenerationService : IPdfGenerationService {
                         col.Item().PaddingTop(3).LineHorizontal(1);
                     });
 
-                    page.Content().Table(table =>
-                    {
-                        table.ColumnsDefinition(columns =>
-                        {
+                    page.Content().Table(table => {
+                        table.ColumnsDefinition(columns => {
                             columns.ConstantColumn(25);
                             for (int x = startX; x < endX; x++) {
                                 columns.ConstantColumn(12);
                             }
                         });
 
-                        table.Header(header =>
-                        {
+                        table.Header(header => {
                             header.Cell().Text("").FontSize(6);
                             for (int x = startX; x < endX; x++) {
                                 bool isTenthCol = (x + 1) % 10 == 0;
+                                bool isCenterCol = (x == centerX);
                                 var colNum = (x + 1).ToString();
                                 var bgColor = isTenthCol ? Colors.Grey.Lighten2 : Colors.White;
+
+                                // Highlight center column header in red
+                                if (isCenterCol) {
+                                    bgColor = Colors.Red.Lighten3;
+                                }
 
                                 header.Cell().Background(bgColor).Padding(1).AlignCenter()
                                 .Text(colNum).FontSize(5).Bold();
@@ -325,8 +320,15 @@ public class PdfGenerationService : IPdfGenerationService {
                         // Grid rows
                         for (int y = startY; y < endY; y++) {
                             bool isTenthRow = (y + 1) % 10 == 0;
+                            bool isCenterRow = (y == centerY);
 
                             var rowBg = isTenthRow ? Colors.Grey.Lighten2 : Colors.Grey.Lighten3;
+
+                            // Highlight center row header in red
+                            if (isCenterRow) {
+                                rowBg = Colors.Red.Lighten3;
+                            }
+
                             table.Cell().Background(rowBg).Padding(2)
                             .AlignCenter().Text((y + 1).ToString()).FontSize(6).Bold();
 
@@ -334,39 +336,73 @@ public class PdfGenerationService : IPdfGenerationService {
                             for (int x = startX; x < endX; x++) {
                                 var cell = data.StitchGrid.Cells[x, y];
 
+                                bool isCenterCell = (x == centerX && y == centerY);
                                 bool isTenthCol = (x + 1) % 10 == 0;
 
                                 float rightBorder = isTenthCol ? 1.5f : 0.5f;
                                 float bottomBorder = isTenthRow ? 1.5f : 0.5f;
 
-                                // CHANGED: Handle transparent cells differently
+                                // Handle transparent cells
                                 if (cell.IsTransparent) {
-                                    // Transparent cells: empty with subtle gray background
-                                    table.Cell()
-                                    .Border(0.5f)
-                                    .BorderRight(rightBorder)
-                                    .BorderBottom(bottomBorder)
-                                    .BorderColor(Colors.Grey.Lighten1)
-                                    .Background(Colors.Grey.Lighten4) // Light gray to indicate "leave empty"
-                                    .Padding(1)
-                                    .AlignCenter().AlignMiddle()
-                                    .Text("").FontSize(8); // No symbol
+                                    if (isCenterCell) {
+                                        var borderColor = data.UseColoredGrid ? Colors.Red.Medium : Colors.Black;
+                                        table.Cell()
+                                            .Border(2f).BorderColor(borderColor)
+                                            .Background(Colors.Grey.Lighten4)
+                                            .Padding(1)
+                                            .AlignCenter().AlignMiddle()
+                                            .Text("").FontSize(8);
+                                    }
+                                    else {
+                                        table.Cell()
+                                            .Border(0.5f)
+                                            .BorderRight(rightBorder)
+                                            .BorderBottom(bottomBorder)
+                                            .BorderColor(Colors.Grey.Lighten1)
+                                            .Background(Colors.Grey.Lighten4)
+                                            .Padding(1)
+                                            .AlignCenter().AlignMiddle()
+                                            .Text("").FontSize(8);
+                                    }
                                 }
                                 else {
                                     // Normal colored cells with symbols
-                                    var cellBuilder = table.Cell()
-                                    .Border(0.5f)
-                                    .BorderRight(rightBorder)
-                                    .BorderBottom(bottomBorder)
-                                    .BorderColor(Colors.Grey.Lighten1);
+                                    if (isCenterCell) {
+                                        var borderColor = data.UseColoredGrid ? Colors.Red.Medium : Colors.Black;
+                                        var cellBuilder = table.Cell()
+                                            .Border(2f).BorderColor(borderColor);
+                                        
+                                        if (data.UseColoredGrid) {
+                                            cellBuilder.Background(cell.HexColor);
+                                        }
 
-                                    if (data.UseColoredGrid) {
-                                        cellBuilder = cellBuilder.Background(cell.HexColor);
+                                        var symbolColor = data.UseColoredGrid && IsDarkColor(cell.HexColor)
+                                            ? Colors.White
+                                            : Colors.Black;
+
+                                        cellBuilder.Padding(1)
+                                        .AlignCenter().AlignMiddle()
+                                        .Text(cell.Symbol).FontSize(8).FontColor(symbolColor);
                                     }
+                                    else {
+                                        var cellBuilder = table.Cell()
+                                            .Border(0.5f)
+                                            .BorderRight(rightBorder)
+                                            .BorderBottom(bottomBorder)
+                                            .BorderColor(Colors.Grey.Lighten1);
 
-                                    cellBuilder.Padding(1)
-                                    .AlignCenter().AlignMiddle()
-                                    .Text(cell.Symbol).FontSize(8);
+                                        if (data.UseColoredGrid) {
+                                            cellBuilder.Background(cell.HexColor);
+                                        }
+
+                                        var symbolColor = data.UseColoredGrid && IsDarkColor(cell.HexColor)
+                                            ? Colors.White
+                                            : Colors.Black;
+
+                                        cellBuilder.Padding(1)
+                                        .AlignCenter().AlignMiddle()
+                                        .Text(cell.Symbol).FontSize(8).FontColor(symbolColor);
+                                    }
                                 }
                             }
                         }
@@ -376,6 +412,35 @@ public class PdfGenerationService : IPdfGenerationService {
                     .FontSize(8);
                 });
             }
+        }
+    }
+
+    /// <summary>
+    /// Determines if a hex color is dark enough that white text should be used instead of black.
+    /// Uses perceived luminance calculation based on human eye sensitivity.
+    /// </summary>
+    /// <param name="hexColor">Hex color string (e.g., "#FF5733")</param>
+    /// <returns>True if the color is dark and needs light text</returns>
+    private bool IsDarkColor(string hexColor) {
+        try {
+            // Remove # if present
+            hexColor = hexColor.TrimStart('#');
+
+            // Parse RGB values
+            byte r = Convert.ToByte(hexColor.Substring(0, 2), 16);
+            byte g = Convert.ToByte(hexColor.Substring(2, 2), 16);
+            byte b = Convert.ToByte(hexColor.Substring(4, 2), 16);
+
+            // Calculate perceived luminance using standard formula
+            // Accounts for human eye sensitivity (more sensitive to green, less to blue)
+            double luminance = (0.299 * r) + (0.587 * g) + (0.114 * b);
+
+            // Return true if dark (luminance less than 128 out of 255)
+            return luminance < 96;     // return luminance < 128;
+        }
+        catch {
+            // If parsing fails, default to black text (assume light background)
+            return false;
         }
     }
 }

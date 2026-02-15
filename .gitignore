@@ -31,6 +31,7 @@ StitchLens.Web/uploads/
 **/uploads/
 temp/
 patterns/
+nul
 
 # Secrets
 secrets.json
@@ -68,3 +69,6 @@ appsettings.*.json
 *.db-wal
 *.db-shm
 *.db-journal
+
+# Ignore specific files in the web project
+StitchLens.Web/docs/dmc-thread-inventory-sheet-by-lord-libidan-updated-nov25.xlsx

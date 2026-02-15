@@ -3,6 +3,7 @@ using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using StitchLens.Core.ColorScience;
 namespace StitchLens.Core.Services;
+
 public interface IGridGenerationService {
     Task<StitchGrid> GenerateStitchGridAsync(
         byte[] quantizedImageData,
@@ -10,12 +11,8 @@ public interface IGridGenerationService {
         int targetHeight,
         List<YarnMatch> yarnMatches);
 }
+
 public class GridGenerationService : IGridGenerationService {
-    private readonly string[] _symbols = new[]
-    {
-        "•", "○", "◆", "◇", "■", "□", "▲", "△", "★", "☆",
-        "●", "◉", "▪", "▫", "◘", "◙", "▼", "▽", "◊", "◈"
-    };
     public async Task<StitchGrid> GenerateStitchGridAsync(
         byte[] quantizedImageData,
         int targetWidth,
@@ -67,8 +64,8 @@ public class GridGenerationService : IGridGenerationService {
                             var (l, a, b) = ColorConverter.RgbToLab(pixel.R, pixel.G, pixel.B);
                             yarnIndex = FindClosestYarnMatch(l, a, b, yarnMatches);
                         }
-                        var symbol = yarnIndex < _symbols.Length
-                            ? _symbols[yarnIndex]
+                        var symbol = yarnIndex < PatternConstants.Symbols.Length
+                            ? PatternConstants.Symbols[yarnIndex]
                             : (yarnIndex + 1).ToString();
                         grid.Cells[x, y] = new StitchCell {
                             YarnMatchIndex = yarnIndex,
