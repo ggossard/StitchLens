@@ -1,6 +1,7 @@
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.Metadata.Profiles.Exif;
+using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using System;
 using System.IO;
@@ -21,7 +22,7 @@ public class ImageProcessingService : IImageProcessingService
 
     public async Task<ProcessedImage> ProcessUploadAsync(Stream imageStream, CropData? cropData = null)
     {
-        using var image = await Image.LoadAsync(imageStream);
+        using var image = await Image.LoadAsync<Rgba32>(imageStream);
 
         // CRITICAL: Auto-orient the image based on EXIF data FIRST
         image.Mutate(x => x.AutoOrient());
@@ -44,6 +45,11 @@ public class ImageProcessingService : IImageProcessingService
                     cropWidth,
                     cropHeight
                 )));
+
+                if (cropData.Shape == CropShape.Circle || cropData.Shape == CropShape.Oval)
+                {
+                    ApplyEllipseMask(image, cropData.Shape);
+                }
             }
         }
 
@@ -79,5 +85,46 @@ public class ImageProcessingService : IImageProcessingService
         var filePath = Path.Combine(_uploadPath, fileName);
         await File.WriteAllBytesAsync(filePath, image.ImageData);
         return filePath;
+    }
+
+    private static void ApplyEllipseMask(Image<Rgba32> image, CropShape shape)
+    {
+        float centerX = (image.Width - 1) / 2f;
+        float centerY = (image.Height - 1) / 2f;
+
+        float radiusX;
+        float radiusY;
+
+        if (shape == CropShape.Circle)
+        {
+            var radius = Math.Min(image.Width, image.Height) / 2f;
+            radiusX = radius;
+            radiusY = radius;
+        }
+        else
+        {
+            radiusX = image.Width / 2f;
+            radiusY = image.Height / 2f;
+        }
+
+        image.ProcessPixelRows(accessor =>
+        {
+            for (int y = 0; y < accessor.Height; y++)
+            {
+                var row = accessor.GetRowSpan(y);
+
+                for (int x = 0; x < accessor.Width; x++)
+                {
+                    float dx = (x - centerX) / radiusX;
+                    float dy = (y - centerY) / radiusY;
+
+                    if ((dx * dx) + (dy * dy) > 1f)
+                    {
+                        var pixel = row[x];
+                        row[x] = new Rgba32(pixel.R, pixel.G, pixel.B, 0);
+                    }
+                }
+            }
+        });
     }
 }

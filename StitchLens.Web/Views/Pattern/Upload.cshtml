@@ -80,7 +80,7 @@
                                        accept="image/jpeg,image/png,image/jpg"
                                        required>
                                 <p class="upload-format-note mt-3">
-                                    <i class="fas fa-info-circle"></i> JPG or PNG format • Recommended: 500-2000 pixels
+                                    <i class="fas fa-info-circle"></i> JPG or PNG format ï¿½ Recommended: 500-2000 pixels
                                 </p>
                             </div>
                         </div>
@@ -124,21 +124,37 @@
 
                                         <div class="tools-divider"></div>
 
+                                        <h6 class="tools-heading">Crop Shape</h6>
+                                        <div class="tool-group" id="shapeToolGroup">
+                                            <button type="button" class="tool-btn tool-btn-shape active" data-shape="Rectangle" onclick="setCropShape('Rectangle')">
+                                                Rectangle
+                                            </button>
+                                            <button type="button" class="tool-btn tool-btn-shape" data-shape="Circle" onclick="setCropShape('Circle')">
+                                                Circle
+                                            </button>
+                                            <button type="button" class="tool-btn tool-btn-shape" data-shape="Oval" onclick="setCropShape('Oval')">
+                                                Oval
+                                            </button>
+                                        </div>
+
+                                        <div class="tools-divider"></div>
+
                                         <h6 class="tools-heading">Aspect Ratio</h6>
                                         <div class="tool-group">
-                                            <button type="button" class="tool-btn tool-btn-aspect" onclick="cropper.setAspectRatio(NaN)">
+                                            <button type="button" class="tool-btn tool-btn-aspect" onclick="setAspectRatio(NaN)">
                                                 Free Form
                                             </button>
-                                            <button type="button" class="tool-btn tool-btn-aspect" onclick="cropper.setAspectRatio(1)">
+                                            <button type="button" class="tool-btn tool-btn-aspect" onclick="setAspectRatio(1)">
                                                 Square (1:1)
                                             </button>
-                                            <button type="button" class="tool-btn tool-btn-aspect" onclick="cropper.setAspectRatio(4/3)">
+                                            <button type="button" class="tool-btn tool-btn-aspect" onclick="setAspectRatio(4/3)">
                                                 Standard (4:3)
                                             </button>
-                                            <button type="button" class="tool-btn tool-btn-aspect" onclick="cropper.setAspectRatio(16/9)">
+                                            <button type="button" class="tool-btn tool-btn-aspect" onclick="setAspectRatio(16/9)">
                                                 Wide (16:9)
                                             </button>
                                         </div>
+                                        <p class="small text-muted mt-2 mb-0">Outside circle/oval stays transparent (unstitched).</p>
 
                                         <div class="tools-divider"></div>
 
@@ -160,6 +176,7 @@
                     <input type="hidden" name="cropY" id="cropY">
                     <input type="hidden" name="cropWidth" id="cropWidth">
                     <input type="hidden" name="cropHeight" id="cropHeight">
+                    <input type="hidden" name="cropShape" id="cropShape" value="Rectangle">
                     <input type="hidden" name="originalWidth" id="originalWidth">
                     <input type="hidden" name="originalHeight" id="originalHeight">
                 </div>
@@ -181,10 +198,48 @@
 </div>
 
 @section Scripts {
+    <style>
+        #cropSection.crop-shape-ellipse .cropper-view-box,
+        #cropSection.crop-shape-ellipse .cropper-face {
+            border-radius: 50%;
+        }
+    </style>
+
     <script>
         let cropper = null;
         let naturalWidth = 0;
         let naturalHeight = 0;
+        let selectedCropShape = 'Rectangle';
+        let selectedAspectRatio = NaN;
+
+        function setAspectRatio(ratio) {
+            selectedAspectRatio = ratio;
+
+            if (!cropper) return;
+
+            const finalRatio = selectedCropShape === 'Circle' ? 1 : ratio;
+            cropper.setAspectRatio(finalRatio);
+        }
+
+        function setCropShape(shape) {
+            selectedCropShape = shape;
+            document.getElementById('cropShape').value = shape;
+
+            document.querySelectorAll('.tool-btn-shape').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.shape === shape);
+            });
+
+            const cropSection = document.getElementById('cropSection');
+            cropSection.classList.toggle('crop-shape-ellipse', shape === 'Circle' || shape === 'Oval');
+
+            if (!cropper) return;
+
+            if (shape === 'Circle') {
+                cropper.setAspectRatio(1);
+            } else {
+                cropper.setAspectRatio(selectedAspectRatio);
+            }
+        }
 
         // Handle file selection
         document.getElementById('imageFile').addEventListener('change', function (e) {
@@ -231,7 +286,7 @@
                     cropper = new Cropper(image, {
                         viewMode: 1,
                         dragMode: 'move',
-                        aspectRatio: NaN,
+                        aspectRatio: selectedCropShape === 'Circle' ? 1 : selectedAspectRatio,
                         autoCropArea: 0.8,
                         restore: false,
                         guides: true,
@@ -244,6 +299,7 @@
                             // Store original dimensions
                             document.getElementById('originalWidth').value = naturalWidth;
                             document.getElementById('originalHeight').value = naturalHeight;
+                            setCropShape(selectedCropShape);
                             console.log('Cropper ready. Natural size:', naturalWidth, 'x', naturalHeight);
                         },
                         crop: function (event) {
@@ -275,7 +331,7 @@
 
                             // Update display
                             document.getElementById('cropInfo').innerHTML =
-                                `${cropWidth} × ${cropHeight}px`;
+                                `${cropWidth} ï¿½ ${cropHeight}px`;
 
                             // Store crop data
                             document.getElementById('cropX').value = cropX;
@@ -305,6 +361,9 @@
             document.getElementById('continueBtn').style.display = 'none';
             naturalWidth = 0;
             naturalHeight = 0;
+            selectedCropShape = 'Rectangle';
+            selectedAspectRatio = NaN;
+            setCropShape('Rectangle');
 
             // Scroll back to top
             document.getElementById('uploadSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -317,6 +376,7 @@
                 cropY: document.getElementById('cropY').value,
                 cropWidth: document.getElementById('cropWidth').value,
                 cropHeight: document.getElementById('cropHeight').value,
+                cropShape: document.getElementById('cropShape').value,
                 originalWidth: document.getElementById('originalWidth').value,
                 originalHeight: document.getElementById('originalHeight').value
             });

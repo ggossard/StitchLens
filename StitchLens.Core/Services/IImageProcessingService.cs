@@ -24,4 +24,12 @@ public class CropData
     public int Y { get; set; }
     public int Width { get; set; }
     public int Height { get; set; }
+    public CropShape Shape { get; set; } = CropShape.Rectangle;
+}
+
+public enum CropShape
+{
+    Rectangle,
+    Circle,
+    Oval
 }

@@ -56,6 +56,7 @@ public class PatternController : Controller {
         int cropY,
         int cropWidth,
         int cropHeight,
+        string? cropShape,
         int originalWidth,
         int originalHeight) {
         if (imageFile == null || imageFile.Length == 0) {
@@ -81,6 +82,12 @@ public class PatternController : Controller {
             return View("Upload");
         }
 
+        var parsedShape = CropShape.Rectangle;
+        if (!string.IsNullOrWhiteSpace(cropShape) &&
+            Enum.TryParse<CropShape>(cropShape, ignoreCase: true, out var shape)) {
+            parsedShape = shape;
+        }
+
         // Create crop data object
         CropData? cropData = null;
         if (cropWidth > 0 && cropHeight > 0) {
@@ -88,7 +95,8 @@ public class PatternController : Controller {
                 X = cropX,
                 Y = cropY,
                 Width = cropWidth,
-                Height = cropHeight
+                Height = cropHeight,
+                Shape = parsedShape
             };
         }
 
