@@ -207,6 +207,10 @@ public class PatternController : Controller {
         if (project == null)
             return NotFound();
 
+        // Invalidate cached PDFs when settings are changed.
+        DeleteCachedPdfFiles(project);
+        project.PdfPath = null;
+
         User? currentUser = null;
         if (User.Identity?.IsAuthenticated == true) {
             var currentUserId = _userManager.GetUserId(User);
@@ -387,7 +391,22 @@ public class PatternController : Controller {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrEmpty(userId)) {
             // Not logged in - redirect to login
-            return RedirectToAction("Login", "Account", new { returnUrl = Url.Action("DownloadPdf", "Pattern", new { id }) });
+            return RedirectToAction("Login", "Account", new { returnUrl = Url.Action("DownloadPdf", "Pattern", new { id, useColor }) });
+        }
+
+        var cachedPdfPath = GetCachedPdfPath(project, useColor);
+        if (System.IO.File.Exists(cachedPdfPath)) {
+            project.Downloads++;
+
+            if (useColor) {
+                project.PdfPath = cachedPdfPath;
+            }
+
+            await _context.SaveChangesAsync();
+
+            var cachedPdfBytes = await System.IO.File.ReadAllBytesAsync(cachedPdfPath);
+            var cachedFileName = $"StitchLens_Pattern_{project.Id}_{DateTime.Now:yyyyMMdd}.pdf";
+            return File(cachedPdfBytes, "application/pdf", cachedFileName);
         }
 
         // Deserialize yarn matches
@@ -434,6 +453,17 @@ public class PatternController : Controller {
         // Generate PDF
         var pdfBytes = await _pdfService.GeneratePatternPdfAsync(pdfData);
 
+        // Cache PDF on disk for subsequent downloads
+        var cachedDirectory = Path.GetDirectoryName(cachedPdfPath);
+        if (!string.IsNullOrEmpty(cachedDirectory) && !Directory.Exists(cachedDirectory)) {
+            Directory.CreateDirectory(cachedDirectory);
+        }
+        await System.IO.File.WriteAllBytesAsync(cachedPdfPath, pdfBytes);
+
+        if (useColor) {
+            project.PdfPath = cachedPdfPath;
+        }
+
         // Track successful PDF download count per project
         project.Downloads++;
         await _context.SaveChangesAsync();
@@ -441,5 +471,56 @@ public class PatternController : Controller {
         // Return as download
         var fileName = $"StitchLens_Pattern_{project.Id}_{DateTime.Now:yyyyMMdd}.pdf";
         return File(pdfBytes, "application/pdf", fileName);
+    }
+
+    private static string GetCachedPdfPath(Project project, bool useColor) {
+        var requestedSuffix = useColor ? "_color" : "_bw";
+
+        if (!string.IsNullOrWhiteSpace(project.PdfPath)) {
+            var currentPath = project.PdfPath;
+            var extension = Path.GetExtension(currentPath);
+
+            if (currentPath.EndsWith("_color.pdf", StringComparison.OrdinalIgnoreCase) ||
+                currentPath.EndsWith("_bw.pdf", StringComparison.OrdinalIgnoreCase)) {
+                var currentSuffix = currentPath.EndsWith("_color.pdf", StringComparison.OrdinalIgnoreCase)
+                    ? "_color"
+                    : "_bw";
+
+                if (currentSuffix == requestedSuffix) {
+                    return currentPath;
+                }
+
+                return currentPath[..^($"{currentSuffix}.pdf".Length)] + $"{requestedSuffix}.pdf";
+            }
+
+            if (string.Equals(extension, ".pdf", StringComparison.OrdinalIgnoreCase)) {
+                return Path.ChangeExtension(currentPath, null) + $"{requestedSuffix}.pdf";
+            }
+        }
+
+        var sourceDirectory = Path.GetDirectoryName(project.ProcessedImagePath)
+            ?? Path.GetDirectoryName(project.OriginalImagePath)
+            ?? Path.Combine(Directory.GetCurrentDirectory(), "uploads");
+
+        var fileName = $"pattern_{project.Id}{requestedSuffix}.pdf";
+        return Path.Combine(sourceDirectory, fileName);
+    }
+
+    private static void DeleteCachedPdfFiles(Project project) {
+        if (string.IsNullOrWhiteSpace(project.PdfPath)) {
+            return;
+        }
+
+        var knownPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase) {
+            project.PdfPath,
+            GetCachedPdfPath(project, true),
+            GetCachedPdfPath(project, false)
+        };
+
+        foreach (var path in knownPaths) {
+            if (System.IO.File.Exists(path)) {
+                System.IO.File.Delete(path);
+            }
+        }
     }
 }
