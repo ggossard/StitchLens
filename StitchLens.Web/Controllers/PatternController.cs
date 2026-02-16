@@ -207,6 +207,36 @@ public class PatternController : Controller {
         if (project == null)
             return NotFound();
 
+        User? currentUser = null;
+        if (User.Identity?.IsAuthenticated == true) {
+            var currentUserId = _userManager.GetUserId(User);
+            if (!string.IsNullOrEmpty(currentUserId)) {
+                currentUser = await _context.Users
+                    .Include(u => u.ActiveSubscription)
+                    .FirstOrDefaultAsync(u => u.Id == int.Parse(currentUserId));
+
+                if (currentUser != null &&
+                    (currentUser.LastPatternCreationDate.Month != DateTime.UtcNow.Month ||
+                    currentUser.LastPatternCreationDate.Year != DateTime.UtcNow.Year)) {
+                    currentUser.PatternsCreatedThisMonth = 0;
+                    currentUser.LastPatternCreationDate = DateTime.UtcNow;
+                }
+
+                if (currentUser != null) {
+                    int patternCreationQuota = currentUser.ActiveSubscription?.PatternCreationQuota
+                        ?? await _tierConfigService.GetPatternCreationQuotaAsync(currentUser.CurrentTier);
+
+                    if (currentUser.PatternsCreatedThisMonth >= patternCreationQuota) {
+                        TempData["ErrorMessage"] = currentUser.CurrentTier == SubscriptionTier.Free
+                            ? "You've used your monthly pattern creation limit. Upgrade to create more patterns!"
+                            : $"You've reached your monthly limit of {patternCreationQuota} patterns. Upgrade for more!";
+
+                        return RedirectToAction("Pricing", "Home");
+                    }
+                }
+            }
+        }
+
         // Update project with settings
         project.Title = model.Title;
         project.CraftType = model.CraftType;
@@ -274,6 +304,21 @@ public class PatternController : Controller {
 
         await _context.SaveChangesAsync();
 
+        if (currentUser != null) {
+            currentUser.PatternsCreatedThisMonth++;
+            currentUser.LastPatternCreationDate = DateTime.UtcNow;
+
+            if (currentUser.LastPatternDate.Date != DateTime.UtcNow.Date) {
+                currentUser.PatternsCreatedToday = 1;
+            }
+            else {
+                currentUser.PatternsCreatedToday++;
+            }
+            currentUser.LastPatternDate = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+        }
+
         return RedirectToAction("Preview", new { id = project.Id });
     }
 
@@ -295,10 +340,10 @@ public class PatternController : Controller {
                 .FirstOrDefaultAsync(u => u.Id == int.Parse(userId));
 
             // Reset counter if new month
-            if (user != null && (user.LastDownloadDate.Month != DateTime.UtcNow.Month ||
-                user.LastDownloadDate.Year != DateTime.UtcNow.Year)) {
-                user.DownloadsThisMonth = 0;
-                user.LastDownloadDate = DateTime.UtcNow;
+            if (user != null && (user.LastPatternCreationDate.Month != DateTime.UtcNow.Month ||
+                user.LastPatternCreationDate.Year != DateTime.UtcNow.Year)) {
+                user.PatternsCreatedThisMonth = 0;
+                user.LastPatternCreationDate = DateTime.UtcNow;
                 await _context.SaveChangesAsync();
             }
         }
@@ -306,10 +351,10 @@ public class PatternController : Controller {
         var viewModel = new PreviewViewModel {
             Project = project,
             CraftType = project.CraftType,
-            DownloadsUsed = user?.DownloadsThisMonth ?? 0,
+            PatternsCreatedThisMonth = user?.PatternsCreatedThisMonth ?? 0,
             CurrentTier = user?.CurrentTier ?? SubscriptionTier.Free,
-            DownloadLimit = user?.ActiveSubscription?.DownloadQuota
-                 ?? await _tierConfigService.GetDownloadQuotaAsync(user?.CurrentTier ?? SubscriptionTier.Free)
+            PatternCreationQuota = user?.ActiveSubscription?.PatternCreationQuota
+                 ?? await _tierConfigService.GetPatternCreationQuotaAsync(user?.CurrentTier ?? SubscriptionTier.Free)
         };
 
         // Deserialize palette data
@@ -338,37 +383,11 @@ public class PatternController : Controller {
         if (project == null)
             return NotFound();
 
-        // Get current user and check download quota
+        // Require login for PDF downloads
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrEmpty(userId)) {
             // Not logged in - redirect to login
             return RedirectToAction("Login", "Account", new { returnUrl = Url.Action("DownloadPdf", "Pattern", new { id }) });
-        }
-
-        var user = await _context.Users
-            .Include(u => u.ActiveSubscription)
-            .FirstOrDefaultAsync(u => u.Id == int.Parse(userId));
-
-        if (user == null)
-            return NotFound();
-
-        // Reset counter if new month
-        if (user.LastDownloadDate.Month != DateTime.UtcNow.Month ||
-            user.LastDownloadDate.Year != DateTime.UtcNow.Year) {
-            user.DownloadsThisMonth = 0;
-            user.LastDownloadDate = DateTime.UtcNow;
-        }
-
-        // Check quota based on tier
-        int downloadLimit = await _tierConfigService.GetDownloadQuotaAsync(user.CurrentTier);
-
-        if (user.DownloadsThisMonth >= downloadLimit) {
-            // Exceeded quota - redirect to upgrade page
-            TempData["ErrorMessage"] = user.CurrentTier == SubscriptionTier.Free
-                ? "You've used your 1 free download. Upgrade to download more patterns!"
-                : $"You've reached your monthly limit of {downloadLimit} downloads. Upgrade for more!";
-
-            return RedirectToAction("Pricing", "Home");
         }
 
         // Deserialize yarn matches
@@ -415,9 +434,8 @@ public class PatternController : Controller {
         // Generate PDF
         var pdfBytes = await _pdfService.GeneratePatternPdfAsync(pdfData);
 
-        // Increment download counter AFTER successful generation
-        user.DownloadsThisMonth++;
-        user.LastDownloadDate = DateTime.UtcNow;
+        // Track successful PDF download count per project
+        project.Downloads++;
         await _context.SaveChangesAsync();
 
         // Return as download

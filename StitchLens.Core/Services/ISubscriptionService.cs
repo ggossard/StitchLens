@@ -13,7 +13,7 @@ public interface ISubscriptionService {
     Task<Subscription> CreateCustomSubscriptionAsync(
         int userId,
         decimal monthlyPrice,
-        int downloadQuota,
+        int patternCreationQuota,
         bool allowCommercialUse,
         string customTierName,
         string? customTierNotes = null);

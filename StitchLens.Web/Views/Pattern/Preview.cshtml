@@ -150,16 +150,16 @@
                             <div class="quota-icon">
                                 <i class="fas fa-exclamation-triangle"></i>
                             </div>
-                            <h5 class="quota-title">Download Limit Reached</h5>
+                            <h5 class="quota-title">Pattern Creation Limit Reached</h5>
                             <p class="quota-text">
-                                You've used <strong>@Model.DownloadsUsed of @Model.DownloadLimit</strong> downloads this month
+                                You've created <strong>@Model.PatternsCreatedThisMonth of @Model.PatternCreationQuota</strong> patterns this month
                             </p>
                             <a asp-controller="Home" asp-action="Pricing" class="btn btn-primary btn-lg">
-                                <i class="fas fa-arrow-up me-2"></i> Upgrade to Download
+                                <i class="fas fa-arrow-up me-2"></i> Upgrade to Create More
                             </a>
                             <p class="quota-note">
                                 @if (Model.CurrentTier == SubscriptionTier.Free) {
-                                    <text>Get 10-100 downloads per month!</text>
+                                    <text>Get 10-100 patterns per month!</text>
                                 }
                                 else {
                                     <text>Resets on your next billing date</text>
@@ -194,7 +194,7 @@
                             </a>
 
                             <p class="downloads-remaining">
-                                <i class="fas fa-check-circle"></i> @Model.DownloadsUsed of @Model.DownloadLimit downloads used
+                                <i class="fas fa-check-circle"></i> @Model.PatternsCreatedThisMonth of @Model.PatternCreationQuota patterns created this month
                             </p>
                         </div>
                     </div>

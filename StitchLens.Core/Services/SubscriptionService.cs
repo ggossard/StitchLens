@@ -59,7 +59,7 @@ public class SubscriptionService : ISubscriptionService {
             UserId = userId,
             Tier = tier,
             MonthlyPrice = tier.GetStandardPrice(),
-            DownloadQuota = tier.GetStandardQuota(),
+            PatternCreationQuota = tier.GetStandardPatternCreationQuota(),
             AllowCommercialUse = tier.GetStandardCommercialRights(),
             Status = SubscriptionStatus.Incomplete,
             StartDate = DateTime.UtcNow,
@@ -77,7 +77,7 @@ public class SubscriptionService : ISubscriptionService {
         // Update user's current tier and active subscription
         user.CurrentTier = tier;
         user.ActiveSubscriptionId = subscription.Id;
-        user.DownloadsThisMonth = 0;
+        user.PatternsCreatedThisMonth = 0;
 
         await _context.SaveChangesAsync();
 
@@ -87,7 +87,7 @@ public class SubscriptionService : ISubscriptionService {
     public async Task<Data.Models.Subscription> CreateCustomSubscriptionAsync(
         int userId,
         decimal monthlyPrice,
-        int downloadQuota,
+        int patternCreationQuota,
         bool allowCommercialUse,
         string customTierName,
         string? customTierNotes = null) {
@@ -105,7 +105,7 @@ public class SubscriptionService : ISubscriptionService {
             UserId = userId,
             Tier = SubscriptionTier.Custom,
             MonthlyPrice = monthlyPrice,
-            DownloadQuota = downloadQuota,
+            PatternCreationQuota = patternCreationQuota,
             AllowCommercialUse = allowCommercialUse,
             CustomTierName = customTierName,
             CustomTierNotes = customTierNotes,
@@ -123,7 +123,7 @@ public class SubscriptionService : ISubscriptionService {
         // Update user
         user.CurrentTier = SubscriptionTier.Custom;
         user.ActiveSubscriptionId = subscription.Id;
-        user.DownloadsThisMonth = 0;
+        user.PatternsCreatedThisMonth = 0;
 
         await _context.SaveChangesAsync();
 
@@ -195,9 +195,9 @@ public class SubscriptionService : ISubscriptionService {
         }
 
         // Reset monthly counter if new month
-        if (user.LastDownloadDate.Month != DateTime.UtcNow.Month ||
-            user.LastDownloadDate.Year != DateTime.UtcNow.Year) {
-            user.DownloadsThisMonth = 0;
+        if (user.LastPatternCreationDate.Month != DateTime.UtcNow.Month ||
+            user.LastPatternCreationDate.Year != DateTime.UtcNow.Year) {
+            user.PatternsCreatedThisMonth = 0;
             await _context.SaveChangesAsync();
         }
 
@@ -210,8 +210,8 @@ public class SubscriptionService : ISubscriptionService {
             return (false, "Subscription is not active");
         }
 
-        if (user.DownloadsThisMonth >= user.ActiveSubscription.DownloadQuota) {
-            return (false, $"Monthly quota of {user.ActiveSubscription.DownloadQuota} downloads reached. Resets on {DateTime.UtcNow.AddMonths(1):MMMM 1}.");
+        if (user.PatternsCreatedThisMonth >= user.ActiveSubscription.PatternCreationQuota) {
+            return (false, $"Monthly quota of {user.ActiveSubscription.PatternCreationQuota} patterns reached. Resets on {DateTime.UtcNow.AddMonths(1):MMMM 1}.");
         }
 
         return (true, null);
@@ -222,9 +222,9 @@ public class SubscriptionService : ISubscriptionService {
         if (user == null)
             throw new ArgumentException("User not found", nameof(userId));
 
-        // Update monthly download counter
-        user.DownloadsThisMonth++;
-        user.LastDownloadDate = DateTime.UtcNow;
+        // Update monthly pattern creation counter
+        user.PatternsCreatedThisMonth++;
+        user.LastPatternCreationDate = DateTime.UtcNow;
 
         // Update daily pattern counter
         if (user.LastPatternDate.Date != DateTime.UtcNow.Date) {

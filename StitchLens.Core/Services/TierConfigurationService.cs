@@ -28,9 +28,9 @@ public class TierConfigurationService : ITierConfigurationService {
             .ToListAsync();
     }
 
-    public async Task<int> GetDownloadQuotaAsync(SubscriptionTier tier) {
+    public async Task<int> GetPatternCreationQuotaAsync(SubscriptionTier tier) {
         var config = await GetConfigAsync(tier);
-        return config.DownloadQuota;
+        return config.PatternCreationQuota;
     }
 
     public async Task<int> GetPatternLimitAsync(SubscriptionTier tier) {

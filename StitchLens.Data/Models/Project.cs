@@ -24,6 +24,7 @@ public class Project
 
     // Output
     public string? PdfPath { get; set; }
+    public int Downloads { get; set; }
     public DateTime CreatedAt { get; set; }
 
     // Navigation

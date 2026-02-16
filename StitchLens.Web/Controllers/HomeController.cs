@@ -53,7 +53,7 @@ public class HomeController : Controller {
                 IsPopular = false,
                 Features = new List<string>
                 {
-                    "3 pattern downloads per month",
+                    "1 pattern created per month",
                     "Basic color matching",
                     "Standard resolution PDFs",
                     "DMC yarn colors only",
@@ -73,7 +73,7 @@ public class HomeController : Controller {
                 IsPopular = true,
                 Features = new List<string>
                 {
-                    "10 pattern downloads per month",
+                    "10 patterns created per month",
                     "Advanced color matching",
                     "High resolution PDFs",
                     "All yarn brands (DMC, Appleton, Paternayan)",
@@ -95,7 +95,7 @@ public class HomeController : Controller {
                 IsPopular = false,
                 Features = new List<string>
                 {
-                    "100 pattern downloads per month",
+                    "100 patterns created per month",
                     "Commercial use license included",
                     "Ultra-high resolution PDFs",
                     "All yarn brands + custom palettes",
@@ -118,7 +118,7 @@ public class HomeController : Controller {
                 IsPopular = false,
                 Features = new List<string>
                 {
-                    "Unlimited pattern downloads",
+                    "Unlimited patterns created",
                     "Full commercial license",
                     "Dedicated account manager",
                     "Custom integrations",

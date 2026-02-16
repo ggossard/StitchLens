@@ -13,7 +13,7 @@ public static class SubscriptionTierExtensions {
         };
     }
 
-    public static int GetStandardQuota(this SubscriptionTier tier) {
+    public static int GetStandardPatternCreationQuota(this SubscriptionTier tier) {
         return tier switch {
             SubscriptionTier.Free => 0, // Pay per pattern
             SubscriptionTier.Hobbyist => 10,
@@ -46,8 +46,8 @@ public static class SubscriptionTierExtensions {
     public static string GetDescription(this SubscriptionTier tier) {
         return tier switch {
             SubscriptionTier.Free => "Pay per pattern - $11.99 each",
-            SubscriptionTier.Hobbyist => "10 downloads/month - Personal use only",
-            SubscriptionTier.Creator => "100 downloads/month - Commercial license included",
+            SubscriptionTier.Hobbyist => "10 patterns/month - Personal use only",
+            SubscriptionTier.Creator => "100 patterns/month - Commercial license included",
             SubscriptionTier.Custom => "Custom quota and pricing",
             _ => ""
         };

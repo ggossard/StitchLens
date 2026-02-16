@@ -7,7 +7,7 @@ public class Subscription {
     // Plan details
     public SubscriptionTier Tier { get; set; }
     public decimal MonthlyPrice { get; set; }
-    public int DownloadQuota { get; set; }
+    public int PatternCreationQuota { get; set; }
     public bool AllowCommercialUse { get; set; }
 
     // Custom tier metadata

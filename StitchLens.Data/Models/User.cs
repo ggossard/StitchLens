@@ -16,8 +16,8 @@ public class User : IdentityUser<int>  // <int> means Id is int, not string
     public int? ActiveSubscriptionId { get; set; }
 
     // Usage tracking (reset monthly)
-    public int DownloadsThisMonth { get; set; }
-    public DateTime LastDownloadDate { get; set; } = DateTime.UtcNow;
+    public int PatternsCreatedThisMonth { get; set; }
+    public DateTime LastPatternCreationDate { get; set; } = DateTime.UtcNow;
     public int PatternsCreatedToday { get; set; }
     public DateTime LastPatternDate { get; set; } = DateTime.UtcNow;
 

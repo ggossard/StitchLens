@@ -161,10 +161,10 @@ public class AccountController : Controller {
         }
 
         // Reset monthly counter if new month
-        if (user.LastDownloadDate.Month != DateTime.UtcNow.Month ||
-            user.LastDownloadDate.Year != DateTime.UtcNow.Year) {
-            user.DownloadsThisMonth = 0;
-            user.LastDownloadDate = DateTime.UtcNow;  
+        if (user.LastPatternCreationDate.Month != DateTime.UtcNow.Month ||
+            user.LastPatternCreationDate.Year != DateTime.UtcNow.Year) {
+            user.PatternsCreatedThisMonth = 0;
+            user.LastPatternCreationDate = DateTime.UtcNow;
             await _context.SaveChangesAsync();
         }
 
@@ -192,9 +192,9 @@ public class AccountController : Controller {
         var model = new DashboardViewModel {
             User = user,
             CurrentTier = user.CurrentTier,
-            DownloadsUsed = user.DownloadsThisMonth,
-            DownloadQuota = user.ActiveSubscription?.DownloadQuota
-                 ?? await _tierConfigService.GetDownloadQuotaAsync(user.CurrentTier),
+            PatternsCreatedThisMonth = user.PatternsCreatedThisMonth,
+            PatternCreationQuota = user.ActiveSubscription?.PatternCreationQuota
+                 ?? await _tierConfigService.GetPatternCreationQuotaAsync(user.CurrentTier),
             PatternsCreatedToday = user.PatternsCreatedToday,
             NextBillingDate = user.ActiveSubscription?.NextBillingDate,
             MonthlyPrice = user.ActiveSubscription?.MonthlyPrice ?? 0,

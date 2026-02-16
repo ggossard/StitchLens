@@ -133,7 +133,7 @@ public class WebhookController : ControllerBase {
             StripeSubscriptionId = stripeSubscriptionId,
             StripePriceId = priceId,
             MonthlyPrice = amount / 100m,
-            DownloadQuota = tier.GetStandardQuota(),
+            PatternCreationQuota = tier.GetStandardPatternCreationQuota(),
             AllowCommercialUse = tier.GetStandardCommercialRights(),
             StartDate = DateTime.UtcNow,
             CurrentPeriodStart = currentPeriodStart ?? DateTime.UtcNow,
@@ -345,12 +345,12 @@ public class WebhookController : ControllerBase {
         _context.PaymentHistory.Add(paymentHistory);
         _logger.LogInformation($"Created payment history record: {invoice.AmountPaid / 100m:C}");
 
-        // Reset monthly downloads for user
+        // Reset monthly pattern creation usage for user
         var user = subscription.User;
         if (user != null) {
-            user.DownloadsThisMonth = 0;
-            user.LastDownloadDate = DateTime.UtcNow;
-            _logger.LogInformation($"Reset downloads for user {user.Id}");
+            user.PatternsCreatedThisMonth = 0;
+            user.LastPatternCreationDate = DateTime.UtcNow;
+            _logger.LogInformation($"Reset pattern creation usage for user {user.Id}");
         }
 
         await _context.SaveChangesAsync();

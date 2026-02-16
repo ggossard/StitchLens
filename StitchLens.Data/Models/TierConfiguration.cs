@@ -7,7 +7,7 @@ public class TierConfiguration {
     public string Description { get; set; } = string.Empty;
 
     // Quotas
-    public int DownloadQuota { get; set; }
+    public int PatternCreationQuota { get; set; }
     public int PatternCreationDailyLimit { get; set; }
 
     // Features

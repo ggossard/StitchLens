@@ -149,21 +149,21 @@
             <div class="row g-4">
                 <div class="col-md-6">
                     <div class="usage-section">
-                        <h5 class="usage-title">Pattern Downloads</h5>
+                        <h5 class="usage-title">Patterns Created This Month</h5>
                         <div class="usage-stats">
-                            <span class="usage-current">@Model.DownloadsUsed of @Model.DownloadQuota</span>
-                            <span class="usage-remaining">@Model.DownloadsRemaining remaining</span>
+                            <span class="usage-current">@Model.PatternsCreatedThisMonth of @Model.PatternCreationQuota</span>
+                            <span class="usage-remaining">@Model.PatternsRemaining remaining</span>
                         </div>
                         <div class="usage-progress">
-                            <div class="usage-progress-bar usage-progress-@(Model.DownloadPercentage > 80 ? "warning" : "success")"
-                                 style="width: @Model.DownloadPercentage%">
-                                <span>@Model.DownloadPercentage%</span>
+                            <div class="usage-progress-bar usage-progress-@(Model.PatternCreationPercentage > 80 ? "warning" : "success")"
+                                 style="width: @Model.PatternCreationPercentage%">
+                                <span>@Model.PatternCreationPercentage%</span>
                             </div>
                         </div>
-                        @if (Model.DownloadPercentage > 80) {
+                        @if (Model.PatternCreationPercentage > 80) {
                             <div class="usage-warning">
                                 <i class="fas fa-exclamation-triangle"></i>
-                                Running low on downloads this month!
+                                Running low on monthly pattern creations!
                             </div>
                         }
                     </div>

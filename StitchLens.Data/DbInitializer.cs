@@ -1,11 +1,12 @@
-﻿using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 using StitchLens.Data.Models;
 
 namespace StitchLens.Data;
 
 public static class DbInitializer {
     public static void Initialize(StitchLensDbContext context, string contentRootPath) {
-        context.Database.EnsureCreated();
+        context.Database.Migrate();
 
         // Seed tier configurations FIRST
         if (!context.TierConfigurations.Any()) {
@@ -16,7 +17,7 @@ public static class DbInitializer {
                     Tier = SubscriptionTier.Free,
                     Name = "Free",
                     Description = "Try it out",
-                    DownloadQuota = 1,
+                    PatternCreationQuota = 1,
                     PatternCreationDailyLimit = 3,
                     AllowCommercialUse = false,
                     PrioritySupport = false,
@@ -28,7 +29,7 @@ public static class DbInitializer {
                     Tier = SubscriptionTier.Hobbyist,
                     Name = "Hobbyist",
                     Description = "For regular stitchers",
-                    DownloadQuota = 10,
+                    PatternCreationQuota = 10,
                     PatternCreationDailyLimit = 20,
                     AllowCommercialUse = false,
                     PrioritySupport = false,
@@ -40,7 +41,7 @@ public static class DbInitializer {
                     Tier = SubscriptionTier.Creator,
                     Name = "Creator",
                     Description = "Sell your finished pieces",
-                    DownloadQuota = 100,
+                    PatternCreationQuota = 100,
                     PatternCreationDailyLimit = 100,
                     AllowCommercialUse = true,
                     PrioritySupport = true,
@@ -52,7 +53,7 @@ public static class DbInitializer {
                     Tier = SubscriptionTier.Custom,
                     Name = "Custom",
                     Description = "Enterprise solutions",
-                    DownloadQuota = int.MaxValue,
+                    PatternCreationQuota = int.MaxValue,
                     PatternCreationDailyLimit = int.MaxValue,
                     AllowCommercialUse = true,
                     PrioritySupport = true,
