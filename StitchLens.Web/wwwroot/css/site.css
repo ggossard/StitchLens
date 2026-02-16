@@ -670,7 +670,11 @@ h1, h2, h3, h4, h5, h6 {
 .crop-tools-panel {
     background: var(--color-cream);
     border-radius: 12px;
-    padding: 1.5rem;
+    padding: 1.1rem;
+    position: sticky;
+    top: 1rem;
+    max-height: 500px;
+    overflow-y: auto;
 }
 
 .tools-heading {
@@ -681,40 +685,136 @@ h1, h2, h3, h4, h5, h6 {
     font-weight: 600;
 }
 
-.tool-group {
-    display: flex;
-    flex-direction: column;
+.tool-grid {
+    display: grid;
     gap: 0.5rem;
+}
+
+.tool-grid-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.tool-segmented {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.35rem;
+}
+
+.tool-segmented .tool-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    padding: 0.5rem 0.4rem;
+    font-size: 0.78rem;
+}
+
+.shape-tool-layout {
+    display: grid;
+    gap: 0.35rem;
+}
+
+.shape-row {
+    display: grid;
+    gap: 0.35rem;
+}
+
+.shape-row-full {
+    grid-template-columns: 1fr;
+}
+
+.shape-row-split {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.shape-tool-layout .tool-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    padding: 0.5rem 0.5rem;
+    font-size: 0.82rem;
 }
 
 .tool-btn {
     background: var(--color-white);
     border: 1px solid var(--color-warm-gray-light);
     color: var(--color-text-dark);
-    padding: 0.625rem 1rem;
+    padding: 0.55rem 0.7rem;
     border-radius: 8px;
-    font-size: 0.9rem;
+    font-size: 0.84rem;
     font-weight: 500;
-    text-align: left;
+    text-align: center;
     transition: all 0.2s ease;
     cursor: pointer;
     width: 100%;
+    line-height: 1.2;
 }
 
     .tool-btn:hover {
         background: var(--color-dusty-rose);
         border-color: var(--color-dusty-rose);
         color: var(--color-white);
-        transform: translateX(4px);
+        transform: none;
     }
 
     .tool-btn i {
-        width: 20px;
-        margin-right: 0.5rem;
+        margin-right: 0.35rem;
+    }
+
+    .tool-btn.active {
+        background: var(--color-sage-green-dark);
+        border-color: var(--color-sage-green-dark);
+        color: var(--color-white);
+    }
+
+    .tool-btn:disabled,
+    .tool-btn.is-locked {
+        opacity: 0.55;
+        cursor: not-allowed;
     }
 
 .tool-btn-aspect {
     text-align: center;
+}
+
+.tools-advanced {
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid var(--color-warm-gray-light);
+    border-radius: 10px;
+    padding: 0.6rem 0.7rem;
+}
+
+.tools-advanced summary {
+    list-style: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--color-text-dark);
+}
+
+.tools-advanced summary::-webkit-details-marker {
+    display: none;
+}
+
+.tools-advanced summary i {
+    transition: transform 0.2s ease;
+}
+
+.tools-advanced[open] summary i {
+    transform: rotate(180deg);
+}
+
+.advanced-content {
+    margin-top: 0.75rem;
+}
+
+.advanced-content .tools-heading {
+    margin-bottom: 0.6rem;
+    font-size: 0.9rem;
 }
 
 .tools-divider {
@@ -750,6 +850,25 @@ h1, h2, h3, h4, h5, h6 {
     font-size: 0.9rem;
 }
 
+.crop-info-inline {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.7rem 1rem;
+    flex-wrap: wrap;
+}
+
+.crop-info-inline strong {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.crop-info-inline .crop-size-text {
+    margin: 0;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
 /* Upload Actions */
 .upload-actions {
     display: flex;
@@ -766,6 +885,9 @@ h1, h2, h3, h4, h5, h6 {
 
     .crop-tools-panel {
         margin-top: 2rem;
+        position: static;
+        max-height: none;
+        overflow-y: visible;
     }
 
     .upload-actions {
