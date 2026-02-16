@@ -15,7 +15,8 @@ public class SubscriptionService : ISubscriptionService {
     public async Task<Data.Models.Subscription> CreateSubscriptionAsync(
         int userId,
         SubscriptionTier tier,
-        string stripePriceId) {
+        string stripePriceId,
+        BillingCycle billingCycle = BillingCycle.Monthly) {
         var user = await _context.Users.FindAsync(userId);
         if (user == null)
             throw new ArgumentException("User not found", nameof(userId));
@@ -65,14 +66,17 @@ public class SubscriptionService : ISubscriptionService {
         var subscription = new Data.Models.Subscription {
             UserId = userId,
             Tier = tier,
-            MonthlyPrice = tierConfig.MonthlyPrice,
+            BillingCycle = billingCycle,
+            MonthlyPrice = billingCycle == BillingCycle.Annual
+                ? tierConfig.AnnualPrice ?? tierConfig.MonthlyPrice * 10
+                : tierConfig.MonthlyPrice,
             PatternCreationQuota = tierConfig.PatternCreationQuota,
             AllowCommercialUse = tierConfig.AllowCommercialUse,
             Status = SubscriptionStatus.Incomplete,
             StartDate = DateTime.UtcNow,
             CurrentPeriodStart = DateTime.UtcNow,
-            CurrentPeriodEnd = DateTime.UtcNow.AddMonths(1),
-            NextBillingDate = DateTime.UtcNow.AddMonths(1),
+            CurrentPeriodEnd = billingCycle == BillingCycle.Annual ? DateTime.UtcNow.AddYears(1) : DateTime.UtcNow.AddMonths(1),
+            NextBillingDate = billingCycle == BillingCycle.Annual ? DateTime.UtcNow.AddYears(1) : DateTime.UtcNow.AddMonths(1),
             StripeSubscriptionId = stripeSubscription.Id,
             StripePriceId = stripePriceId,
             CreatedAt = DateTime.UtcNow,
@@ -167,7 +171,8 @@ public class SubscriptionService : ISubscriptionService {
     public async Task<Data.Models.Subscription> UpgradeSubscriptionAsync(
         int currentSubscriptionId,
         SubscriptionTier newTier,
-        string newStripePriceId) {
+        string newStripePriceId,
+        BillingCycle billingCycle = BillingCycle.Monthly) {
         var currentSubscription = await _context.Subscriptions.FindAsync(currentSubscriptionId);
         if (currentSubscription == null)
             throw new ArgumentException("Subscription not found", nameof(currentSubscriptionId));
@@ -179,7 +184,8 @@ public class SubscriptionService : ISubscriptionService {
         return await CreateSubscriptionAsync(
             currentSubscription.UserId,
             newTier,
-            newStripePriceId);
+            newStripePriceId,
+            billingCycle);
     }
 
     public async Task<(bool CanDownload, string? Reason)> CanUserDownloadAsync(int userId) {

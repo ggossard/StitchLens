@@ -22,7 +22,11 @@ public static class DbInitializer {
                     AllowCommercialUse = false,
                     PrioritySupport = false,
                     MonthlyPrice = 0,
-                    StripePriceId = null
+                    AnnualPrice = null,
+                    PerPatternPrice = 5.95m,
+                    StripeMonthlyPriceId = null,
+                    StripeAnnualPriceId = null,
+                    StripePerPatternPriceId = null
                 },
                 new TierConfiguration
                 {
@@ -34,7 +38,11 @@ public static class DbInitializer {
                     AllowCommercialUse = false,
                     PrioritySupport = false,
                     MonthlyPrice = 12.95m,
-                    StripePriceId = "price_1SbpSSFiTiD9qoU887veIxiO"
+                    AnnualPrice = 129.50m,
+                    PerPatternPrice = null,
+                    StripeMonthlyPriceId = "price_1SbpSSFiTiD9qoU887veIxiO",
+                    StripeAnnualPriceId = null,
+                    StripePerPatternPriceId = null
                 },
                 new TierConfiguration
                 {
@@ -46,7 +54,11 @@ public static class DbInitializer {
                     AllowCommercialUse = true,
                     PrioritySupport = true,
                     MonthlyPrice = 35.95m,
-                    StripePriceId = "price_1SbpSaFiTiD9qoU8yrkT8tOE"
+                    AnnualPrice = 359.50m,
+                    PerPatternPrice = null,
+                    StripeMonthlyPriceId = "price_1SbpSaFiTiD9qoU8yrkT8tOE",
+                    StripeAnnualPriceId = null,
+                    StripePerPatternPriceId = null
                 },
                 new TierConfiguration
                 {
@@ -58,7 +70,11 @@ public static class DbInitializer {
                     AllowCommercialUse = true,
                     PrioritySupport = true,
                     MonthlyPrice = 0,
-                    StripePriceId = null
+                    AnnualPrice = null,
+                    PerPatternPrice = null,
+                    StripeMonthlyPriceId = null,
+                    StripeAnnualPriceId = null,
+                    StripePerPatternPriceId = null
                 }
             };
 

@@ -40,8 +40,8 @@
                     @if (Model.HasActiveSubscription) {
                         <div class="plan-details">
                             <div class="plan-detail-row">
-                                <span class="detail-label">Monthly Price</span>
-                                <span class="detail-value">$@Model.MonthlyPrice.ToString("F2")</span>
+                                <span class="detail-label">@Model.PlanPriceLabel</span>
+                                <span class="detail-value">$@Model.MonthlyPrice.ToString("F2") @Model.PlanPricePeriod</span>
                             </div>
                             <div class="plan-detail-row">
                                 <span class="detail-label">Next Billing</span>

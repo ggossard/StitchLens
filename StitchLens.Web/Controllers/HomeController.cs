@@ -1,7 +1,9 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using StitchLens.Core.Services;
+using StitchLens.Data;
 using StitchLens.Web.Models;
 using StitchLens.Data.Models;
 
@@ -11,14 +13,17 @@ public class HomeController : Controller {
     private readonly ILogger<HomeController> _logger;
     private readonly UserManager<User> _userManager;
     private readonly ITierConfigurationService _tierConfigurationService;
+    private readonly StitchLensDbContext _context;
 
     public HomeController(
         ILogger<HomeController> logger,
         UserManager<User> userManager,
-        ITierConfigurationService tierConfigurationService) {
+        ITierConfigurationService tierConfigurationService,
+        StitchLensDbContext context) {
         _logger = logger;
         _userManager = userManager;
         _tierConfigurationService = tierConfigurationService;
+        _context = context;
     }
 
     public IActionResult Index() {
@@ -33,41 +38,73 @@ public class HomeController : Controller {
         return View();
     }
 
-    public async Task<IActionResult> Pricing() {
+    public async Task<IActionResult> Pricing(BillingCycle billingCycle = BillingCycle.Monthly) {
         var viewModel = new PricingViewModel {
-            IsAuthenticated = User.Identity?.IsAuthenticated ?? false
+            IsAuthenticated = User.Identity?.IsAuthenticated ?? false,
+            SelectedBillingCycle = billingCycle
         };
 
         // Get current user's tier if authenticated
         if (viewModel.IsAuthenticated) {
-            var user = await _userManager.GetUserAsync(User);
+            var user = await _context.Users
+                .Include(u => u.ActiveSubscription)
+                .FirstOrDefaultAsync(u => u.Id == int.Parse(_userManager.GetUserId(User)!));
+
             viewModel.CurrentTier = user?.CurrentTier;
+            viewModel.CurrentBillingCycle = user?.ActiveSubscription?.BillingCycle;
         }
 
         var configs = await _tierConfigurationService.GetAllConfigsAsync();
 
         viewModel.Tiers = configs
-            .Select(config => MapPricingTier(config, viewModel.CurrentTier))
+            .Select(config => MapPricingTier(config, viewModel.CurrentTier, viewModel.CurrentBillingCycle, billingCycle))
             .ToList();
 
         return View(viewModel);
     }
 
-    private static PricingTier MapPricingTier(TierConfiguration config, SubscriptionTier? currentTier) {
-        var isCurrent = currentTier == config.Tier;
+    private static PricingTier MapPricingTier(
+        TierConfiguration config,
+        SubscriptionTier? currentTier,
+        BillingCycle? currentBillingCycle,
+        BillingCycle selectedBillingCycle) {
+        var isCurrent = config.Tier switch {
+            SubscriptionTier.Hobbyist or SubscriptionTier.Creator =>
+                currentTier == config.Tier && currentBillingCycle == selectedBillingCycle,
+            _ => currentTier == config.Tier
+        };
 
         return new PricingTier {
             Name = config.Name,
             Description = config.Description,
             MonthlyPrice = config.MonthlyPrice,
-            PriceDisplay = config.Tier == SubscriptionTier.Custom ? "Contact Us" : config.MonthlyPrice.ToString("0.00"),
+            AnnualPrice = config.AnnualPrice,
+            PerPatternPrice = config.PerPatternPrice,
+            PriceDisplay = BuildPriceDisplay(config, selectedBillingCycle),
             Tier = config.Tier,
             IsPopular = config.Tier == SubscriptionTier.Hobbyist,
             Features = BuildFeatures(config),
             ButtonText = BuildButtonText(config.Tier, isCurrent),
             ButtonClass = BuildButtonClass(config.Tier),
-            IsCurrent = isCurrent
+            IsCurrent = isCurrent,
+            IsAnnualAvailable = config.AnnualPrice.HasValue && !string.IsNullOrWhiteSpace(config.StripeAnnualPriceId)
         };
+    }
+
+    private static string BuildPriceDisplay(TierConfiguration config, BillingCycle selectedBillingCycle) {
+        if (config.Tier == SubscriptionTier.Custom) {
+            return "Contact Us";
+        }
+
+        if (config.Tier == SubscriptionTier.PayAsYouGo) {
+            return config.PerPatternPrice?.ToString("0.00") ?? "0.00";
+        }
+
+        if (selectedBillingCycle == BillingCycle.Annual && config.AnnualPrice.HasValue) {
+            return config.AnnualPrice.Value.ToString("0.00");
+        }
+
+        return config.MonthlyPrice.ToString("0.00");
     }
 
     private static List<string> BuildFeatures(TierConfiguration config) {

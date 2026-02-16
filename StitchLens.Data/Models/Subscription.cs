@@ -6,6 +6,7 @@ public class Subscription {
 
     // Plan details
     public SubscriptionTier Tier { get; set; }
+    public BillingCycle BillingCycle { get; set; } = BillingCycle.Monthly;
     public decimal MonthlyPrice { get; set; }
     public int PatternCreationQuota { get; set; }
     public bool AllowCommercialUse { get; set; }
@@ -38,6 +39,11 @@ public class Subscription {
     // Navigation
     public User User { get; set; } = null!;
     public ICollection<PaymentHistory> Payments { get; set; } = new List<PaymentHistory>();
+}
+
+public enum BillingCycle {
+    Monthly,
+    Annual
 }
 
 public enum SubscriptionStatus {

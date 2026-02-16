@@ -136,6 +136,14 @@ public class AccountController : Controller {
             return RedirectToAction("Login");
         }
 
+        user = await _context.Users
+            .Include(u => u.ActiveSubscription)
+            .FirstOrDefaultAsync(u => u.Id == user.Id);
+
+        if (user == null) {
+            return RedirectToAction("Login");
+        }
+
         var model = new MyAccountViewModel {
             Email = user.Email!,
             PlanType = user.PlanType,
@@ -197,6 +205,7 @@ public class AccountController : Controller {
             PatternsCreatedToday = user.PatternsCreatedToday,
             NextBillingDate = user.ActiveSubscription?.NextBillingDate,
             MonthlyPrice = user.ActiveSubscription?.MonthlyPrice ?? 0,
+            BillingCycle = user.ActiveSubscription?.BillingCycle,
             HasActiveSubscription = user.ActiveSubscription != null &&
                                     user.ActiveSubscription.Status == SubscriptionStatus.Active,
             RecentSubscriptions = subscriptions,
@@ -320,14 +329,14 @@ public class AccountController : Controller {
         }
     }
 
-    // GET: /Account/Subscribe?tier=Hobbyist
+    // GET: /Account/Subscribe?tier=Hobbyist&billingCycle=Monthly
     [Authorize]
     [HttpGet]
-    public async Task<IActionResult> Subscribe(SubscriptionTier tier) {
+    public async Task<IActionResult> Subscribe(SubscriptionTier tier, BillingCycle billingCycle = BillingCycle.Monthly) {
         // Validate tier
         if (tier == SubscriptionTier.PayAsYouGo || tier == SubscriptionTier.Custom) {
             TempData["Error"] = "Please select a valid subscription plan.";
-            return RedirectToAction("Pricing");
+            return RedirectToAction("Pricing", "Home");
         }
 
         var user = await _userManager.GetUserAsync(User);
@@ -335,18 +344,22 @@ public class AccountController : Controller {
             return RedirectToAction("Login");
         }
 
-        // Check if already subscribed to this tier
-        if (user.CurrentTier == tier) {
+        // Check if already subscribed to this tier and cycle
+        if (user.CurrentTier == tier && user.ActiveSubscription?.BillingCycle == billingCycle) {
             TempData["Info"] = "You're already subscribed to this plan!";
             return RedirectToAction("Dashboard");
         }
 
         var tierConfig = await _tierConfigService.GetConfigAsync(tier);
-        var priceId = tierConfig.StripePriceId;
+        var priceId = billingCycle == BillingCycle.Annual
+            ? tierConfig.StripeAnnualPriceId
+            : tierConfig.StripeMonthlyPriceId;
 
         if (string.IsNullOrEmpty(priceId)) {
-            TempData["Error"] = "Invalid subscription plan configuration.";
-            return RedirectToAction("Pricing");
+            TempData["Error"] = billingCycle == BillingCycle.Annual
+                ? "Annual billing is not configured for this plan yet."
+                : "Invalid subscription plan configuration.";
+            return RedirectToAction("Pricing", "Home", new { billingCycle });
         }
 
         try {
@@ -365,11 +378,12 @@ public class AccountController : Controller {
                 }
             },
                 SuccessUrl = Url.Action("SubscribeSuccess", "Account", null, Request.Scheme) + "?session_id={CHECKOUT_SESSION_ID}",
-                CancelUrl = Url.Action("Pricing", "Account", null, Request.Scheme),
+                CancelUrl = Url.Action("Pricing", "Home", new { billingCycle }, Request.Scheme),
                 Metadata = new Dictionary<string, string>
                 {
                 { "user_id", user.Id.ToString() },
-                { "tier", tier.ToString() }
+                { "tier", tier.ToString() },
+                { "billing_cycle", billingCycle.ToString() }
             }
             };
 
@@ -387,7 +401,7 @@ public class AccountController : Controller {
         }
         catch (StripeException ex) {
             TempData["Error"] = $"Payment system error: {ex.Message}";
-            return RedirectToAction("Pricing");
+            return RedirectToAction("Pricing", "Home", new { billingCycle });
         }
     }
 

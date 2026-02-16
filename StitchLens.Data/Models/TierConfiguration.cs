@@ -16,9 +16,13 @@ public class TierConfiguration {
 
     // Pricing (for reference)
     public decimal MonthlyPrice { get; set; }
+    public decimal? AnnualPrice { get; set; }
+    public decimal? PerPatternPrice { get; set; }
 
     // Stripe Price IDs (for checkout)
-    public string? StripePriceId { get; set; }
+    public string? StripeMonthlyPriceId { get; set; }
+    public string? StripeAnnualPriceId { get; set; }
+    public string? StripePerPatternPriceId { get; set; }
 
     // Timestamps
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

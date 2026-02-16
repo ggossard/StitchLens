@@ -112,6 +112,10 @@ public class StitchLensDbContext : IdentityDbContext<User, IdentityRole<int>, in
             entity.Property(e => e.Tier)
                 .HasConversion<int>();
 
+            entity.Property(e => e.BillingCycle)
+                .HasConversion<string>()
+                .HasMaxLength(20);
+
             entity.Property(e => e.Status)
                 .HasConversion<string>()
                 .HasMaxLength(50);
@@ -195,7 +199,19 @@ public class StitchLensDbContext : IdentityDbContext<User, IdentityRole<int>, in
             entity.Property(e => e.MonthlyPrice)
                 .HasPrecision(10, 2);
 
-            entity.Property(e => e.StripePriceId)
+            entity.Property(e => e.AnnualPrice)
+                .HasPrecision(10, 2);
+
+            entity.Property(e => e.PerPatternPrice)
+                .HasPrecision(10, 2);
+
+            entity.Property(e => e.StripeMonthlyPriceId)
+                .HasMaxLength(100);
+
+            entity.Property(e => e.StripeAnnualPriceId)
+                .HasMaxLength(100);
+
+            entity.Property(e => e.StripePerPatternPriceId)
                 .HasMaxLength(100);
 
             // Ensure each tier has only one config

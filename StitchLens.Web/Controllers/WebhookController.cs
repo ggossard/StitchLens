@@ -86,6 +86,12 @@ public class WebhookController : ControllerBase {
         var userId = int.Parse(session.Metadata["user_id"]);
         var tierName = session.Metadata["tier"];
         var tier = Enum.Parse<SubscriptionTier>(tierName);
+        var billingCycle = BillingCycle.Monthly;
+
+        if (session.Metadata.TryGetValue("billing_cycle", out var billingCycleValue) &&
+            Enum.TryParse<BillingCycle>(billingCycleValue, ignoreCase: true, out var parsedBillingCycle)) {
+            billingCycle = parsedBillingCycle;
+        }
 
         _logger.LogInformation($"Processing checkout completion for user {userId}, tier {tier}");
 
@@ -137,6 +143,7 @@ public class WebhookController : ControllerBase {
         var subscription = new StitchLens.Data.Models.Subscription {
             UserId = userId,
             Tier = tier,
+            BillingCycle = billingCycle,
             Status = SubscriptionStatus.Active,
             StripeSubscriptionId = stripeSubscriptionId,
             StripePriceId = priceId,
@@ -145,8 +152,8 @@ public class WebhookController : ControllerBase {
             AllowCommercialUse = tierConfig.AllowCommercialUse,
             StartDate = DateTime.UtcNow,
             CurrentPeriodStart = currentPeriodStart ?? DateTime.UtcNow,
-            CurrentPeriodEnd = currentPeriodEnd ?? DateTime.UtcNow.AddMonths(1),
-            NextBillingDate = currentPeriodEnd ?? DateTime.UtcNow.AddMonths(1),
+            CurrentPeriodEnd = currentPeriodEnd ?? (billingCycle == BillingCycle.Annual ? DateTime.UtcNow.AddYears(1) : DateTime.UtcNow.AddMonths(1)),
+            NextBillingDate = currentPeriodEnd ?? (billingCycle == BillingCycle.Annual ? DateTime.UtcNow.AddYears(1) : DateTime.UtcNow.AddMonths(1)),
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };

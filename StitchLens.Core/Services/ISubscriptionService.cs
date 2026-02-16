@@ -7,7 +7,8 @@ public interface ISubscriptionService {
     Task<Subscription> CreateSubscriptionAsync(
         int userId,
         SubscriptionTier tier,
-        string stripePriceId);
+        string stripePriceId,
+        BillingCycle billingCycle = BillingCycle.Monthly);
 
     // Create custom subscription
     Task<Subscription> CreateCustomSubscriptionAsync(
@@ -25,7 +26,8 @@ public interface ISubscriptionService {
     Task<Subscription> UpgradeSubscriptionAsync(
         int currentSubscriptionId,
         SubscriptionTier newTier,
-        string newStripePriceId);
+        string newStripePriceId,
+        BillingCycle billingCycle = BillingCycle.Monthly);
 
     // Check if user can download
     Task<(bool CanDownload, string? Reason)> CanUserDownloadAsync(int userId);

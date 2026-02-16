@@ -45,6 +45,18 @@
                 Choose the plan that fits your creative journey. From hobby stitchers to professional designers,
                 <br>we have a plan that helps you bring your visions to life.
             </p>
+
+            <div class="billing-toggle" role="group" aria-label="Billing cycle toggle">
+                <a asp-action="Pricing" asp-controller="Home" asp-route-billingCycle="Monthly"
+                   class="billing-toggle-option @(Model.SelectedBillingCycle == BillingCycle.Monthly ? "active" : "")">
+                    Monthly
+                </a>
+                <a asp-action="Pricing" asp-controller="Home" asp-route-billingCycle="Annual"
+                   class="billing-toggle-option @(Model.SelectedBillingCycle == BillingCycle.Annual ? "active" : "")">
+                    Annual
+                </a>
+            </div>
+            <p class="billing-toggle-note">Annual plans include 2 months free.</p>
         </div>
     </div>
 </section>
@@ -92,7 +104,7 @@
                         <!-- Price -->
                         <div class="tier-price">
                             @if (tier.Tier == SubscriptionTier.PayAsYouGo) {
-                                <div class="price-amount">$5.95</div>
+                                <div class="price-amount">$@tier.PerPatternPrice?.ToString("0.00")</div>
                                 <div class="price-period">per pattern</div>
                             }
                             else if (tier.Tier == SubscriptionTier.Custom) {
@@ -101,9 +113,15 @@
                             }
                             else {
                                 <div class="price-amount">
-                                    <span class="price-currency">$</span>@tier.MonthlyPrice.ToString("0.00")
+                                    <span class="price-currency">$</span>@tier.PriceDisplay
                                 </div>
-                                <div class="price-period">per month</div>
+                                @if (Model.SelectedBillingCycle == BillingCycle.Annual) {
+                                    <div class="price-period">per year</div>
+                                    <div class="price-subnote">2 months free</div>
+                                }
+                                else {
+                                    <div class="price-period">per month</div>
+                                }
                             }
                         </div>
                     </div>
@@ -147,13 +165,18 @@
                             }
                         }
                         else {
-                            @if (Model.IsAuthenticated) {
-                                <a asp-controller="Account" asp-action="Subscribe" asp-route-tier="@tier.Tier" class="btn-pricing btn-pricing-@tier.Tier.ToString().ToLower()">
+                            @if (Model.SelectedBillingCycle == BillingCycle.Annual && !tier.IsAnnualAvailable) {
+                                <button class="btn-pricing btn-pricing-current" disabled>
+                                    Annual Plan Coming Soon
+                                </button>
+                            }
+                            else if (Model.IsAuthenticated) {
+                                <a asp-controller="Account" asp-action="Subscribe" asp-route-tier="@tier.Tier" asp-route-billingCycle="@Model.SelectedBillingCycle" class="btn-pricing btn-pricing-@tier.Tier.ToString().ToLower()">
                                     <i class="fas fa-rocket me-2"></i>@tier.ButtonText
                                 </a>
                             }
                             else {
-                                <a asp-controller="Account" asp-action="Register" asp-route-returnUrl="@Url.Action("Subscribe", "Account", new { tier = tier.Tier })" class="btn-pricing btn-pricing-@tier.Tier.ToString().ToLower()">
+                                <a asp-controller="Account" asp-action="Register" asp-route-returnUrl="@Url.Action("Subscribe", "Account", new { tier = tier.Tier, billingCycle = Model.SelectedBillingCycle })" class="btn-pricing btn-pricing-@tier.Tier.ToString().ToLower()">
                                     <i class="fas fa-user-plus me-2"></i>Sign Up to Subscribe
                                 </a>
                             }

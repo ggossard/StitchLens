@@ -11,6 +11,7 @@ public class DashboardViewModel {
     public int PatternsCreatedToday { get; set; }
     public DateTime? NextBillingDate { get; set; }
     public decimal MonthlyPrice { get; set; }
+    public BillingCycle? BillingCycle { get; set; }
     public bool HasActiveSubscription { get; set; }
 
     public List<Subscription> RecentSubscriptions { get; set; } = new();
@@ -23,4 +24,6 @@ public class DashboardViewModel {
         : 0;
     public string TierDisplayName => CurrentTier.GetDisplayName();
     public string TierDescription => CurrentTier.GetDescription();
+    public string PlanPriceLabel => BillingCycle == Data.Models.BillingCycle.Annual ? "Annual Price" : "Monthly Price";
+    public string PlanPricePeriod => BillingCycle == Data.Models.BillingCycle.Annual ? "per year" : "per month";
 }
