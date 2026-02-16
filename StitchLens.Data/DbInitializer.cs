@@ -29,11 +29,11 @@ public static class DbInitializer {
                     Tier = SubscriptionTier.Hobbyist,
                     Name = "Hobbyist",
                     Description = "For regular stitchers",
-                    PatternCreationQuota = 10,
+                    PatternCreationQuota = 3,
                     PatternCreationDailyLimit = 20,
                     AllowCommercialUse = false,
                     PrioritySupport = false,
-                    MonthlyPrice = 12.99m,
+                    MonthlyPrice = 12.95m,
                     StripePriceId = "price_1SbpSSFiTiD9qoU887veIxiO"
                 },
                 new TierConfiguration
@@ -41,11 +41,11 @@ public static class DbInitializer {
                     Tier = SubscriptionTier.Creator,
                     Name = "Creator",
                     Description = "Sell your finished pieces",
-                    PatternCreationQuota = 100,
+                    PatternCreationQuota = 30,
                     PatternCreationDailyLimit = 100,
                     AllowCommercialUse = true,
                     PrioritySupport = true,
-                    MonthlyPrice = 49.99m,
+                    MonthlyPrice = 35.95m,
                     StripePriceId = "price_1SbpSaFiTiD9qoU8yrkT8tOE"
                 },
                 new TierConfiguration

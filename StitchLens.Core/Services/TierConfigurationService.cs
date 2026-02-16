@@ -24,7 +24,7 @@ public class TierConfigurationService : ITierConfigurationService {
 
     public async Task<List<TierConfiguration>> GetAllConfigsAsync() {
         return await _context.TierConfigurations
-            .OrderBy(t => t.MonthlyPrice)
+            .OrderBy(t => t.Tier)
             .ToListAsync();
     }
 

@@ -54,13 +54,20 @@ public class SubscriptionService : ISubscriptionService {
             Expand = new List<string> { "latest_invoice.payment_intent" }
         });
 
+        var tierConfig = await _context.TierConfigurations
+            .FirstOrDefaultAsync(t => t.Tier == tier);
+
+        if (tierConfig == null) {
+            throw new InvalidOperationException($"Tier configuration not found for {tier}");
+        }
+
         // Create our subscription record
         var subscription = new Data.Models.Subscription {
             UserId = userId,
             Tier = tier,
-            MonthlyPrice = tier.GetStandardPrice(),
-            PatternCreationQuota = tier.GetStandardPatternCreationQuota(),
-            AllowCommercialUse = tier.GetStandardCommercialRights(),
+            MonthlyPrice = tierConfig.MonthlyPrice,
+            PatternCreationQuota = tierConfig.PatternCreationQuota,
+            AllowCommercialUse = tierConfig.AllowCommercialUse,
             Status = SubscriptionStatus.Incomplete,
             StartDate = DateTime.UtcNow,
             CurrentPeriodStart = DateTime.UtcNow,

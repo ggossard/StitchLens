@@ -1,4 +1,4 @@
-﻿using StitchLens.Core.Services;
+using StitchLens.Core.Services;
 using StitchLens.Data.Models;
 
 namespace StitchLens.Web.Models;

@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
+using StitchLens.Core.Services;
 using StitchLens.Web.Models;
 using StitchLens.Data.Models;
 
@@ -9,12 +10,15 @@ namespace StitchLens.Web.Controllers;
 public class HomeController : Controller {
     private readonly ILogger<HomeController> _logger;
     private readonly UserManager<User> _userManager;
+    private readonly ITierConfigurationService _tierConfigurationService;
 
     public HomeController(
         ILogger<HomeController> logger,
-        UserManager<User> userManager) {
+        UserManager<User> userManager,
+        ITierConfigurationService tierConfigurationService) {
         _logger = logger;
         _userManager = userManager;
+        _tierConfigurationService = tierConfigurationService;
     }
 
     public IActionResult Index() {
@@ -40,87 +44,91 @@ public class HomeController : Controller {
             viewModel.CurrentTier = user?.CurrentTier;
         }
 
-        // Define pricing tiers
-        viewModel.Tiers = new List<PricingTier>
-        {
-            new PricingTier
-            {
-                Name = "Pay As You Go",
-                Description = "Perfect for trying out StitchLens",
-                MonthlyPrice = 5.95m,
-                PriceDisplay = "",
-                Tier = SubscriptionTier.PayAsYouGo,
-                IsPopular = false,
-                Features = new List<string>
-                {
-                    "Sign Up & 1st one free",
-                    "Community support"
-                },
-                ButtonText = viewModel.CurrentTier == SubscriptionTier.PayAsYouGo ? "Current Plan" : "Get Started Now",
-                ButtonClass = "btn-outline-secondary",
-                IsCurrent = viewModel.CurrentTier == SubscriptionTier.PayAsYouGo
-            },
-            new PricingTier
-            {
-                Name = "Hobbyist",
-                Description = "Great for regular crafters",
-                MonthlyPrice = 12.95m,
-                PriceDisplay = "$12.95",
-                Tier = SubscriptionTier.Hobbyist,
-                IsPopular = true,
-                Features = new List<string>
-                {
-                    "3 patterns created per month",
-                    "Priority email support",
-                    "Save unlimited patterns"
-                },
-                ButtonText = viewModel.CurrentTier == SubscriptionTier.Hobbyist ? "Current Plan" : "Subscribe Now",
-                ButtonClass = "btn-primary",
-                IsCurrent = viewModel.CurrentTier == SubscriptionTier.Hobbyist
-            },
-            new PricingTier
-            {
-                Name = "Creator",
-                Description = "For professionals and Etsy sellers",
-                MonthlyPrice = 35.95m,
-                PriceDisplay = "$35.95",
-                Tier = SubscriptionTier.Creator,
-                IsPopular = false,
-                Features = new List<string>
-                {
-                    "30 patterns created per month",
-                    "Priority support (24hr response)",
-                    "White-label options (coming soon)"
-                },
-                ButtonText = viewModel.CurrentTier == SubscriptionTier.Creator ? "Current Plan" : "Go Pro",
-                ButtonClass = "btn-success",
-                IsCurrent = viewModel.CurrentTier == SubscriptionTier.Creator
-            },
-            new PricingTier
-            {
-                Name = "Custom",
-                Description = "Enterprise solutions for businesses",
-                MonthlyPrice = 0,
-                PriceDisplay = "Contact Us",
-                Tier = SubscriptionTier.Custom,
-                IsPopular = false,
-                Features = new List<string>
-                {
-                    "Unlimited patterns created",
-                    "Custom integrations",
-                    "API access",
-                    "White-label platform",
-                    "SLA guarantee",
-                    "Volume discounts",
-                    "Custom features & development"
-                },
-                ButtonText = "Contact Sales",
-                ButtonClass = "btn-outline-dark",
-                IsCurrent = viewModel.CurrentTier == SubscriptionTier.Custom
-            }
-        };
+        var configs = await _tierConfigurationService.GetAllConfigsAsync();
+
+        viewModel.Tiers = configs
+            .Select(config => MapPricingTier(config, viewModel.CurrentTier))
+            .ToList();
 
         return View(viewModel);
+    }
+
+    private static PricingTier MapPricingTier(TierConfiguration config, SubscriptionTier? currentTier) {
+        var isCurrent = currentTier == config.Tier;
+
+        return new PricingTier {
+            Name = config.Name,
+            Description = config.Description,
+            MonthlyPrice = config.MonthlyPrice,
+            PriceDisplay = config.Tier == SubscriptionTier.Custom ? "Contact Us" : config.MonthlyPrice.ToString("0.00"),
+            Tier = config.Tier,
+            IsPopular = config.Tier == SubscriptionTier.Hobbyist,
+            Features = BuildFeatures(config),
+            ButtonText = BuildButtonText(config.Tier, isCurrent),
+            ButtonClass = BuildButtonClass(config.Tier),
+            IsCurrent = isCurrent
+        };
+    }
+
+    private static List<string> BuildFeatures(TierConfiguration config) {
+        if (config.Tier == SubscriptionTier.Custom) {
+            return new List<string> {
+                "Unlimited patterns created",
+                "Custom integrations",
+                "API access",
+                "White-label platform",
+                "SLA guarantee",
+                "Volume discounts",
+                "Custom features & development"
+            };
+        }
+
+        if (config.Tier == SubscriptionTier.PayAsYouGo) {
+            return new List<string> {
+                "Sign up and create your first pattern free",
+                "Pay per additional pattern",
+                "Community support"
+            };
+        }
+
+        var features = new List<string> {
+            $"{config.PatternCreationQuota} patterns created per month",
+            config.PrioritySupport ? "Priority support" : "Email support",
+            "Save unlimited patterns"
+        };
+
+        if (config.AllowCommercialUse) {
+            features.Add("Commercial use license included");
+        }
+
+        return features;
+    }
+
+    private static string BuildButtonText(SubscriptionTier tier, bool isCurrent) {
+        if (tier == SubscriptionTier.Custom) {
+            return "Contact Sales";
+        }
+
+        if (isCurrent) {
+            return "Current Plan";
+        }
+
+        return tier switch {
+            SubscriptionTier.PayAsYouGo => "Get Started",
+            SubscriptionTier.Hobbyist => "Subscribe Now",
+            SubscriptionTier.Creator => "Go Pro",
+            _ => "Get Started"
+        };
+    }
+
+    private static string BuildButtonClass(SubscriptionTier tier) {
+        return tier switch {
+            SubscriptionTier.PayAsYouGo => "btn-outline-secondary",
+            SubscriptionTier.Hobbyist => "btn-primary",
+            SubscriptionTier.Creator => "btn-success",
+            SubscriptionTier.Custom => "btn-outline-dark",
+            _ => "btn-primary"
+        };
     }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

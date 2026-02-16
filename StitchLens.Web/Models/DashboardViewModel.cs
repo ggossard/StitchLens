@@ -1,5 +1,5 @@
-﻿using StitchLens.Data.Models;
-using StitchLens.Core.Services;
+using StitchLens.Data.Models;
+using StitchLens.Core.Extensions;
 
 namespace StitchLens.Web.Models;
 

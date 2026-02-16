@@ -125,6 +125,14 @@ public class WebhookController : ControllerBase {
             _logger.LogWarning(ex, "Unable to parse subscription period dates");
         }
 
+        var tierConfig = await _context.TierConfigurations
+            .FirstOrDefaultAsync(t => t.Tier == tier);
+
+        if (tierConfig == null) {
+            _logger.LogError("Tier configuration not found for tier {Tier}", tier);
+            return;
+        }
+
         // Create subscription record in our database
         var subscription = new StitchLens.Data.Models.Subscription {
             UserId = userId,
@@ -133,8 +141,8 @@ public class WebhookController : ControllerBase {
             StripeSubscriptionId = stripeSubscriptionId,
             StripePriceId = priceId,
             MonthlyPrice = amount / 100m,
-            PatternCreationQuota = tier.GetStandardPatternCreationQuota(),
-            AllowCommercialUse = tier.GetStandardCommercialRights(),
+            PatternCreationQuota = tierConfig.PatternCreationQuota,
+            AllowCommercialUse = tierConfig.AllowCommercialUse,
             StartDate = DateTime.UtcNow,
             CurrentPeriodStart = currentPeriodStart ?? DateTime.UtcNow,
             CurrentPeriodEnd = currentPeriodEnd ?? DateTime.UtcNow.AddMonths(1),

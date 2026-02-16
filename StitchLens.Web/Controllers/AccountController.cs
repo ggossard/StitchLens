@@ -9,7 +9,6 @@ using StitchLens.Web.Models;
 using System.Security.Claims;
 using Stripe;
 using Stripe.Checkout;
-using StitchLens.Core.Extensions;
 
 namespace StitchLens.Web.Controllers;
 
@@ -342,12 +341,8 @@ public class AccountController : Controller {
             return RedirectToAction("Dashboard");
         }
 
-        // Get Stripe Price ID
-        var priceId = tier switch {
-            SubscriptionTier.Hobbyist => _configuration["Stripe:PriceIds:Hobbyist"],
-            SubscriptionTier.Creator => _configuration["Stripe:PriceIds:Creator"],
-            _ => null
-        };
+        var tierConfig = await _tierConfigService.GetConfigAsync(tier);
+        var priceId = tierConfig.StripePriceId;
 
         if (string.IsNullOrEmpty(priceId)) {
             TempData["Error"] = "Invalid subscription plan configuration.";
