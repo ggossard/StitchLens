@@ -45,40 +45,33 @@ public class HomeController : Controller {
         {
             new PricingTier
             {
-                Name = "Free",
+                Name = "Pay As You Go",
                 Description = "Perfect for trying out StitchLens",
-                MonthlyPrice = 0,
-                PriceDisplay = "Free",
-                Tier = SubscriptionTier.Free,
+                MonthlyPrice = 5.95m,
+                PriceDisplay = "",
+                Tier = SubscriptionTier.PayAsYouGo,
                 IsPopular = false,
                 Features = new List<string>
                 {
-                    "1 pattern created per month",
-                    "Basic color matching",
-                    "Standard resolution PDFs",
-                    "DMC yarn colors only",
+                    "Sign Up & 1st one free",
                     "Community support"
                 },
-                ButtonText = viewModel.CurrentTier == SubscriptionTier.Free ? "Current Plan" : "Get Started Free",
+                ButtonText = viewModel.CurrentTier == SubscriptionTier.PayAsYouGo ? "Current Plan" : "Get Started Now",
                 ButtonClass = "btn-outline-secondary",
-                IsCurrent = viewModel.CurrentTier == SubscriptionTier.Free
+                IsCurrent = viewModel.CurrentTier == SubscriptionTier.PayAsYouGo
             },
             new PricingTier
             {
                 Name = "Hobbyist",
                 Description = "Great for regular crafters",
-                MonthlyPrice = 12.99m,
-                PriceDisplay = "$12.99",
+                MonthlyPrice = 12.95m,
+                PriceDisplay = "$12.95",
                 Tier = SubscriptionTier.Hobbyist,
                 IsPopular = true,
                 Features = new List<string>
                 {
-                    "10 patterns created per month",
-                    "Advanced color matching",
-                    "High resolution PDFs",
-                    "All yarn brands (DMC, Appleton, Paternayan)",
+                    "3 patterns created per month",
                     "Priority email support",
-                    "No daily creation limits",
                     "Save unlimited patterns"
                 },
                 ButtonText = viewModel.CurrentTier == SubscriptionTier.Hobbyist ? "Current Plan" : "Subscribe Now",
@@ -89,19 +82,14 @@ public class HomeController : Controller {
             {
                 Name = "Creator",
                 Description = "For professionals and Etsy sellers",
-                MonthlyPrice = 49.99m,
-                PriceDisplay = "$49.99",
+                MonthlyPrice = 35.95m,
+                PriceDisplay = "$35.95",
                 Tier = SubscriptionTier.Creator,
                 IsPopular = false,
                 Features = new List<string>
                 {
-                    "100 patterns created per month",
-                    "Commercial use license included",
-                    "Ultra-high resolution PDFs",
-                    "All yarn brands + custom palettes",
+                    "30 patterns created per month",
                     "Priority support (24hr response)",
-                    "Batch processing (coming soon)",
-                    "API access (coming soon)",
                     "White-label options (coming soon)"
                 },
                 ButtonText = viewModel.CurrentTier == SubscriptionTier.Creator ? "Current Plan" : "Go Pro",
@@ -119,9 +107,8 @@ public class HomeController : Controller {
                 Features = new List<string>
                 {
                     "Unlimited patterns created",
-                    "Full commercial license",
-                    "Dedicated account manager",
                     "Custom integrations",
+                    "API access",
                     "White-label platform",
                     "SLA guarantee",
                     "Volume discounts",

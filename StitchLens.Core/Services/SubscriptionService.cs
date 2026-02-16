@@ -150,7 +150,7 @@ public class SubscriptionService : ISubscriptionService {
         // Update user
         var user = await _context.Users.FindAsync(subscription.UserId);
         if (user != null) {
-            user.CurrentTier = SubscriptionTier.Free;
+            user.CurrentTier = SubscriptionTier.PayAsYouGo;
             user.ActiveSubscriptionId = null;
         }
 
@@ -189,8 +189,8 @@ public class SubscriptionService : ISubscriptionService {
             return (false, "Daily limit of 20 patterns reached. Please try again tomorrow.");
         }
 
-        // Free tier - always needs to pay per pattern
-        if (user.CurrentTier == SubscriptionTier.Free) {
+        // Pay as you go tier - always needs to pay per pattern
+        if (user.CurrentTier == SubscriptionTier.PayAsYouGo) {
             return (true, null); // Will be charged per download
         }
 

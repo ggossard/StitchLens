@@ -72,7 +72,7 @@
                     <div class="pricing-card-header">
                         <!-- Tier Icon -->
                         <div class="tier-icon tier-icon-@tier.Tier.ToString().ToLower()">
-                            @if (tier.Tier == SubscriptionTier.Free) {
+                            @if (tier.Tier == SubscriptionTier.PayAsYouGo) {
                                 <i class="fas fa-seedling"></i>
                             }
                             else if (tier.Tier == SubscriptionTier.Hobbyist) {
@@ -91,8 +91,8 @@
 
                         <!-- Price -->
                         <div class="tier-price">
-                            @if (tier.Tier == SubscriptionTier.Free) {
-                                <div class="price-amount">Free</div>
+                            @if (tier.Tier == SubscriptionTier.PayAsYouGo) {
+                                <div class="price-amount">$5.95</div>
                                 <div class="price-period">Forever</div>
                             }
                             else if (tier.Tier == SubscriptionTier.Custom) {
@@ -101,7 +101,7 @@
                             }
                             else {
                                 <div class="price-amount">
-                                    <span class="price-currency">$</span>@tier.MonthlyPrice.ToString("0")
+                                    <span class="price-currency">$</span>@tier.MonthlyPrice.ToString("0.00")
                                 </div>
                                 <div class="price-period">per month</div>
                             }
@@ -134,7 +134,7 @@
                                 <i class="fas fa-envelope me-2"></i>@tier.ButtonText
                             </a>
                         }
-                        else if (tier.Tier == SubscriptionTier.Free) {
+                        else if (tier.Tier == SubscriptionTier.PayAsYouGo) {
                             @if (!Model.IsAuthenticated) {
                                 <a asp-controller="Account" asp-action="Register" class="btn-pricing btn-pricing-free">
                                     <i class="fas fa-user-plus me-2"></i>Get Started Free

@@ -231,7 +231,7 @@ public class PatternController : Controller {
                         ?? await _tierConfigService.GetPatternCreationQuotaAsync(currentUser.CurrentTier);
 
                     if (currentUser.PatternsCreatedThisMonth >= patternCreationQuota) {
-                        TempData["ErrorMessage"] = currentUser.CurrentTier == SubscriptionTier.Free
+                        TempData["ErrorMessage"] = currentUser.CurrentTier == SubscriptionTier.PayAsYouGo
                             ? "You've used your monthly pattern creation limit. Upgrade to create more patterns!"
                             : $"You've reached your monthly limit of {patternCreationQuota} patterns. Upgrade for more!";
 
@@ -356,9 +356,9 @@ public class PatternController : Controller {
             Project = project,
             CraftType = project.CraftType,
             PatternsCreatedThisMonth = user?.PatternsCreatedThisMonth ?? 0,
-            CurrentTier = user?.CurrentTier ?? SubscriptionTier.Free,
+            CurrentTier = user?.CurrentTier ?? SubscriptionTier.PayAsYouGo,
             PatternCreationQuota = user?.ActiveSubscription?.PatternCreationQuota
-                 ?? await _tierConfigService.GetPatternCreationQuotaAsync(user?.CurrentTier ?? SubscriptionTier.Free)
+                 ?? await _tierConfigService.GetPatternCreationQuotaAsync(user?.CurrentTier ?? SubscriptionTier.PayAsYouGo)
         };
 
         // Deserialize palette data

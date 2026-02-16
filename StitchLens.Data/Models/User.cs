@@ -8,11 +8,11 @@ public class User : IdentityUser<int>  // <int> means Id is int, not string
 
     // Your custom fields
     public UserType UserType { get; set; } = UserType.Customer;
-    public string PlanType { get; set; } = "Free"; // Free, Premium, B2B_Basic, B2B_Pro
+    public string PlanType { get; set; } = "PayAsYouGo"; // PayAsYouGo, Premium, B2B_Basic, B2B_Pro
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     // Current subscription status (for quick queries)
-    public SubscriptionTier CurrentTier { get; set; } = SubscriptionTier.Free;
+    public SubscriptionTier CurrentTier { get; set; } = SubscriptionTier.PayAsYouGo;
     public int? ActiveSubscriptionId { get; set; }
 
     // Usage tracking (reset monthly)
@@ -34,7 +34,7 @@ public class User : IdentityUser<int>  // <int> means Id is int, not string
 }
 
 public enum SubscriptionTier {
-    Free = 0,
+    PayAsYouGo = 0,
     Hobbyist = 1,
     Creator = 2,
     Custom = 99

@@ -326,7 +326,7 @@ public class AccountController : Controller {
     [HttpGet]
     public async Task<IActionResult> Subscribe(SubscriptionTier tier) {
         // Validate tier
-        if (tier == SubscriptionTier.Free || tier == SubscriptionTier.Custom) {
+        if (tier == SubscriptionTier.PayAsYouGo || tier == SubscriptionTier.Custom) {
             TempData["Error"] = "Please select a valid subscription plan.";
             return RedirectToAction("Pricing");
         }

@@ -244,7 +244,7 @@ public class WebhookController : ControllerBase {
  // Update user
  var user = await _context.Users.FindAsync(subscription.UserId);
  if (user != null) {
- user.CurrentTier = SubscriptionTier.Free;
+ user.CurrentTier = SubscriptionTier.PayAsYouGo;
  user.ActiveSubscriptionId = null;
  }
 

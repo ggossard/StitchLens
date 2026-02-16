@@ -14,8 +14,8 @@ public static class DbInitializer {
             {
                 new TierConfiguration
                 {
-                    Tier = SubscriptionTier.Free,
-                    Name = "Free",
+                    Tier = SubscriptionTier.PayAsYouGo,
+                    Name = "Pay As You Go",
                     Description = "Try it out",
                     PatternCreationQuota = 1,
                     PatternCreationDailyLimit = 3,

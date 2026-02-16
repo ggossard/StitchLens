@@ -12,7 +12,7 @@
                 <h1 class="dashboard-hero-title">Welcome Back!</h1>
                 <p class="dashboard-hero-subtitle">Here's what's happening with your account</p>
             </div>
-            @if (Model.CurrentTier != SubscriptionTier.Free) {
+            @if (Model.CurrentTier != SubscriptionTier.PayAsYouGo) {
                 <div class="dashboard-tier-badge tier-badge-@Model.CurrentTier.ToString().ToLower()">
                     <i class="fas fa-crown"></i>
                     <span>@Model.TierDisplayName Member</span>
@@ -57,7 +57,7 @@
                             </div>
                         </div>
                     }
-                    else if (Model.CurrentTier == SubscriptionTier.Free) {
+                    else if (Model.CurrentTier == SubscriptionTier.PayAsYouGo) {
                         <div class="upgrade-prompt">
                             <div class="upgrade-icon">
                                 <i class="fas fa-arrow-up"></i>
@@ -70,7 +70,7 @@
                     }
 
                     <div class="plan-actions">
-                        @if (Model.CurrentTier == SubscriptionTier.Free) {
+                        @if (Model.CurrentTier == SubscriptionTier.PayAsYouGo) {
                             <a asp-controller="Home" asp-action="Pricing" class="btn btn-primary">
                                 <i class="fas fa-arrow-up me-2"></i>Upgrade Now
                             </a>
@@ -204,7 +204,7 @@
                     <i class="fas fa-cog"></i>
                     <span>Settings</span>
                 </button>
-                @if (Model.CurrentTier == SubscriptionTier.Free) {
+                @if (Model.CurrentTier == SubscriptionTier.PayAsYouGo) {
                     <a asp-controller="Home" asp-action="Pricing" class="quick-action-btn quick-action-success">
                         <i class="fas fa-arrow-up"></i>
                         <span>Upgrade Plan</span>
