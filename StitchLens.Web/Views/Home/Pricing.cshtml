@@ -142,42 +142,42 @@
                     </div>
 
                     <div class="pricing-card-footer">
-                        @if (tier.IsCurrent) {
-                            <button class="btn-pricing btn-pricing-current" disabled>
-                                <i class="fas fa-check me-2"></i>Your Current Plan
-                            </button>
-                        }
-                        else if (tier.Tier == SubscriptionTier.Custom) {
+                        @if (tier.Tier == SubscriptionTier.Custom) {
                             <a href="mailto:sales@stitchlens.com" class="btn-pricing btn-pricing-custom">
                                 <i class="fas fa-envelope me-2"></i>@tier.ButtonText
                             </a>
                         }
-                        else if (tier.Tier == SubscriptionTier.PayAsYouGo) {
-                            @if (!Model.IsAuthenticated) {
+                        else if (!Model.IsAuthenticated) {
+                            @if (tier.Tier == SubscriptionTier.PayAsYouGo) {
                                 <a asp-controller="Account" asp-action="Register" class="btn-pricing btn-pricing-free">
                                     <i class="fas fa-user-plus me-2"></i>Get Started Free
                                 </a>
                             }
                             else {
-                                <button class="btn-pricing btn-pricing-current" disabled>
-                                    Current Plan
-                                </button>
+                                <a asp-controller="Account" asp-action="Register" asp-route-returnUrl="@Url.Action("Subscribe", "Account", new { tier = tier.Tier, billingCycle = Model.SelectedBillingCycle })" class="btn-pricing btn-pricing-@tier.Tier.ToString().ToLower()">
+                                    <i class="fas fa-user-plus me-2"></i>Sign Up to Subscribe
+                                </a>
                             }
                         }
                         else {
-                            @if (Model.SelectedBillingCycle == BillingCycle.Annual && !tier.IsAnnualAvailable) {
+                            @if (tier.IsCurrent) {
+                                <button class="btn-pricing btn-pricing-current" disabled>
+                                    <i class="fas fa-check me-2"></i>Your Current Plan
+                                </button>
+                            }
+                            else if (tier.Tier == SubscriptionTier.PayAsYouGo) {
+                                <a asp-controller="Account" asp-action="Dashboard" class="btn-pricing btn-pricing-free">
+                                    <i class="fas fa-cog me-2"></i>Switch to Plan
+                                </a>
+                            }
+                            else if (Model.SelectedBillingCycle == BillingCycle.Annual && !tier.IsAnnualAvailable) {
                                 <button class="btn-pricing btn-pricing-current" disabled>
                                     Annual Plan Coming Soon
                                 </button>
                             }
-                            else if (Model.IsAuthenticated) {
-                                <a asp-controller="Account" asp-action="Subscribe" asp-route-tier="@tier.Tier" asp-route-billingCycle="@Model.SelectedBillingCycle" class="btn-pricing btn-pricing-@tier.Tier.ToString().ToLower()">
-                                    <i class="fas fa-rocket me-2"></i>@tier.ButtonText
-                                </a>
-                            }
                             else {
-                                <a asp-controller="Account" asp-action="Register" asp-route-returnUrl="@Url.Action("Subscribe", "Account", new { tier = tier.Tier, billingCycle = Model.SelectedBillingCycle })" class="btn-pricing btn-pricing-@tier.Tier.ToString().ToLower()">
-                                    <i class="fas fa-user-plus me-2"></i>Sign Up to Subscribe
+                                <a asp-controller="Account" asp-action="Subscribe" asp-route-tier="@tier.Tier" asp-route-billingCycle="@Model.SelectedBillingCycle" class="btn-pricing btn-pricing-@tier.Tier.ToString().ToLower()">
+                                    <i class="fas fa-rocket me-2"></i>Switch to Plan
                                 </a>
                             }
                         }

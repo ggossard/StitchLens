@@ -2232,6 +2232,10 @@ h1, h2, h3, h4, h5, h6 {
     background: linear-gradient(135deg, var(--color-sage-green) 0%, var(--color-sage-green-dark) 100%);
 }
 
+.tier-icon-payasyougo {
+    background: linear-gradient(135deg, var(--color-sage-green) 0%, var(--color-sage-green-dark) 100%);
+}
+
 .tier-icon-hobbyist {
     background: linear-gradient(135deg, var(--color-dusty-rose) 0%, var(--color-dusty-rose-dark) 100%);
 }
