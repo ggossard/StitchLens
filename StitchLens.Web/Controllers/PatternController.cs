@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using Stripe;
+using Stripe.Checkout;
 using StitchLens.Core.Services;
 using StitchLens.Data;
 using StitchLens.Data.Models;
@@ -22,6 +24,7 @@ public class PatternController : Controller {
     private readonly IGridGenerationService _gridService;
     private readonly UserManager<User> _userManager;
     private readonly ITierConfigurationService _tierConfigService;
+    private readonly IConfiguration _configuration;
 
     public PatternController(
         StitchLensDbContext context,
@@ -31,7 +34,8 @@ public class PatternController : Controller {
         IPdfGenerationService pdfService,
         IGridGenerationService gridService,
         UserManager<User> userManager,
-        ITierConfigurationService tierConfigService) {
+        ITierConfigurationService tierConfigService,
+        IConfiguration configuration) {
         _context = context;
         _imageService = imageService;
         _colorService = colorService;
@@ -40,6 +44,9 @@ public class PatternController : Controller {
         _gridService = gridService;
         _userManager = userManager;
         _tierConfigService = tierConfigService;
+        _configuration = configuration;
+
+        StripeConfiguration.ApiKey = _configuration["Stripe:SecretKey"];
     }
 
     // Step 1: Show upload form
@@ -227,15 +234,14 @@ public class PatternController : Controller {
                 }
 
                 if (currentUser != null) {
-                    int patternCreationQuota = currentUser.ActiveSubscription?.PatternCreationQuota
-                        ?? await _tierConfigService.GetPatternCreationQuotaAsync(currentUser.CurrentTier);
+                    if (currentUser.CurrentTier != SubscriptionTier.PayAsYouGo) {
+                        int patternCreationQuota = currentUser.ActiveSubscription?.PatternCreationQuota
+                            ?? await _tierConfigService.GetPatternCreationQuotaAsync(currentUser.CurrentTier);
 
-                    if (currentUser.PatternsCreatedThisMonth >= patternCreationQuota) {
-                        TempData["ErrorMessage"] = currentUser.CurrentTier == SubscriptionTier.PayAsYouGo
-                            ? "You've used your monthly pattern creation limit. Upgrade to create more patterns!"
-                            : $"You've reached your monthly limit of {patternCreationQuota} patterns. Upgrade for more!";
-
-                        return RedirectToAction("Pricing", "Home");
+                        if (currentUser.PatternsCreatedThisMonth >= patternCreationQuota) {
+                            TempData["ErrorMessage"] = $"You've reached your monthly limit of {patternCreationQuota} patterns. Upgrade for more!";
+                            return RedirectToAction("Pricing", "Home");
+                        }
                     }
                 }
             }
@@ -357,9 +363,14 @@ public class PatternController : Controller {
             CraftType = project.CraftType,
             PatternsCreatedThisMonth = user?.PatternsCreatedThisMonth ?? 0,
             CurrentTier = user?.CurrentTier ?? SubscriptionTier.PayAsYouGo,
+            HasPaidForPattern = true,
             PatternCreationQuota = user?.ActiveSubscription?.PatternCreationQuota
                  ?? await _tierConfigService.GetPatternCreationQuotaAsync(user?.CurrentTier ?? SubscriptionTier.PayAsYouGo)
         };
+
+        if (user != null && user.CurrentTier == SubscriptionTier.PayAsYouGo) {
+            viewModel.HasPaidForPattern = await HasSuccessfulPatternPaymentAsync(user.Id, project.Id);
+        }
 
         // Deserialize palette data
         if (!string.IsNullOrEmpty(project.PaletteJson)) {
@@ -392,6 +403,21 @@ public class PatternController : Controller {
         if (string.IsNullOrEmpty(userId)) {
             // Not logged in - redirect to login
             return RedirectToAction("Login", "Account", new { returnUrl = Url.Action("DownloadPdf", "Pattern", new { id, useColor }) });
+        }
+
+        var user = await _context.Users
+            .FirstOrDefaultAsync(u => u.Id == int.Parse(userId));
+
+        if (user == null) {
+            return RedirectToAction("Login", "Account");
+        }
+
+        if (user.CurrentTier == SubscriptionTier.PayAsYouGo) {
+            bool alreadyPaidForPattern = await HasSuccessfulPatternPaymentAsync(user.Id, project.Id);
+
+            if (!alreadyPaidForPattern) {
+                return RedirectToAction("StartPatternPurchase", new { id, useColor });
+            }
         }
 
         var cachedPdfPath = GetCachedPdfPath(project, useColor);
@@ -471,6 +497,175 @@ public class PatternController : Controller {
         // Return as download
         var fileName = $"StitchLens_Pattern_{project.Id}_{DateTime.Now:yyyyMMdd}.pdf";
         return File(pdfBytes, "application/pdf", fileName);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> StartPatternPurchase(int id, bool useColor = true) {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId)) {
+            return RedirectToAction("Login", "Account", new { returnUrl = Url.Action("StartPatternPurchase", "Pattern", new { id, useColor }) });
+        }
+
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == int.Parse(userId));
+        if (user == null) {
+            return RedirectToAction("Login", "Account");
+        }
+
+        if (user.CurrentTier != SubscriptionTier.PayAsYouGo) {
+            return RedirectToAction("DownloadPdf", new { id, useColor });
+        }
+
+        var project = await _context.Projects.FirstOrDefaultAsync(p => p.Id == id && p.UserId == user.Id);
+        if (project == null) {
+            TempData["ErrorMessage"] = "Project not found.";
+            return RedirectToAction("Preview", new { id });
+        }
+
+        if (await HasSuccessfulPatternPaymentAsync(user.Id, project.Id)) {
+            return RedirectToAction("DownloadPdf", new { id, useColor });
+        }
+
+        var tierConfig = await _tierConfigService.GetConfigAsync(SubscriptionTier.PayAsYouGo);
+        var priceId = tierConfig.StripePerPatternPriceId ?? _configuration["Stripe:PriceIds:PerPattern"];
+
+        if (string.IsNullOrWhiteSpace(priceId)) {
+            TempData["ErrorMessage"] = "Pattern purchase is not configured yet. Please contact support.";
+            return RedirectToAction("Preview", new { id });
+        }
+
+        try {
+            var options = new SessionCreateOptions {
+                PaymentMethodTypes = new List<string> { "card" },
+                Mode = "payment",
+                CustomerEmail = user.Email,
+                ClientReferenceId = user.Id.ToString(),
+                LineItems = new List<SessionLineItemOptions> {
+                    new SessionLineItemOptions {
+                        Price = priceId,
+                        Quantity = 1
+                    }
+                },
+                SuccessUrl = Url.Action("CompletePatternPurchase", "Pattern", new { id, useColor }, Request.Scheme) + "&session_id={CHECKOUT_SESSION_ID}",
+                CancelUrl = Url.Action("PatternPurchaseCanceled", "Pattern", new { id }, Request.Scheme),
+                Metadata = new Dictionary<string, string> {
+                    { "user_id", user.Id.ToString() },
+                    { "project_id", project.Id.ToString() },
+                    { "purchase_type", "one_time_pattern" },
+                    { "use_color", useColor.ToString() }
+                }
+            };
+
+            if (!string.IsNullOrEmpty(user.StripeCustomerId)) {
+                options.Customer = user.StripeCustomerId;
+                options.CustomerEmail = null;
+            }
+
+            var service = new SessionService();
+            var session = await service.CreateAsync(options);
+
+            return Redirect(session.Url);
+        }
+        catch (StripeException ex) {
+            TempData["ErrorMessage"] = $"Payment system error: {ex.Message}";
+            return RedirectToAction("Preview", new { id });
+        }
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> CompletePatternPurchase(int id, bool useColor = true, string? session_id = null) {
+        if (string.IsNullOrWhiteSpace(session_id)) {
+            TempData["ErrorMessage"] = "Invalid payment session.";
+            return RedirectToAction("Preview", new { id });
+        }
+
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId)) {
+            return RedirectToAction("Login", "Account", new { returnUrl = Url.Action("CompletePatternPurchase", "Pattern", new { id, useColor, session_id }) });
+        }
+
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == int.Parse(userId));
+        if (user == null) {
+            return RedirectToAction("Login", "Account");
+        }
+
+        var project = await _context.Projects.FirstOrDefaultAsync(p => p.Id == id && p.UserId == user.Id);
+        if (project == null) {
+            TempData["ErrorMessage"] = "Project not found.";
+            return RedirectToAction("Preview", new { id });
+        }
+
+        try {
+            var service = new SessionService();
+            var session = await service.GetAsync(session_id);
+
+            if (!string.Equals(session.PaymentStatus, "paid", StringComparison.OrdinalIgnoreCase)) {
+                TempData["ErrorMessage"] = "Payment was not completed. Please try again.";
+                return RedirectToAction("Preview", new { id });
+            }
+
+            if (!session.Metadata.TryGetValue("purchase_type", out var purchaseType) ||
+                !string.Equals(purchaseType, "one_time_pattern", StringComparison.OrdinalIgnoreCase)) {
+                TempData["ErrorMessage"] = "Invalid purchase session.";
+                return RedirectToAction("Preview", new { id });
+            }
+
+            if (!session.Metadata.TryGetValue("user_id", out var metadataUserId) ||
+                metadataUserId != user.Id.ToString() ||
+                !session.Metadata.TryGetValue("project_id", out var metadataProjectId) ||
+                metadataProjectId != project.Id.ToString()) {
+                TempData["ErrorMessage"] = "Payment session does not match this project.";
+                return RedirectToAction("Preview", new { id });
+            }
+
+            string? paymentIntentId = session.PaymentIntent?.Id;
+            bool alreadyRecorded = !string.IsNullOrWhiteSpace(paymentIntentId)
+                && await _context.PaymentHistory.AnyAsync(p => p.StripePaymentIntentId == paymentIntentId);
+
+            if (!alreadyRecorded && !await HasSuccessfulPatternPaymentAsync(user.Id, project.Id)) {
+                var payment = new PaymentHistory {
+                    UserId = user.Id,
+                    ProjectId = project.Id,
+                    Type = PaymentType.OneTimePattern,
+                    Amount = (session.AmountTotal ?? 0) / 100m,
+                    Currency = session.Currency?.ToUpper() ?? "USD",
+                    Status = PaymentStatus.Succeeded,
+                    Description = $"One-time pattern purchase for project {project.Id}",
+                    StripePaymentIntentId = paymentIntentId,
+                    CreatedAt = DateTime.UtcNow,
+                    ProcessedAt = DateTime.UtcNow
+                };
+
+                _context.PaymentHistory.Add(payment);
+
+                if (string.IsNullOrWhiteSpace(user.StripeCustomerId) && !string.IsNullOrWhiteSpace(session.CustomerId)) {
+                    user.StripeCustomerId = session.CustomerId;
+                }
+
+                await _context.SaveChangesAsync();
+            }
+
+            TempData["SuccessMessage"] = "Payment successful! Your pattern is unlocked. Click Download Your Pattern to get the PDF.";
+
+            return RedirectToAction("Preview", new { id });
+        }
+        catch (StripeException ex) {
+            TempData["ErrorMessage"] = $"Error verifying payment: {ex.Message}";
+            return RedirectToAction("Preview", new { id });
+        }
+    }
+
+    [HttpGet]
+    public IActionResult PatternPurchaseCanceled(int id) {
+        TempData["WarningMessage"] = "Pattern purchase was canceled. You can try again anytime.";
+        return RedirectToAction("Preview", new { id });
+    }
+
+    private async Task<bool> HasSuccessfulPatternPaymentAsync(int userId, int projectId) {
+        return await _context.PaymentHistory.AnyAsync(p =>
+            p.UserId == userId &&
+            p.ProjectId == projectId &&
+            p.Type == PaymentType.OneTimePattern &&
+            p.Status == PaymentStatus.Succeeded);
     }
 
     private static string GetCachedPdfPath(Project project, bool useColor) {

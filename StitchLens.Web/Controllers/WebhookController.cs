@@ -83,6 +83,20 @@ public class WebhookController : ControllerBase {
         var session = stripeEvent.Data.Object as Session;
         if (session == null) return;
 
+        if (session.Metadata != null &&
+            session.Metadata.TryGetValue("purchase_type", out var purchaseType) &&
+            string.Equals(purchaseType, "one_time_pattern", StringComparison.OrdinalIgnoreCase)) {
+            _logger.LogInformation("One-time pattern checkout completed for session {SessionId}", session.Id);
+            return;
+        }
+
+        if (session.Metadata == null ||
+            !session.Metadata.ContainsKey("user_id") ||
+            !session.Metadata.ContainsKey("tier")) {
+            _logger.LogWarning("Checkout session {SessionId} missing subscription metadata", session.Id);
+            return;
+        }
+
         var userId = int.Parse(session.Metadata["user_id"]);
         var tierName = session.Metadata["tier"];
         var tier = Enum.Parse<SubscriptionTier>(tierName);

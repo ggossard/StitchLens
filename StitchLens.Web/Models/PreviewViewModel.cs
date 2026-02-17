@@ -12,8 +12,9 @@ public class PreviewViewModel {
 
     public int PatternsCreatedThisMonth { get; set; }
     public int PatternCreationQuota { get; set; }
-    public bool QuotaExceeded => PatternsCreatedThisMonth >= PatternCreationQuota;
+    public bool QuotaExceeded => CurrentTier != SubscriptionTier.PayAsYouGo && PatternsCreatedThisMonth >= PatternCreationQuota;
     public SubscriptionTier CurrentTier { get; set; }
+    public bool HasPaidForPattern { get; set; } = true;
 
     public int TotalStitches {
         get {
