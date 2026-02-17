@@ -6,6 +6,8 @@
     var materialName = Model.CraftType == CraftType.Needlepoint ? "Canvas" : "Fabric";
     var countLabel = Model.CraftType == CraftType.Needlepoint ? "Mesh Count" : "Fabric Count";
     var threadType = Model.CraftType == CraftType.Needlepoint ? "Yarn" : "Floss";
+    var stitchCols = Math.Max(1, (int)Math.Round(Model.Project.WidthInches * Model.Project.MeshCount));
+    var stitchRows = Math.Max(1, (int)Math.Round(Model.Project.HeightInches * Model.Project.MeshCount));
 }
 
 <!-- Preview Hero Section -->
@@ -65,12 +67,14 @@
                     <div class="preview-card-body">
                         @if (!string.IsNullOrEmpty(Model.Project.ProcessedImagePath)) {
                             <div class="image-comparison-container">
-                                <img src="/uploads/@System.IO.Path.GetFileName(Model.Project.ProcessedImagePath)"
-                                     alt="Your stitching pattern"
-                                     class="img-fluid comparison-image zoomable-image"
-                                     role="button"
-                                     tabindex="0"
-                                     aria-label="Enlarge stitching pattern">
+                                 <img src="/uploads/@System.IO.Path.GetFileName(Model.Project.ProcessedImagePath)"
+                                      alt="Your stitching pattern"
+                                      class="img-fluid comparison-image zoomable-image"
+                                      data-stitch-cols="@stitchCols"
+                                      data-stitch-rows="@stitchRows"
+                                      role="button"
+                                      tabindex="0"
+                                      aria-label="Enlarge stitching pattern">
                             </div>
                         }
                         else {
@@ -374,10 +378,21 @@
 </div>
 
 <div id="imageZoomModal" class="image-zoom-modal" aria-hidden="true">
+    <div id="imageZoomToolbar" class="image-zoom-toolbar is-hidden">
+        <label for="showGridToggle" class="image-zoom-toggle">
+            <input type="checkbox" id="showGridToggle" checked>
+            <span>Show Grid</span>
+        </label>
+    </div>
+
     <button type="button" class="image-zoom-close" aria-label="Close enlarged image">
         <i class="fas fa-times"></i>
     </button>
-    <img id="imageZoomModalImg" src="" alt="Enlarged preview image" class="image-zoom-modal-img">
+
+    <div id="imageZoomStage" class="image-zoom-stage">
+        <img id="imageZoomModalImg" src="" alt="Enlarged preview image" class="image-zoom-modal-img">
+        <div id="imageZoomGridOverlay" class="image-zoom-grid-overlay"></div>
+    </div>
 </div>
 
 @section Scripts {
@@ -385,23 +400,47 @@
         const zoomModal = document.getElementById('imageZoomModal');
         const zoomModalImg = document.getElementById('imageZoomModalImg');
         const zoomCloseBtn = zoomModal?.querySelector('.image-zoom-close');
+        const zoomToolbar = document.getElementById('imageZoomToolbar');
+        const showGridToggle = document.getElementById('showGridToggle');
+        const zoomStage = document.getElementById('imageZoomStage');
 
         function openZoomModal(image) {
-            if (!zoomModal || !zoomModalImg) return;
+            if (!zoomModal || !zoomModalImg || !zoomStage || !zoomToolbar || !showGridToggle) return;
 
             zoomModalImg.src = image.src;
             zoomModalImg.alt = image.alt || 'Enlarged preview image';
+
+            const stitchCols = Number.parseInt(image.dataset.stitchCols || '', 10);
+            const stitchRows = Number.parseInt(image.dataset.stitchRows || '', 10);
+            const hasStitchGrid = Number.isFinite(stitchCols) && Number.isFinite(stitchRows) && stitchCols > 0 && stitchRows > 0;
+
+            if (hasStitchGrid) {
+                zoomStage.style.setProperty('--grid-cols', String(stitchCols));
+                zoomStage.style.setProperty('--grid-rows', String(stitchRows));
+                zoomToolbar.classList.remove('is-hidden');
+                showGridToggle.checked = true;
+                zoomStage.classList.add('is-grid-visible');
+            }
+            else {
+                zoomToolbar.classList.add('is-hidden');
+                showGridToggle.checked = false;
+                zoomStage.classList.remove('is-grid-visible');
+            }
+
             zoomModal.classList.add('is-open');
             zoomModal.setAttribute('aria-hidden', 'false');
             document.body.classList.add('modal-open');
         }
 
         function closeZoomModal() {
-            if (!zoomModal || !zoomModalImg) return;
+            if (!zoomModal || !zoomModalImg || !zoomStage || !zoomToolbar || !showGridToggle) return;
 
             zoomModal.classList.remove('is-open');
             zoomModal.setAttribute('aria-hidden', 'true');
             zoomModalImg.src = '';
+            zoomToolbar.classList.add('is-hidden');
+            showGridToggle.checked = false;
+            zoomStage.classList.remove('is-grid-visible');
             document.body.classList.remove('modal-open');
         }
 
@@ -419,6 +458,12 @@
         });
 
         zoomCloseBtn?.addEventListener('click', closeZoomModal);
+
+        showGridToggle?.addEventListener('change', function() {
+            if (!zoomStage || zoomToolbar?.classList.contains('is-hidden')) return;
+
+            zoomStage.classList.toggle('is-grid-visible', showGridToggle.checked);
+        });
 
         zoomModal?.addEventListener('click', function(e) {
             if (e.target === zoomModal || e.target === zoomModalImg) {
