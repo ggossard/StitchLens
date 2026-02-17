@@ -15,9 +15,21 @@ public class PreviewViewModel {
     public bool QuotaExceeded => PatternsCreatedThisMonth >= PatternCreationQuota;
     public SubscriptionTier CurrentTier { get; set; }
 
-    public int TotalStitches => Project.WidthInches > 0 && Project.HeightInches > 0
-        ? (int)(Project.WidthInches * Project.MeshCount * Project.HeightInches * Project.MeshCount)
-        : 0;
+    public int TotalStitches {
+        get {
+            if (YarnMatches != null && YarnMatches.Any()) {
+                return YarnMatches.Sum(m => m.StitchCount);
+            }
+
+            if (UnmatchedColors != null && UnmatchedColors.Any()) {
+                return UnmatchedColors.Sum(c => c.PixelCount);
+            }
+
+            return Project.WidthInches > 0 && Project.HeightInches > 0
+                ? (int)(Project.WidthInches * Project.MeshCount * Project.HeightInches * Project.MeshCount)
+                : 0;
+        }
+    }
 
     // Totals now allow fractional yards and skeins
     public double TotalYardsNeeded => YarnMatches?.Sum(m => m.YardsNeeded) ?? 0.0;
