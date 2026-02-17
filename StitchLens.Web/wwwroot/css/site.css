@@ -1549,6 +1549,60 @@ h1, h2, h3, h4, h5, h6 {
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
+.zoomable-image {
+    cursor: zoom-in;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.zoomable-image:hover {
+    transform: scale(1.015);
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.18);
+}
+
+.image-zoom-modal {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(22, 20, 20, 0.88);
+    z-index: 4000;
+    padding: 1rem;
+}
+
+.image-zoom-modal.is-open {
+    display: flex;
+}
+
+.image-zoom-modal-img {
+    max-width: min(1200px, 95vw);
+    max-height: 90vh;
+    border-radius: 10px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+    cursor: zoom-out;
+}
+
+.image-zoom-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.16);
+    color: #fff;
+    font-size: 1.1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.image-zoom-close:hover {
+    background: rgba(255, 255, 255, 0.28);
+}
+
 .processing-placeholder {
     text-align: center;
     color: var(--color-warm-gray);

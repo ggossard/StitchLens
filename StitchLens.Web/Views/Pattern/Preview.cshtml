@@ -43,7 +43,10 @@
                         <div class="image-comparison-container">
                             <img src="/uploads/@System.IO.Path.GetFileName(Model.Project.OriginalImagePath)"
                                  alt="Your original photo"
-                                 class="img-fluid comparison-image">
+                                 class="img-fluid comparison-image zoomable-image"
+                                 role="button"
+                                 tabindex="0"
+                                 aria-label="Enlarge original photo">
                         </div>
                     </div>
                 </div>
@@ -64,7 +67,10 @@
                             <div class="image-comparison-container">
                                 <img src="/uploads/@System.IO.Path.GetFileName(Model.Project.ProcessedImagePath)"
                                      alt="Your stitching pattern"
-                                     class="img-fluid comparison-image">
+                                     class="img-fluid comparison-image zoomable-image"
+                                     role="button"
+                                     tabindex="0"
+                                     aria-label="Enlarge stitching pattern">
                             </div>
                         }
                         else {
@@ -367,8 +373,65 @@
     </div>
 </div>
 
+<div id="imageZoomModal" class="image-zoom-modal" aria-hidden="true">
+    <button type="button" class="image-zoom-close" aria-label="Close enlarged image">
+        <i class="fas fa-times"></i>
+    </button>
+    <img id="imageZoomModalImg" src="" alt="Enlarged preview image" class="image-zoom-modal-img">
+</div>
+
 @section Scripts {
     <script>
+        const zoomModal = document.getElementById('imageZoomModal');
+        const zoomModalImg = document.getElementById('imageZoomModalImg');
+        const zoomCloseBtn = zoomModal?.querySelector('.image-zoom-close');
+
+        function openZoomModal(image) {
+            if (!zoomModal || !zoomModalImg) return;
+
+            zoomModalImg.src = image.src;
+            zoomModalImg.alt = image.alt || 'Enlarged preview image';
+            zoomModal.classList.add('is-open');
+            zoomModal.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('modal-open');
+        }
+
+        function closeZoomModal() {
+            if (!zoomModal || !zoomModalImg) return;
+
+            zoomModal.classList.remove('is-open');
+            zoomModal.setAttribute('aria-hidden', 'true');
+            zoomModalImg.src = '';
+            document.body.classList.remove('modal-open');
+        }
+
+        document.querySelectorAll('.zoomable-image').forEach(function(image) {
+            image.addEventListener('click', function() {
+                openZoomModal(image);
+            });
+
+            image.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    openZoomModal(image);
+                }
+            });
+        });
+
+        zoomCloseBtn?.addEventListener('click', closeZoomModal);
+
+        zoomModal?.addEventListener('click', function(e) {
+            if (e.target === zoomModal || e.target === zoomModalImg) {
+                closeZoomModal();
+            }
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && zoomModal?.classList.contains('is-open')) {
+                closeZoomModal();
+            }
+        });
+
         // Handle all download PDF buttons
         document.querySelectorAll('.download-pdf-btn, #downloadPdfBtn').forEach(function(btn) {
             btn.addEventListener('click', function(e) {
