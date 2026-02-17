@@ -23,6 +23,17 @@
 </section>
 
 <div class="container dashboard-container">
+    @if (TempData["Success"] != null) {
+        <div class="alert alert-success" role="alert">
+            <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+        </div>
+    }
+
+    @if (TempData["Error"] != null) {
+        <div class="alert alert-danger" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>@TempData["Error"]
+        </div>
+    }
 
     <!-- Top Row: Subscription + Account Info -->
     <div class="row g-4 mb-4">
@@ -102,6 +113,22 @@
                             </div>
                         </div>
                         <div class="info-item">
+                            <i class="fas fa-user-tag info-icon"></i>
+                            <div class="w-100">
+                                <div class="info-label">Nickname</div>
+                                <form asp-action="UpdateNickname" method="post" class="d-flex gap-2 align-items-center mt-1">
+                                    @Html.AntiForgeryToken()
+                                    <input type="text"
+                                           name="nickname"
+                                           value="@Model.User.Nickname"
+                                           class="form-control"
+                                           maxlength="50"
+                                           placeholder="Set a nickname" />
+                                    <button type="submit" class="btn btn-outline-primary btn-sm">Save</button>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="info-item">
                             <i class="fas fa-user-circle info-icon"></i>
                             <div>
                                 <div class="info-label">Account Type</div>
@@ -151,20 +178,27 @@
                     <div class="usage-section">
                         <h5 class="usage-title">Patterns Created This Month</h5>
                         <div class="usage-stats">
-                            <span class="usage-current">@Model.PatternsCreatedThisMonth of @Model.PatternCreationQuota</span>
-                            <span class="usage-remaining">@Model.PatternsRemaining remaining</span>
+                            @if (Model.CurrentTier == SubscriptionTier.PayAsYouGo) {
+                                <span class="usage-current">@Model.PatternsCreatedThisMonth so far</span>
+                            }
+                            else {
+                                <span class="usage-current">@Model.PatternsCreatedThisMonth of @Model.PatternCreationQuota</span>
+                                <span class="usage-remaining">@Model.PatternsRemaining remaining</span>
+                            }
                         </div>
-                        <div class="usage-progress">
-                            <div class="usage-progress-bar usage-progress-@(Model.PatternCreationPercentage > 80 ? "warning" : "success")"
-                                 style="width: @Model.PatternCreationPercentage%">
-                                <span>@Model.PatternCreationPercentage%</span>
+                        @if (Model.CurrentTier != SubscriptionTier.PayAsYouGo) {
+                            <div class="usage-progress">
+                                <div class="usage-progress-bar usage-progress-@(Model.PatternCreationPercentage > 80 ? "warning" : "success")"
+                                     style="width: @Model.PatternCreationPercentage%">
+                                    <span>@Model.PatternCreationPercentage%</span>
+                                </div>
                             </div>
-                        </div>
-                        @if (Model.PatternCreationPercentage > 80) {
-                            <div class="usage-warning">
-                                <i class="fas fa-exclamation-triangle"></i>
-                                Running low on monthly pattern creations!
-                            </div>
+                            @if (Model.PatternCreationPercentage > 80) {
+                                <div class="usage-warning">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    Running low on monthly pattern creations!
+                                </div>
+                            }
                         }
                     </div>
                 </div>

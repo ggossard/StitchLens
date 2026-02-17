@@ -3,6 +3,10 @@
 namespace StitchLens.Web.Models;
 
 public class RegisterViewModel {
+    [StringLength(50)]
+    [Display(Name = "Nickname")]
+    public string? Nickname { get; set; }
+
     [Required]
     [EmailAddress]
     [Display(Name = "Email")]

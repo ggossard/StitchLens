@@ -21,6 +21,8 @@ public class Project
     // Yarn selection
     public int? YarnBrandId { get; set; }
     public string? PaletteJson { get; set; } // Stores matched yarn colors
+    public bool Public { get; set; }
+    public string? Tags { get; set; }
 
     // Output
     public string? PdfPath { get; set; }

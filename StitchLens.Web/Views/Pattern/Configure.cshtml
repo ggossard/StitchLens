@@ -114,7 +114,7 @@
                             </div>
                         </div>
 
-                        <div class="form-group-custom mb-0">
+                        <div class="form-group-custom mb-3">
                             <label asp-for="CraftType" class="form-label-custom">
                                 <i class="fas fa-palette label-icon"></i>
                                 I'm Making A
@@ -131,6 +131,43 @@
                                 <div class="craft-type-option">
                                     <strong>Cross-Stitch:</strong> Cotton floss on fabric with counted crosses
                                 </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group-custom mb-3">
+                            <div class="custom-checkbox-card">
+                                <div class="checkbox-wrapper">
+                                    <input asp-for="Public"
+                                           type="checkbox"
+                                           class="form-check-input-custom"
+                                           id="projectPublic">
+                                    <label asp-for="Public" class="checkbox-label-custom">
+                                        <div class="checkbox-title">
+                                            <i class="fas fa-share-alt"></i>
+                                            Share this project
+                                        </div>
+                                        <div class="checkbox-description">
+                                            Allow this project to appear in public galleries when that feature is enabled.
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group-custom mb-3">
+                            <label asp-for="Tags" class="form-label-custom">
+                                <i class="fas fa-hashtag label-icon"></i>
+                                Tags
+                            </label>
+                            <input asp-for="Tags"
+                                   type="text"
+                                   class="form-control-custom"
+                                   placeholder="e.g., floral, pet portrait, holiday"
+                                   maxlength="300">
+                            <span asp-validation-for="Tags" class="text-danger"></span>
+                            <div class="form-help-text">
+                                <i class="fas fa-info-circle"></i>
+                                Comma-separated tags help organize and filter projects.
                             </div>
                         </div>
                     </div>
@@ -189,6 +226,26 @@
                                        max="36"
                                        class="form-control-custom dimension-input"
                                        id="heightInches">
+                            </div>
+                        </div>
+
+                        <div class="form-group-custom mb-3">
+                            <div class="custom-checkbox-card">
+                                <div class="checkbox-wrapper">
+                                    <input type="checkbox"
+                                           class="form-check-input-custom"
+                                           id="lockAspectRatio"
+                                           checked>
+                                    <label for="lockAspectRatio" class="checkbox-label-custom">
+                                        <div class="checkbox-title">
+                                            <i class="fas fa-link"></i>
+                                            Lock Aspect Ratio
+                                        </div>
+                                        <div class="checkbox-description">
+                                            Maintain the cropped image proportions while resizing.
+                                        </div>
+                                    </label>
+                                </div>
                             </div>
                         </div>
 
@@ -473,9 +530,58 @@
             }
         }
 
+        const widthInput = document.getElementById('widthInches');
+        const heightInput = document.getElementById('heightInches');
+        const lockAspectRatio = document.getElementById('lockAspectRatio');
+
+        const initialWidth = parseFloat(widthInput?.value || '0');
+        const initialHeight = parseFloat(heightInput?.value || '0');
+        let aspectRatio = initialWidth > 0 && initialHeight > 0 ? initialWidth / initialHeight : 1;
+        let isSyncingDimensions = false;
+
+        function syncHeightFromWidth() {
+            if (!lockAspectRatio?.checked || isSyncingDimensions) return;
+
+            const width = parseFloat(widthInput.value);
+            if (!Number.isFinite(width) || width <= 0 || !Number.isFinite(aspectRatio) || aspectRatio <= 0) return;
+
+            isSyncingDimensions = true;
+            heightInput.value = (width / aspectRatio).toFixed(1);
+            isSyncingDimensions = false;
+        }
+
+        function syncWidthFromHeight() {
+            if (!lockAspectRatio?.checked || isSyncingDimensions) return;
+
+            const height = parseFloat(heightInput.value);
+            if (!Number.isFinite(height) || height <= 0 || !Number.isFinite(aspectRatio) || aspectRatio <= 0) return;
+
+            isSyncingDimensions = true;
+            widthInput.value = (height * aspectRatio).toFixed(1);
+            isSyncingDimensions = false;
+        }
+
+        widthInput.addEventListener('input', function() {
+            syncHeightFromWidth();
+            updateCalculations();
+        });
+
+        heightInput.addEventListener('input', function() {
+            syncWidthFromHeight();
+            updateCalculations();
+        });
+
+        lockAspectRatio?.addEventListener('change', function() {
+            if (!lockAspectRatio.checked) return;
+
+            const currentWidth = parseFloat(widthInput.value);
+            const currentHeight = parseFloat(heightInput.value);
+            if (Number.isFinite(currentWidth) && currentWidth > 0 && Number.isFinite(currentHeight) && currentHeight > 0) {
+                aspectRatio = currentWidth / currentHeight;
+            }
+        });
+
         document.getElementById('meshCount').addEventListener('change', updateCalculations);
-        document.getElementById('widthInches').addEventListener('input', updateCalculations);
-        document.getElementById('heightInches').addEventListener('input', updateCalculations);
 
         const configureForm = document.getElementById('configureForm');
         const generateBtn = document.getElementById('generateBtn');

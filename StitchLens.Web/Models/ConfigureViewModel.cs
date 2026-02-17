@@ -11,6 +11,14 @@ public class ConfigureViewModel {
     [StringLength(200, ErrorMessage = "Title cannot exceed 200 characters")]
     [Display(Name = "Project Title")]
     public string Title { get; set; } = "Untitled Pattern";
+
+    [Display(Name = "Share this project")]
+    public bool Public { get; set; }
+
+    [StringLength(300, ErrorMessage = "Tags cannot exceed 300 characters")]
+    [Display(Name = "Tags")]
+    public string? Tags { get; set; }
+
     // Canvas settings
     public int MeshCount { get; set; } = 14;
     public decimal WidthInches { get; set; }

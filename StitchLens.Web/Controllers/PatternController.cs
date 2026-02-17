@@ -177,6 +177,8 @@ public class PatternController : Controller {
             ProjectId = project.Id,
             ImageUrl = $"/uploads/{Path.GetFileName(project.OriginalImagePath)}",
             Title = project.Title,
+            Public = project.Public,
+            Tags = project.Tags,
             CraftType = project.CraftType,
             MeshCount = project.MeshCount,
             WidthInches = Math.Round(project.WidthInches, 1),
@@ -249,6 +251,8 @@ public class PatternController : Controller {
 
         // Update project with settings
         project.Title = model.Title;
+        project.Public = model.Public;
+        project.Tags = NormalizeProjectTags(model.Tags);
         project.CraftType = model.CraftType;
         project.MeshCount = model.MeshCount;
         project.WidthInches = model.WidthInches;
@@ -658,6 +662,21 @@ public class PatternController : Controller {
     public IActionResult PatternPurchaseCanceled(int id) {
         TempData["WarningMessage"] = "Pattern purchase was canceled. You can try again anytime.";
         return RedirectToAction("Preview", new { id });
+    }
+
+    private static string? NormalizeProjectTags(string? tags) {
+        if (string.IsNullOrWhiteSpace(tags)) {
+            return null;
+        }
+
+        var normalized = tags
+            .Split(',', StringSplitOptions.RemoveEmptyEntries)
+            .Select(tag => tag.Trim().ToLowerInvariant())
+            .Where(tag => !string.IsNullOrWhiteSpace(tag))
+            .Distinct()
+            .ToList();
+
+        return normalized.Count == 0 ? null : string.Join(',', normalized);
     }
 
     private async Task<bool> HasSuccessfulPatternPaymentAsync(int userId, int projectId) {

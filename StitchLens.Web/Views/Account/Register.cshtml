@@ -47,6 +47,14 @@
                     <div asp-validation-summary="All" class="alert alert-danger auth-alert"></div>
 
                     <div class="auth-form-group">
+                        <label asp-for="Nickname" class="auth-label">
+                            <i class="fas fa-user-tag"></i> Nickname (Optional)
+                        </label>
+                        <input asp-for="Nickname" class="auth-input" placeholder="How should we call you?" maxlength="50" />
+                        <span asp-validation-for="Nickname" class="auth-error"></span>
+                    </div>
+
+                    <div class="auth-form-group">
                         <label asp-for="Email" class="auth-label">
                             <i class="fas fa-envelope"></i> Email Address
                         </label>

@@ -52,6 +52,7 @@ public class AccountController : Controller {
             var user = new User {
                 UserName = model.Email,
                 Email = model.Email,
+                Nickname = string.IsNullOrWhiteSpace(model.Nickname) ? null : model.Nickname.Trim(),
                 UserType = UserType.Customer,
                 PlanType = "Free",
                 CreatedAt = DateTime.UtcNow
@@ -213,6 +214,35 @@ public class AccountController : Controller {
         };
 
         return View(model);
+    }
+
+    [Authorize]
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UpdateNickname(string? nickname) {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null) {
+            return RedirectToAction("Login");
+        }
+
+        var normalizedNickname = string.IsNullOrWhiteSpace(nickname) ? null : nickname.Trim();
+
+        if (!string.IsNullOrEmpty(normalizedNickname) && normalizedNickname.Length > 50) {
+            TempData["Error"] = "Nickname cannot exceed 50 characters.";
+            return RedirectToAction("Dashboard");
+        }
+
+        user.Nickname = normalizedNickname;
+        var result = await _userManager.UpdateAsync(user);
+
+        if (result.Succeeded) {
+            TempData["Success"] = "Nickname updated.";
+        }
+        else {
+            TempData["Error"] = "Unable to update nickname right now.";
+        }
+
+        return RedirectToAction("Dashboard");
     }
 
     // POST: /Account/Logout

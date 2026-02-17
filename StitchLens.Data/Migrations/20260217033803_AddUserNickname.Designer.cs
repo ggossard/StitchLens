@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using StitchLens.Data;
 
@@ -10,9 +11,11 @@ using StitchLens.Data;
 namespace StitchLens.Data.Migrations
 {
     [DbContext(typeof(StitchLensDbContext))]
-    partial class StitchLensDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260217033803_AddUserNickname")]
+    partial class AddUserNickname
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.10");
@@ -320,14 +323,8 @@ namespace StitchLens.Data.Migrations
                     b.Property<string>("ProcessedImagePath")
                         .HasColumnType("TEXT");
 
-                    b.Property<bool>("Public")
-                        .HasColumnType("INTEGER");
-
                     b.Property<string>("StitchType")
                         .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Tags")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Title")
