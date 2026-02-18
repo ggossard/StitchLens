@@ -190,9 +190,22 @@ public class WebhookController : ControllerBase {
             return;
         }
 
-        var userId = int.Parse(session.Metadata["user_id"]);
+        if (!int.TryParse(session.Metadata["user_id"], out var userId)) {
+            _logger.LogWarning(
+                "Checkout session has invalid user_id metadata. SessionId={SessionId}, UserIdMetadata={UserIdMetadata}",
+                session.Id,
+                session.Metadata["user_id"]);
+            return;
+        }
+
         var tierName = session.Metadata["tier"];
-        var tier = Enum.Parse<SubscriptionTier>(tierName);
+        if (!Enum.TryParse<SubscriptionTier>(tierName, ignoreCase: true, out var tier)) {
+            _logger.LogWarning(
+                "Checkout session has invalid tier metadata. SessionId={SessionId}, TierMetadata={TierMetadata}",
+                session.Id,
+                tierName);
+            return;
+        }
         var billingCycle = BillingCycle.Monthly;
 
         if (session.Metadata.TryGetValue("billing_cycle", out var billingCycleValue) &&
@@ -210,6 +223,17 @@ public class WebhookController : ControllerBase {
         var stripeSubscriptionId = session.SubscriptionId;
         if (string.IsNullOrEmpty(stripeSubscriptionId)) {
             _logger.LogWarning("No subscription ID in checkout session. SessionId={SessionId}", session.Id);
+            return;
+        }
+
+        var existingSubscription = await _context.Subscriptions
+            .FirstOrDefaultAsync(s => s.StripeSubscriptionId == stripeSubscriptionId);
+
+        if (existingSubscription != null) {
+            _logger.LogInformation(
+                "Subscription already exists for checkout completion. SubscriptionId={SubscriptionId}, StripeSubscriptionId={StripeSubscriptionId}",
+                existingSubscription.Id,
+                stripeSubscriptionId);
             return;
         }
 
@@ -463,16 +487,24 @@ public class WebhookController : ControllerBase {
         _logger.LogInformation("Found subscription in database. SubscriptionId={SubscriptionId}, UserId={UserId}", subscription.Id, subscription.UserId);
 
         // Record payment
+        if (!string.IsNullOrWhiteSpace(invoice.Id) &&
+            await _context.PaymentHistory.AnyAsync(p => p.StripeInvoiceId == invoice.Id && p.Status == PaymentStatus.Succeeded)) {
+            _logger.LogInformation("Recurring invoice already processed. InvoiceId={InvoiceId}", invoice.Id);
+            return;
+        }
+
         var paymentHistory = new PaymentHistory {
             UserId = subscription.UserId,
             SubscriptionId = subscription.Id,
             Amount = invoice.AmountPaid / 100m,
             Currency = invoice.Currency?.ToUpper() ?? "USD",
             Status = PaymentStatus.Succeeded,
-            Description = $"Initial payment for subscription",
+            Description = "Recurring payment for subscription",
             StripePaymentIntentId = paymentIntentId,
+            StripeInvoiceId = invoice.Id,
             Type = PaymentType.SubscriptionRecurring,  // This is the correct enum value for renewals
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
+            ProcessedAt = DateTime.UtcNow
         };
 
         _context.PaymentHistory.Add(paymentHistory);
@@ -516,8 +548,14 @@ public class WebhookController : ControllerBase {
  subscription.Status = SubscriptionStatus.PastDue;
  subscription.UpdatedAt = DateTime.UtcNow;
 
- // Record failed payment
- var payment = new PaymentHistory {
+  if (!string.IsNullOrWhiteSpace(invoice.Id) &&
+      await _context.PaymentHistory.AnyAsync(p => p.StripeInvoiceId == invoice.Id && p.Status == PaymentStatus.Failed)) {
+  _logger.LogInformation("Failed invoice already recorded. InvoiceId={InvoiceId}", invoice.Id);
+  return;
+  }
+
+  // Record failed payment
+  var payment = new PaymentHistory {
  UserId = subscription.UserId,
  SubscriptionId = subscription.Id,
  Type = PaymentType.SubscriptionRecurring,
