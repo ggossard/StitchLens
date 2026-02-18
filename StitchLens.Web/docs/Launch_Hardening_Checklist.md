@@ -32,8 +32,8 @@ Use this as a quick daily execution sheet during the 2-week hardening sprint.
 - [ ] Staging-to-production config parity check completed (Stripe keys, webhook secret, DB target, log sink, feature flags).
 
 ### Observability and Operations
-- [-] Structured logs exist for payment, webhook, generation, and download paths.
-- [-] Correlation id visible in logs for critical requests.
+- [x] Structured logs exist for payment, webhook, generation, and download paths.
+- [x] Correlation id visible in logs for critical requests.
 - [ ] Alerts configured for 5xx spikes and webhook/payment failures.
 - [-] Basic health checks and dashboard are available.
 
