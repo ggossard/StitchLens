@@ -1,24 +1,21 @@
-using System.Reflection;
 using FluentAssertions;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 using Stripe;
 using Stripe.Checkout;
-using StitchLens.Core.Services;
 using StitchLens.Data;
 using StitchLens.Data.Models;
-using StitchLens.Web.Controllers;
+using StitchLens.Web.Services;
 using DataSubscription = StitchLens.Data.Models.Subscription;
 
-namespace StitchLens.Web.Tests.Controllers;
+namespace StitchLens.Web.Tests.Services;
 
-public class WebhookControllerTests {
+public class StripeWebhookProcessorTests {
     [Fact]
-    public async Task HandleCheckoutCompleted_DoesNothing_WhenUserIdMetadataIsInvalid() {
+    public async Task HandleCheckoutCompletedAsync_DoesNothing_WhenUserIdMetadataIsInvalid() {
         using var db = CreateDb();
-        var controller = CreateController(db.Context);
+        var processor = CreateProcessor(db.Context);
 
         var stripeEvent = new Event {
             Data = new EventData {
@@ -32,16 +29,16 @@ public class WebhookControllerTests {
             }
         };
 
-        await InvokePrivateAsync(controller, "HandleCheckoutCompleted", stripeEvent, "{}");
+        await processor.HandleCheckoutCompletedAsync(stripeEvent, "{}");
 
         (await db.Context.Subscriptions.CountAsync()).Should().Be(0);
         (await db.Context.PaymentHistory.CountAsync()).Should().Be(0);
     }
 
     [Fact]
-    public async Task HandleCheckoutCompleted_DoesNothing_WhenTierMetadataIsInvalid() {
+    public async Task HandleCheckoutCompletedAsync_DoesNothing_WhenTierMetadataIsInvalid() {
         using var db = CreateDb();
-        var controller = CreateController(db.Context);
+        var processor = CreateProcessor(db.Context);
 
         var stripeEvent = new Event {
             Data = new EventData {
@@ -55,14 +52,14 @@ public class WebhookControllerTests {
             }
         };
 
-        await InvokePrivateAsync(controller, "HandleCheckoutCompleted", stripeEvent, "{}");
+        await processor.HandleCheckoutCompletedAsync(stripeEvent, "{}");
 
         (await db.Context.Subscriptions.CountAsync()).Should().Be(0);
         (await db.Context.PaymentHistory.CountAsync()).Should().Be(0);
     }
 
     [Fact]
-    public async Task HandleCheckoutCompleted_DoesNotCreateDuplicateSubscription_WhenStripeSubscriptionAlreadyExists() {
+    public async Task HandleCheckoutCompletedAsync_DoesNotCreateDuplicateSubscription_WhenStripeSubscriptionAlreadyExists() {
         using var db = CreateDb();
 
         var user = new User {
@@ -85,7 +82,7 @@ public class WebhookControllerTests {
         });
         await db.Context.SaveChangesAsync();
 
-        var controller = CreateController(db.Context);
+        var processor = CreateProcessor(db.Context);
 
         var stripeEvent = new Event {
             Data = new EventData {
@@ -101,13 +98,13 @@ public class WebhookControllerTests {
             }
         };
 
-        await InvokePrivateAsync(controller, "HandleCheckoutCompleted", stripeEvent, "{}");
+        await processor.HandleCheckoutCompletedAsync(stripeEvent, "{}");
 
         (await db.Context.Subscriptions.CountAsync(s => s.StripeSubscriptionId == "sub_existing")).Should().Be(1);
     }
 
     [Fact]
-    public async Task HandleInvoicePaymentSucceeded_DoesNotCreateDuplicatePayment_WhenInvoiceAlreadyRecorded() {
+    public async Task HandleInvoicePaymentSucceededAsync_DoesNotCreateDuplicatePayment_WhenInvoiceAlreadyRecorded() {
         using var db = CreateDb();
 
         var user = new User {
@@ -143,7 +140,7 @@ public class WebhookControllerTests {
         });
         await db.Context.SaveChangesAsync();
 
-        var controller = CreateController(db.Context);
+        var processor = CreateProcessor(db.Context);
         var stripeEvent = new Event {
             Data = new EventData {
                 Object = new Invoice {
@@ -169,7 +166,7 @@ public class WebhookControllerTests {
         }
         """;
 
-        await InvokePrivateAsync(controller, "HandleInvoicePaymentSucceeded", stripeEvent, rawJson);
+        await processor.HandleInvoicePaymentSucceededAsync(stripeEvent, rawJson);
 
         (await db.Context.PaymentHistory.CountAsync(p => p.StripeInvoiceId == "in_duplicate_success")).Should().Be(1);
 
@@ -179,7 +176,7 @@ public class WebhookControllerTests {
     }
 
     [Fact]
-    public async Task HandleInvoicePaymentFailed_DoesNotCreateDuplicateFailure_WhenInvoiceAlreadyRecorded() {
+    public async Task HandleInvoicePaymentFailedAsync_DoesNotCreateDuplicateFailure_WhenInvoiceAlreadyRecorded() {
         using var db = CreateDb();
 
         var user = new User {
@@ -214,7 +211,7 @@ public class WebhookControllerTests {
         });
         await db.Context.SaveChangesAsync();
 
-        var controller = CreateController(db.Context);
+        var processor = CreateProcessor(db.Context);
         var stripeEvent = new Event {
             Data = new EventData {
                 Object = new Invoice {
@@ -235,32 +232,13 @@ public class WebhookControllerTests {
         }
         """;
 
-        await InvokePrivateAsync(controller, "HandleInvoicePaymentFailed", stripeEvent, rawJson);
+        await processor.HandleInvoicePaymentFailedAsync(stripeEvent, rawJson);
 
         (await db.Context.PaymentHistory.CountAsync(p => p.StripeInvoiceId == "in_duplicate_failed")).Should().Be(1);
     }
 
-    private static WebhookController CreateController(StitchLensDbContext context) {
-        var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?> {
-                ["Stripe:WebhookSecret"] = "whsec_test"
-            })
-            .Build();
-
-        return new WebhookController(
-            context,
-            new NoOpSubscriptionService(),
-            configuration,
-            NullLogger<WebhookController>.Instance);
-    }
-
-    private static async Task InvokePrivateAsync(WebhookController controller, string methodName, Event stripeEvent, string rawJson) {
-        var method = typeof(WebhookController).GetMethod(methodName, BindingFlags.NonPublic | BindingFlags.Instance);
-        method.Should().NotBeNull($"Expected private method '{methodName}' to exist.");
-
-        var result = method!.Invoke(controller, new object[] { stripeEvent, rawJson });
-        result.Should().BeAssignableTo<Task>();
-        await (Task)result!;
+    private static StripeWebhookProcessor CreateProcessor(StitchLensDbContext context) {
+        return new StripeWebhookProcessor(context, NullLogger<StripeWebhookProcessor>.Instance);
     }
 
     private static TestDb CreateDb() {
@@ -290,37 +268,5 @@ public class WebhookControllerTests {
             Context.Dispose();
             _connection.Dispose();
         }
-    }
-
-    private sealed class NoOpSubscriptionService : ISubscriptionService {
-        public Task<DataSubscription> CreateSubscriptionAsync(int userId, SubscriptionTier tier, string stripePriceId, BillingCycle billingCycle = BillingCycle.Monthly)
-            => throw new NotSupportedException();
-
-        public Task<DataSubscription> CreateCustomSubscriptionAsync(int userId, decimal monthlyPrice, int patternCreationQuota, bool allowCommercialUse, string customTierName, string? customTierNotes = null)
-            => throw new NotSupportedException();
-
-        public Task CancelSubscriptionAsync(int subscriptionId, string reason)
-            => throw new NotSupportedException();
-
-        public Task<DataSubscription> UpgradeSubscriptionAsync(int currentSubscriptionId, SubscriptionTier newTier, string newStripePriceId, BillingCycle billingCycle = BillingCycle.Monthly)
-            => throw new NotSupportedException();
-
-        public Task<(bool CanDownload, string? Reason)> CanUserDownloadAsync(int userId)
-            => throw new NotSupportedException();
-
-        public Task RecordDownloadAsync(int userId, int projectId)
-            => throw new NotSupportedException();
-
-        public Task<DataSubscription?> GetActiveSubscriptionAsync(int userId)
-            => throw new NotSupportedException();
-
-        public Task<DataSubscription?> GetSubscriptionByIdAsync(int subscriptionId)
-            => throw new NotSupportedException();
-
-        public Task<List<DataSubscription>> GetUserSubscriptionsAsync(int userId)
-            => throw new NotSupportedException();
-
-        public Task<List<PaymentHistory>> GetPaymentHistoryAsync(int userId)
-            => throw new NotSupportedException();
     }
 }

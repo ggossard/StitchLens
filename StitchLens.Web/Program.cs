@@ -6,6 +6,7 @@ using Microsoft.Extensions.FileProviders;
 using StitchLens.Core.Services;
 using StitchLens.Data;
 using StitchLens.Data.Models;
+using StitchLens.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -75,6 +76,7 @@ builder.Services.AddScoped<IPdfGenerationService, PdfGenerationService>();
 builder.Services.AddScoped<IGridGenerationService, GridGenerationService>();
 builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
 builder.Services.AddScoped<ITierConfigurationService, TierConfigurationService>();
+builder.Services.AddScoped<IStripeWebhookProcessor, StripeWebhookProcessor>();
 
 var uploadPath = Path.Combine(builder.Environment.ContentRootPath, "uploads");
 builder.Services.AddSingleton<IImageProcessingService>(
