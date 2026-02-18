@@ -20,6 +20,7 @@ public class StitchLensDbContext : IdentityDbContext<User, IdentityRole<int>, in
     public DbSet<Subscription> Subscriptions => Set<Subscription>();
     public DbSet<PaymentHistory> PaymentHistory => Set<PaymentHistory>();
     public DbSet<TierConfiguration> TierConfigurations => Set<TierConfiguration>();  // ADD THIS
+    public DbSet<WebhookEventLog> WebhookEventLogs => Set<WebhookEventLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder) {
         // CRITICAL: Call base.OnModelCreating first to set up Identity tables
@@ -216,6 +217,29 @@ public class StitchLensDbContext : IdentityDbContext<User, IdentityRole<int>, in
 
             // Ensure each tier has only one config
             entity.HasIndex(e => e.Tier)
+                .IsUnique();
+        });
+
+        // WebhookEventLog configuration
+        modelBuilder.Entity<WebhookEventLog>(entity => {
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.EventId)
+                .HasMaxLength(100)
+                .IsRequired();
+
+            entity.Property(e => e.EventType)
+                .HasMaxLength(100)
+                .IsRequired();
+
+            entity.Property(e => e.Status)
+                .HasConversion<string>()
+                .HasMaxLength(20);
+
+            entity.Property(e => e.LastError)
+                .HasMaxLength(1000);
+
+            entity.HasIndex(e => e.EventId)
                 .IsUnique();
         });
     }

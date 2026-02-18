@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Stripe;
 using Stripe.Checkout;
@@ -10,74 +11,166 @@ using System.Text.Json;
 namespace StitchLens.Web.Controllers;
 
 [ApiController]
+[IgnoreAntiforgeryToken]
 [Route("api/[controller]")]
 public class WebhookController : ControllerBase {
- private readonly StitchLensDbContext _context;
- private readonly ISubscriptionService _subscriptionService;
- private readonly IConfiguration _configuration;
- private readonly ILogger<WebhookController> _logger;
+    private readonly StitchLensDbContext _context;
+    private readonly ISubscriptionService _subscriptionService;
+    private readonly IConfiguration _configuration;
+    private readonly ILogger<WebhookController> _logger;
 
- public WebhookController(
- StitchLensDbContext context,
- ISubscriptionService subscriptionService,
- IConfiguration configuration,
- ILogger<WebhookController> logger) {
- _context = context;
- _subscriptionService = subscriptionService;
- _configuration = configuration;
- _logger = logger;
- }
+    public WebhookController(
+        StitchLensDbContext context,
+        ISubscriptionService subscriptionService,
+        IConfiguration configuration,
+        ILogger<WebhookController> logger) {
+        _context = context;
+        _subscriptionService = subscriptionService;
+        _configuration = configuration;
+        _logger = logger;
+    }
 
- [HttpPost("stripe")]
- public async Task<IActionResult> HandleStripeWebhook() {
- var json = await new StreamReader(HttpContext.Request.Body).ReadToEndAsync();
+    [HttpPost("stripe")]
+    public async Task<IActionResult> HandleStripeWebhook() {
+        var json = await new StreamReader(HttpContext.Request.Body).ReadToEndAsync();
+        WebhookEventLog? webhookEventLog = null;
 
- try {
- var stripeEvent = EventUtility.ConstructEvent(
- json,
- Request.Headers["Stripe-Signature"],
- _configuration["Stripe:WebhookSecret"]
- );
+        try {
+            var stripeEvent = EventUtility.ConstructEvent(
+                json,
+                Request.Headers["Stripe-Signature"],
+                _configuration["Stripe:WebhookSecret"]
+            );
 
- _logger.LogInformation($"Stripe webhook received: {stripeEvent.Type}");
+            _logger.LogInformation(
+                "Stripe webhook received. EventId={EventId}, EventType={EventType}",
+                stripeEvent.Id,
+                stripeEvent.Type);
 
- switch (stripeEvent.Type) {
- case "checkout.session.completed":
- await HandleCheckoutCompleted(stripeEvent, json);
- break;
+            webhookEventLog = await TryStartWebhookProcessingAsync(stripeEvent);
+            if (webhookEventLog == null) {
+                _logger.LogInformation(
+                    "Skipping duplicate Stripe webhook event. EventId={EventId}, EventType={EventType}",
+                    stripeEvent.Id,
+                    stripeEvent.Type);
+                return Ok();
+            }
 
- case "customer.subscription.updated":
- await HandleSubscriptionUpdated(stripeEvent, json);
- break;
+            switch (stripeEvent.Type) {
+                case "checkout.session.completed":
+                    await HandleCheckoutCompleted(stripeEvent, json);
+                    break;
 
- case "customer.subscription.deleted":
- await HandleSubscriptionDeleted(stripeEvent, json);
- break;
+                case "customer.subscription.updated":
+                    await HandleSubscriptionUpdated(stripeEvent, json);
+                    break;
 
- case "invoice.payment_succeeded":
- await HandleInvoicePaymentSucceeded(stripeEvent, json);
- break;
+                case "customer.subscription.deleted":
+                    await HandleSubscriptionDeleted(stripeEvent, json);
+                    break;
 
- case "invoice.payment_failed":
- await HandleInvoicePaymentFailed(stripeEvent, json);
- break;
+                case "invoice.payment_succeeded":
+                    await HandleInvoicePaymentSucceeded(stripeEvent, json);
+                    break;
 
- default:
- _logger.LogInformation($"Unhandled event type: {stripeEvent.Type}");
- break;
- }
+                case "invoice.payment_failed":
+                    await HandleInvoicePaymentFailed(stripeEvent, json);
+                    break;
 
- return Ok();
- }
- catch (StripeException ex) {
- _logger.LogError(ex, "Stripe webhook signature verification failed");
- return BadRequest();
- }
- catch (Exception ex) {
- _logger.LogError(ex, "Error processing Stripe webhook");
- return StatusCode(500);
- }
- }
+                default:
+                    _logger.LogInformation(
+                        "Unhandled Stripe webhook event type. EventId={EventId}, EventType={EventType}",
+                        stripeEvent.Id,
+                        stripeEvent.Type);
+                    break;
+            }
+
+            await MarkWebhookProcessedAsync(webhookEventLog.Id);
+
+            return Ok();
+        }
+        catch (StripeException ex) {
+            _logger.LogError(ex, "Stripe webhook signature verification failed");
+            return BadRequest();
+        }
+        catch (Exception ex) {
+            if (webhookEventLog != null) {
+                await MarkWebhookFailedAsync(webhookEventLog.Id, ex.Message);
+            }
+
+            _logger.LogError(ex, "Error processing Stripe webhook");
+            return StatusCode(500);
+        }
+    }
+
+    private async Task<WebhookEventLog?> TryStartWebhookProcessingAsync(Event stripeEvent) {
+        var existing = await _context.WebhookEventLogs
+            .FirstOrDefaultAsync(e => e.EventId == stripeEvent.Id);
+
+        if (existing != null) {
+            if (existing.Status is WebhookEventStatus.Processed or WebhookEventStatus.Processing) {
+                return null;
+            }
+
+            existing.Status = WebhookEventStatus.Processing;
+            existing.LastError = null;
+            existing.ReceivedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+            return existing;
+        }
+
+        var webhookEventLog = new WebhookEventLog {
+            EventId = stripeEvent.Id,
+            EventType = stripeEvent.Type,
+            Status = WebhookEventStatus.Processing,
+            ReceivedAt = DateTime.UtcNow
+        };
+
+        _context.WebhookEventLogs.Add(webhookEventLog);
+
+        try {
+            await _context.SaveChangesAsync();
+            return webhookEventLog;
+        }
+        catch (DbUpdateException ex) when (IsDuplicateWebhookEventException(ex)) {
+            return null;
+        }
+    }
+
+    private async Task MarkWebhookProcessedAsync(int webhookEventLogId) {
+        var webhookEventLog = await _context.WebhookEventLogs.FindAsync(webhookEventLogId);
+        if (webhookEventLog == null) {
+            return;
+        }
+
+        webhookEventLog.Status = WebhookEventStatus.Processed;
+        webhookEventLog.ProcessedAt = DateTime.UtcNow;
+        webhookEventLog.LastError = null;
+
+        await _context.SaveChangesAsync();
+    }
+
+    private async Task MarkWebhookFailedAsync(int webhookEventLogId, string errorMessage) {
+        var webhookEventLog = await _context.WebhookEventLogs.FindAsync(webhookEventLogId);
+        if (webhookEventLog == null) {
+            return;
+        }
+
+        webhookEventLog.Status = WebhookEventStatus.Failed;
+        webhookEventLog.LastError = errorMessage.Length <= 1000
+            ? errorMessage
+            : errorMessage[..1000];
+
+        await _context.SaveChangesAsync();
+    }
+
+    private static bool IsDuplicateWebhookEventException(DbUpdateException ex) {
+        if (ex.InnerException is SqliteException sqliteEx) {
+            return sqliteEx.SqliteErrorCode == 19;
+        }
+
+        return ex.InnerException?.Message.Contains("UNIQUE", StringComparison.OrdinalIgnoreCase) == true;
+    }
 
     private async Task HandleCheckoutCompleted(Event stripeEvent, string rawJson) {
         var session = stripeEvent.Data.Object as Session;
@@ -86,14 +179,14 @@ public class WebhookController : ControllerBase {
         if (session.Metadata != null &&
             session.Metadata.TryGetValue("purchase_type", out var purchaseType) &&
             string.Equals(purchaseType, "one_time_pattern", StringComparison.OrdinalIgnoreCase)) {
-            _logger.LogInformation("One-time pattern checkout completed for session {SessionId}", session.Id);
+            _logger.LogInformation("One-time pattern checkout completed. SessionId={SessionId}", session.Id);
             return;
         }
 
         if (session.Metadata == null ||
             !session.Metadata.ContainsKey("user_id") ||
             !session.Metadata.ContainsKey("tier")) {
-            _logger.LogWarning("Checkout session {SessionId} missing subscription metadata", session.Id);
+            _logger.LogWarning("Checkout session missing subscription metadata. SessionId={SessionId}", session.Id);
             return;
         }
 
@@ -107,12 +200,16 @@ public class WebhookController : ControllerBase {
             billingCycle = parsedBillingCycle;
         }
 
-        _logger.LogInformation($"Processing checkout completion for user {userId}, tier {tier}");
+        _logger.LogInformation(
+            "Processing checkout completion. UserId={UserId}, Tier={Tier}, BillingCycle={BillingCycle}",
+            userId,
+            tier,
+            billingCycle);
 
         // Get the subscription ID from the session
         var stripeSubscriptionId = session.SubscriptionId;
         if (string.IsNullOrEmpty(stripeSubscriptionId)) {
-            _logger.LogWarning("No subscription ID in checkout session");
+            _logger.LogWarning("No subscription ID in checkout session. SessionId={SessionId}", session.Id);
             return;
         }
 
@@ -149,7 +246,7 @@ public class WebhookController : ControllerBase {
             .FirstOrDefaultAsync(t => t.Tier == tier);
 
         if (tierConfig == null) {
-            _logger.LogError("Tier configuration not found for tier {Tier}", tier);
+            _logger.LogError("Tier configuration not found. Tier={Tier}", tier);
             return;
         }
 
@@ -204,7 +301,11 @@ public class WebhookController : ControllerBase {
         _context.PaymentHistory.Add(payment);
         await _context.SaveChangesAsync();
 
-        _logger.LogInformation($"Subscription {subscription.Id} created for user {userId}");
+        _logger.LogInformation(
+            "Subscription created from checkout completion. SubscriptionId={SubscriptionId}, UserId={UserId}, StripeSubscriptionId={StripeSubscriptionId}",
+            subscription.Id,
+            userId,
+            stripeSubscriptionId);
     }
 
     private async Task HandleSubscriptionUpdated(Event stripeEvent, string rawJson) {
@@ -216,7 +317,7 @@ public class WebhookController : ControllerBase {
  .FirstOrDefaultAsync(s => s.StripeSubscriptionId == stripeSubscription.Id);
 
  if (subscription == null) {
- _logger.LogWarning($"Subscription not found for Stripe ID: {stripeSubscription.Id}");
+ _logger.LogWarning("Subscription not found for Stripe ID. StripeSubscriptionId={StripeSubscriptionId}", stripeSubscription.Id);
  return;
  }
 
@@ -254,7 +355,10 @@ public class WebhookController : ControllerBase {
 
  await _context.SaveChangesAsync();
 
- _logger.LogInformation($"Subscription {subscription.Id} updated to status: {subscription.Status}");
+ _logger.LogInformation(
+     "Subscription updated from webhook. SubscriptionId={SubscriptionId}, Status={Status}",
+     subscription.Id,
+     subscription.Status);
  }
 
  private async Task HandleSubscriptionDeleted(Event stripeEvent, string rawJson) {
@@ -279,7 +383,7 @@ public class WebhookController : ControllerBase {
 
  await _context.SaveChangesAsync();
 
- _logger.LogInformation($"Subscription {subscription.Id} deleted/cancelled");
+  _logger.LogInformation("Subscription cancelled from webhook. SubscriptionId={SubscriptionId}", subscription.Id);
  }
 
     private async Task HandleInvoicePaymentSucceeded(Event stripeEvent, string rawJson) {
@@ -289,7 +393,7 @@ public class WebhookController : ControllerBase {
             return;
         }
 
-        _logger.LogInformation($"Processing invoice payment: {invoice.Id}");
+        _logger.LogInformation("Processing invoice payment. InvoiceId={InvoiceId}", invoice.Id);
 
         // Get subscription ID from nested parent.subscription_details.subscription
         string? subscriptionId = null;
@@ -301,22 +405,22 @@ public class WebhookController : ControllerBase {
 
             // Navigate to parent.subscription_details.subscription
             if (obj.TryGetProperty("parent", out var parentProp)) {
-                _logger.LogInformation("Found parent property");
+                _logger.LogDebug("Found invoice parent property.");
 
                 if (parentProp.TryGetProperty("subscription_details", out var subDetailsProp)) {
-                    _logger.LogInformation("Found subscription_details property");
+                    _logger.LogDebug("Found invoice subscription_details property.");
 
                     if (subDetailsProp.TryGetProperty("subscription", out var subProp) &&
                         subProp.ValueKind == JsonValueKind.String) {
                         subscriptionId = subProp.GetString();
-                        _logger.LogInformation($"Found subscription ID: {subscriptionId}");
+                        _logger.LogDebug("Found subscription ID in parent. StripeSubscriptionId={StripeSubscriptionId}", subscriptionId);
                     }
                 }
             }
 
             // Fallback: Try to get from line items if not in parent
             if (string.IsNullOrEmpty(subscriptionId) && obj.TryGetProperty("lines", out var linesProp)) {
-                _logger.LogInformation("Trying to extract subscription from line items");
+                _logger.LogDebug("Trying to extract subscription from invoice line items.");
 
                 if (linesProp.TryGetProperty("data", out var dataProp) && dataProp.ValueKind == JsonValueKind.Array) {
                     var firstLine = dataProp.EnumerateArray().FirstOrDefault();
@@ -326,7 +430,7 @@ public class WebhookController : ControllerBase {
                             sidProp.TryGetProperty("subscription", out var lineSubProp) &&
                             lineSubProp.ValueKind == JsonValueKind.String) {
                             subscriptionId = lineSubProp.GetString();
-                            _logger.LogInformation($"Found subscription ID in line items: {subscriptionId}");
+                            _logger.LogDebug("Found subscription ID in line items. StripeSubscriptionId={StripeSubscriptionId}", subscriptionId);
                         }
                     }
                 }
@@ -344,7 +448,7 @@ public class WebhookController : ControllerBase {
             return;
         }
 
-        _logger.LogInformation($"Processing renewal for subscription: {subscriptionId}");
+        _logger.LogInformation("Processing renewal for subscription. StripeSubscriptionId={StripeSubscriptionId}", subscriptionId);
 
         // Find subscription in database
         var subscription = await _context.Subscriptions
@@ -352,11 +456,11 @@ public class WebhookController : ControllerBase {
             .FirstOrDefaultAsync(s => s.StripeSubscriptionId == subscriptionId);
 
         if (subscription == null) {
-            _logger.LogWarning($"Subscription not found in database: {subscriptionId}");
+            _logger.LogWarning("Subscription not found in database. StripeSubscriptionId={StripeSubscriptionId}", subscriptionId);
             return;
         }
 
-        _logger.LogInformation($"Found subscription in database for user: {subscription.UserId}");
+        _logger.LogInformation("Found subscription in database. SubscriptionId={SubscriptionId}, UserId={UserId}", subscription.Id, subscription.UserId);
 
         // Record payment
         var paymentHistory = new PaymentHistory {
@@ -372,18 +476,18 @@ public class WebhookController : ControllerBase {
         };
 
         _context.PaymentHistory.Add(paymentHistory);
-        _logger.LogInformation($"Created payment history record: {invoice.AmountPaid / 100m:C}");
+        _logger.LogInformation("Created recurring payment history record. Amount={Amount}", invoice.AmountPaid / 100m);
 
         // Reset monthly pattern creation usage for user
         var user = subscription.User;
         if (user != null) {
             user.PatternsCreatedThisMonth = 0;
             user.LastPatternCreationDate = DateTime.UtcNow;
-            _logger.LogInformation($"Reset pattern creation usage for user {user.Id}");
+            _logger.LogInformation("Reset pattern creation usage for user. UserId={UserId}", user.Id);
         }
 
         await _context.SaveChangesAsync();
-        _logger.LogInformation($"Successfully processed invoice payment for subscription {subscriptionId}");
+        _logger.LogInformation("Successfully processed invoice payment. StripeSubscriptionId={StripeSubscriptionId}", subscriptionId);
     }
 
     private async Task HandleInvoicePaymentFailed(Event stripeEvent, string rawJson) {
@@ -428,7 +532,7 @@ public class WebhookController : ControllerBase {
  _context.PaymentHistory.Add(payment);
  await _context.SaveChangesAsync();
 
- _logger.LogWarning($"Payment failed for subscription {subscription.Id}");
+  _logger.LogWarning("Payment failed for subscription. SubscriptionId={SubscriptionId}, InvoiceId={InvoiceId}", subscription.Id, invoice.Id);
 
  // TODO: Send email notification to user
  }

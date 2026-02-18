@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using StitchLens.Core.Services;
@@ -11,7 +13,10 @@ var builder = WebApplication.CreateBuilder(args);
 Stripe.StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
 
 // Add services to the container.
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews(options => {
+    options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
+});
+builder.Services.AddHealthChecks();
 
 // Register database context
 builder.Services.AddDbContext<StitchLensDbContext>(options =>
@@ -58,6 +63,9 @@ builder.Services.ConfigureApplicationCookie(options => {
     options.AccessDeniedPath = "/Account/AccessDenied";
     options.ExpireTimeSpan = TimeSpan.FromDays(30);
     options.SlidingExpiration = true;
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SameSite = SameSiteMode.Lax;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
 });
 
 // Register application services
@@ -98,6 +106,22 @@ app.UseStaticFiles(new StaticFileOptions {
 
 app.UseRouting();
 
+app.Use(async (context, next) => {
+    var correlationIdHeader = "X-Correlation-ID";
+    var correlationId = context.Request.Headers.TryGetValue(correlationIdHeader, out var headerValue)
+        && !string.IsNullOrWhiteSpace(headerValue)
+        ? headerValue.ToString()
+        : context.TraceIdentifier;
+
+    context.Response.Headers[correlationIdHeader] = correlationId;
+
+    using (app.Logger.BeginScope(new Dictionary<string, object> {
+        ["CorrelationId"] = correlationId
+    })) {
+        await next();
+    }
+});
+
 // IMPORTANT: Authentication must come BEFORE Authorization
 app.UseAuthentication();
 app.UseAuthorization();
@@ -105,6 +129,8 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+app.MapHealthChecks("/health", new HealthCheckOptions());
 
 
 if (app.Environment.IsDevelopment()) {
