@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging.Abstractions;
 using Stripe;
 using Stripe.Checkout;
 using StitchLens.Data;
@@ -222,7 +223,8 @@ public class PatternControllerPurchaseTests {
             null!,
             null!,
             new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>()).Build(),
-            stripeCheckoutSessionService) {
+            stripeCheckoutSessionService,
+            NullLogger<PatternController>.Instance) {
             ControllerContext = new ControllerContext { HttpContext = httpContext }
         };
 

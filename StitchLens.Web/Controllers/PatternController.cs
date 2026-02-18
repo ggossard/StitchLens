@@ -11,6 +11,7 @@ using StitchLens.Data;
 using StitchLens.Data.Models;
 using StitchLens.Web.Models;
 using StitchLens.Web.Services;
+using System.Diagnostics;
 using System.Security.Claims;
 using static StitchLens.Web.Models.ConfigureViewModel;
 
@@ -27,6 +28,7 @@ public class PatternController : Controller {
     private readonly ITierConfigurationService _tierConfigService;
     private readonly IConfiguration _configuration;
     private readonly IStripeCheckoutSessionService _stripeCheckoutSessionService;
+    private readonly ILogger<PatternController> _logger;
 
     public PatternController(
         StitchLensDbContext context,
@@ -38,7 +40,8 @@ public class PatternController : Controller {
         UserManager<User> userManager,
         ITierConfigurationService tierConfigService,
         IConfiguration configuration,
-        IStripeCheckoutSessionService stripeCheckoutSessionService) {
+        IStripeCheckoutSessionService stripeCheckoutSessionService,
+        ILogger<PatternController> logger) {
         _context = context;
         _imageService = imageService;
         _colorService = colorService;
@@ -49,6 +52,7 @@ public class PatternController : Controller {
         _tierConfigService = tierConfigService;
         _configuration = configuration;
         _stripeCheckoutSessionService = stripeCheckoutSessionService;
+        _logger = logger;
 
         StripeConfiguration.ApiKey = _configuration["Stripe:SecretKey"];
     }
@@ -92,6 +96,12 @@ public class PatternController : Controller {
             ModelState.AddModelError("", "Crop area exceeds image bounds.");
             return View("Upload");
         }
+
+        _logger.LogInformation(
+            "Processing upload. FileName={FileName}, FileSize={FileSize}, ContentType={ContentType}",
+            imageFile.FileName,
+            imageFile.Length,
+            imageFile.ContentType);
 
         var parsedShape = CropShape.Rectangle;
         if (!string.IsNullOrWhiteSpace(cropShape) &&
@@ -141,6 +151,11 @@ public class PatternController : Controller {
         _context.Projects.Add(project);
         await _context.SaveChangesAsync();
 
+        _logger.LogInformation(
+            "Upload processed and project created. ProjectId={ProjectId}, UserId={UserId}",
+            project.Id,
+            project.UserId);
+
         // Redirect to configuration page
         return RedirectToAction("Configure", new { id = project.Id });
     }
@@ -162,11 +177,7 @@ public class PatternController : Controller {
             })
             .ToListAsync();
 
-        // Debug: Log what we found
-        Console.WriteLine($"Found {allBrands.Count} yarn brands:");
-        foreach (var brand in allBrands) {
-            Console.WriteLine($"  - {brand.Name} (CraftType: {brand.CraftType})");
-        }
+        _logger.LogDebug("Loaded yarn brands for configure page. ProjectId={ProjectId}, BrandCount={BrandCount}", id, allBrands.Count);
 
         // Get brands for current craft type (for initial display)
         var currentCraftBrands = allBrands
@@ -194,8 +205,7 @@ public class PatternController : Controller {
             AllYarnBrands = allBrands  // CRITICAL: Set this
         };
 
-        // Debug: Verify it's set
-        Console.WriteLine($"ViewModel.AllYarnBrands count: {viewModel.AllYarnBrands.Count}");
+        _logger.LogDebug("Configure view model prepared. ProjectId={ProjectId}, AllYarnBrandCount={BrandCount}", id, viewModel.AllYarnBrands.Count);
 
         return View(viewModel);
     }
@@ -271,8 +281,14 @@ public class PatternController : Controller {
         int stitchWidth = (int)(project.WidthInches * project.MeshCount);
         int stitchHeight = (int)(project.HeightInches * project.MeshCount);
         int totalStitches = stitchWidth * stitchHeight;
-
-        Console.WriteLine($"Pattern dimensions: {stitchWidth} x {stitchHeight} = {totalStitches} stitches");
+        var generationStopwatch = Stopwatch.StartNew();
+        _logger.LogInformation(
+            "Pattern generation started. ProjectId={ProjectId}, UserId={UserId}, StitchWidth={StitchWidth}, StitchHeight={StitchHeight}, MaxColors={MaxColors}",
+            project.Id,
+            currentUser?.Id,
+            stitchWidth,
+            stitchHeight,
+            project.MaxColors);
 
         // Generate quantized pattern
         var imageBytes = await System.IO.File.ReadAllBytesAsync(project.OriginalImagePath);
@@ -284,19 +300,32 @@ public class PatternController : Controller {
         int originalPixels = originalImage.Width * originalImage.Height;
         double scaleFactor = (double)totalStitches / originalPixels;
 
-        Console.WriteLine($"Original image: {originalImage.Width}x{originalImage.Height} = {originalPixels} pixels");
-        Console.WriteLine($"Scale factor: {scaleFactor:F6}");
+        _logger.LogDebug(
+            "Pattern generation scaling calculated. ProjectId={ProjectId}, OriginalWidth={OriginalWidth}, OriginalHeight={OriginalHeight}, ScaleFactor={ScaleFactor}",
+            project.Id,
+            originalImage.Width,
+            originalImage.Height,
+            scaleFactor);
 
         // Scale the pixel counts in the palette to match stitch counts
         foreach (var color in quantized.Palette) {
             int originalCount = color.PixelCount;
             color.PixelCount = (int)Math.Round(color.PixelCount * scaleFactor);
-            Console.WriteLine($"Color: {color.R},{color.G},{color.B} - Original: {originalCount}, Scaled: {color.PixelCount}");
+            _logger.LogTrace(
+                "Palette scaling. ProjectId={ProjectId}, Color={Color}, OriginalCount={OriginalCount}, ScaledCount={ScaledCount}",
+                project.Id,
+                $"{color.R},{color.G},{color.B}",
+                originalCount,
+                color.PixelCount);
         }
 
         // Verify the total
         int paletteTotal = quantized.Palette.Sum(c => c.PixelCount);
-        Console.WriteLine($"Palette total after scaling: {paletteTotal} (should be ~{totalStitches})");
+        _logger.LogDebug(
+            "Palette scaling complete. ProjectId={ProjectId}, PaletteTotal={PaletteTotal}, TargetStitches={TargetStitches}",
+            project.Id,
+            paletteTotal,
+            totalStitches);
 
         // Save quantized image
         var quantizedFileName = $"{Path.GetFileNameWithoutExtension(project.OriginalImagePath)}_quantized.png";
@@ -336,6 +365,13 @@ public class PatternController : Controller {
 
             await _context.SaveChangesAsync();
         }
+
+        generationStopwatch.Stop();
+        _logger.LogInformation(
+            "Pattern generation completed. ProjectId={ProjectId}, DurationMs={DurationMs}, PaletteSize={PaletteSize}",
+            project.Id,
+            generationStopwatch.ElapsedMilliseconds,
+            quantized.Palette.Count);
 
         return RedirectToAction("Preview", new { id = project.Id });
     }
@@ -424,12 +460,23 @@ public class PatternController : Controller {
             bool alreadyPaidForPattern = await HasSuccessfulPatternPaymentAsync(user.Id, project.Id);
 
             if (!alreadyPaidForPattern) {
+                _logger.LogInformation(
+                    "Download blocked for unpaid PayAsYouGo user. ProjectId={ProjectId}, UserId={UserId}",
+                    project.Id,
+                    user.Id);
                 return RedirectToAction("StartPatternPurchase", new { id, useColor });
             }
         }
 
         var cachedPdfPath = GetCachedPdfPath(project, useColor);
         if (System.IO.File.Exists(cachedPdfPath)) {
+            _logger.LogInformation(
+                "PDF cache hit. ProjectId={ProjectId}, UserId={UserId}, UseColor={UseColor}, Path={CachedPath}",
+                project.Id,
+                user.Id,
+                useColor,
+                cachedPdfPath);
+
             project.Downloads++;
 
             if (useColor) {
@@ -442,6 +489,12 @@ public class PatternController : Controller {
             var cachedFileName = $"StitchLens_Pattern_{project.Id}_{DateTime.Now:yyyyMMdd}.pdf";
             return File(cachedPdfBytes, "application/pdf", cachedFileName);
         }
+
+        _logger.LogInformation(
+            "PDF cache miss. Generating PDF. ProjectId={ProjectId}, UserId={UserId}, UseColor={UseColor}",
+            project.Id,
+            user.Id,
+            useColor);
 
         // Deserialize yarn matches
         var yarnMatches = new List<YarnMatch>();
@@ -460,6 +513,7 @@ public class PatternController : Controller {
         // Generate stitch grid
         int stitchWidth = (int)(project.WidthInches * project.MeshCount);
         int stitchHeight = (int)(project.HeightInches * project.MeshCount);
+        var pdfStopwatch = Stopwatch.StartNew();
 
         var stitchGrid = await _gridService.GenerateStitchGridAsync(
             imageData,
@@ -501,6 +555,15 @@ public class PatternController : Controller {
         // Track successful PDF download count per project
         project.Downloads++;
         await _context.SaveChangesAsync();
+
+        pdfStopwatch.Stop();
+        _logger.LogInformation(
+            "PDF generated and cached. ProjectId={ProjectId}, UserId={UserId}, UseColor={UseColor}, DurationMs={DurationMs}, SizeBytes={SizeBytes}",
+            project.Id,
+            user.Id,
+            useColor,
+            pdfStopwatch.ElapsedMilliseconds,
+            pdfBytes.Length);
 
         // Return as download
         var fileName = $"StitchLens_Pattern_{project.Id}_{DateTime.Now:yyyyMMdd}.pdf";
