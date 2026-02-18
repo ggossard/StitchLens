@@ -24,10 +24,10 @@ Use this as a quick daily execution sheet during the 2-week hardening sprint.
 ### Security and Configuration
 - [ ] No secrets in repository/worktree.
 - [ ] Production secrets sourced from env/secret manager.
-- [-] Cookie/auth settings verified for production.
-- [-] HTTPS and anti-forgery protections verified.
-- [ ] Session timeout and remember-me behavior verified.
-- [-] Login lockout/rate limiting verified for abusive attempts.
+- [x] Cookie/auth settings verified for production.
+- [x] HTTPS and anti-forgery protections verified.
+- [-] Session timeout and remember-me behavior verified.
+- [x] Login lockout/rate limiting verified for abusive attempts.
 - [ ] Password reset and account recovery flow verified.
 - [ ] Staging-to-production config parity check completed (Stripe keys, webhook secret, DB target, log sink, feature flags).
 
