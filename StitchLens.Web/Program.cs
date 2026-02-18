@@ -85,6 +85,8 @@ builder.Services.AddSingleton<IImageProcessingService>(
 
 var app = builder.Build();
 
+LaunchConfigurationValidator.ValidateOrThrow(builder.Configuration, builder.Environment, app.Logger);
+
 // Seed the database
 using (var scope = app.Services.CreateScope()) {
     var services = scope.ServiceProvider;
