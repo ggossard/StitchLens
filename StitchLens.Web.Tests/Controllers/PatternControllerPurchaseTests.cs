@@ -144,6 +144,64 @@ public class PatternControllerPurchaseTests {
         payments[0].StripePaymentIntentId.Should().Be("pi_already");
     }
 
+    [Fact]
+    public async Task CompletePatternPurchase_DoesNotCreatePayment_WhenSessionNotPaid() {
+        using var db = CreateDb();
+
+        var user = new User { Id = 10, UserName = "buyer4@example.com", Email = "buyer4@example.com" };
+        var project = new Project { Id = 44, UserId = user.Id, OriginalImagePath = "uploads/p4.png", CreatedAt = DateTime.UtcNow };
+        db.Context.Users.Add(user);
+        db.Context.Projects.Add(project);
+        await db.Context.SaveChangesAsync();
+
+        var fakeStripe = new FakeStripeCheckoutSessionService();
+        fakeStripe.AddSession("sess_unpaid", new Session {
+            Id = "sess_unpaid",
+            PaymentStatus = "unpaid",
+            Metadata = new Dictionary<string, string> {
+                ["purchase_type"] = "one_time_pattern",
+                ["user_id"] = user.Id.ToString(),
+                ["project_id"] = project.Id.ToString()
+            }
+        });
+
+        var controller = CreateController(db.Context, fakeStripe, user.Id);
+        var result = await controller.CompletePatternPurchase(project.Id, true, "sess_unpaid");
+
+        result.Should().BeOfType<RedirectToActionResult>();
+        (await db.Context.PaymentHistory.CountAsync(p => p.ProjectId == project.Id && p.UserId == user.Id))
+            .Should().Be(0);
+    }
+
+    [Fact]
+    public async Task CompletePatternPurchase_DoesNotCreatePayment_WhenPurchaseTypeIsInvalid() {
+        using var db = CreateDb();
+
+        var user = new User { Id = 12, UserName = "buyer5@example.com", Email = "buyer5@example.com" };
+        var project = new Project { Id = 55, UserId = user.Id, OriginalImagePath = "uploads/p5.png", CreatedAt = DateTime.UtcNow };
+        db.Context.Users.Add(user);
+        db.Context.Projects.Add(project);
+        await db.Context.SaveChangesAsync();
+
+        var fakeStripe = new FakeStripeCheckoutSessionService();
+        fakeStripe.AddSession("sess_bad_type", new Session {
+            Id = "sess_bad_type",
+            PaymentStatus = "paid",
+            Metadata = new Dictionary<string, string> {
+                ["purchase_type"] = "subscription",
+                ["user_id"] = user.Id.ToString(),
+                ["project_id"] = project.Id.ToString()
+            }
+        });
+
+        var controller = CreateController(db.Context, fakeStripe, user.Id);
+        var result = await controller.CompletePatternPurchase(project.Id, true, "sess_bad_type");
+
+        result.Should().BeOfType<RedirectToActionResult>();
+        (await db.Context.PaymentHistory.CountAsync(p => p.ProjectId == project.Id && p.UserId == user.Id))
+            .Should().Be(0);
+    }
+
     private static PatternController CreateController(
         StitchLensDbContext context,
         IStripeCheckoutSessionService stripeCheckoutSessionService,
