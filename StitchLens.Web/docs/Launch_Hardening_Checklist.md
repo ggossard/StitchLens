@@ -5,37 +5,37 @@ Use this as a quick daily execution sheet during the 2-week hardening sprint.
 ## Must-Have Checklist
 
 ### Payments and Billing
-- [ ] Pay As You Go one-time purchase flow verified end-to-end.
-- [ ] One-time purchase idempotency verified (no duplicate unlock/payment records).
-- [ ] Subscription monthly flow verified end-to-end.
-- [ ] Subscription annual flow verified end-to-end (or intentionally disabled with safe UX).
-- [ ] Annual billing launch decision documented (enabled only if annual Stripe price IDs are configured; otherwise disabled by design).
+- [-] Pay As You Go one-time purchase flow verified end-to-end.
+- [x] One-time purchase idempotency verified (no duplicate unlock/payment records).
+- [-] Subscription monthly flow verified end-to-end.
+- [-] Subscription annual flow verified end-to-end (or intentionally disabled with safe UX).
+- [-] Annual billing launch decision documented (enabled only if annual Stripe price IDs are configured; otherwise disabled by design).
 - [ ] Stripe webhook signature validation verified in staging.
-- [ ] Webhook replay/idempotency verified.
-- [ ] Webhook matrix includes duplicate delivery, out-of-order events, missing metadata, and retry/failure handling.
+- [x] Webhook replay/idempotency verified.
+- [-] Webhook matrix includes duplicate delivery, out-of-order events, missing metadata, and retry/failure handling.
 
 ### Reliability and Correctness
 - [ ] Upload -> Configure -> Preview flow smoke-tested.
 - [ ] Download flow verified for each tier.
 - [ ] PDF cache hit/miss/invalidation behavior verified.
-- [ ] Error paths return user-friendly messages (no raw exceptions).
-- [ ] Critical smoke tests pass in CI.
+- [-] Error paths return user-friendly messages (no raw exceptions).
+- [x] Critical smoke tests pass in CI.
 
 ### Security and Configuration
 - [ ] No secrets in repository/worktree.
 - [ ] Production secrets sourced from env/secret manager.
-- [ ] Cookie/auth settings verified for production.
-- [ ] HTTPS and anti-forgery protections verified.
+- [-] Cookie/auth settings verified for production.
+- [-] HTTPS and anti-forgery protections verified.
 - [ ] Session timeout and remember-me behavior verified.
-- [ ] Login lockout/rate limiting verified for abusive attempts.
+- [-] Login lockout/rate limiting verified for abusive attempts.
 - [ ] Password reset and account recovery flow verified.
 - [ ] Staging-to-production config parity check completed (Stripe keys, webhook secret, DB target, log sink, feature flags).
 
 ### Observability and Operations
-- [ ] Structured logs exist for payment, webhook, generation, and download paths.
-- [ ] Correlation id visible in logs for critical requests.
+- [-] Structured logs exist for payment, webhook, generation, and download paths.
+- [-] Correlation id visible in logs for critical requests.
 - [ ] Alerts configured for 5xx spikes and webhook/payment failures.
-- [ ] Basic health checks and dashboard are available.
+- [-] Basic health checks and dashboard are available.
 
 ### Database and Deploy Safety
 - [ ] Migration tested on staging copy.
@@ -47,14 +47,14 @@ Use this as a quick daily execution sheet during the 2-week hardening sprint.
 - [ ] Go/No-Go criteria agreed and signed off.
 - [ ] Launch-day owner assignments complete.
 - [ ] Each launch-day task has primary + backup owner.
-- [ ] Incident triage path documented.
-- [ ] Customer-facing support response templates prepared.
-- [ ] Launch-day communication templates prepared (degraded service, payment issue, rollback notice).
+- [x] Incident triage path documented.
+- [x] Customer-facing support response templates prepared.
+- [x] Launch-day communication templates prepared (degraded service, payment issue, rollback notice).
 
 ### Evidence and Auditability
-- [ ] Evidence folder prepared for sprint artifacts (tests, screenshots, logs, runbooks).
+- [x] Evidence folder prepared for sprint artifacts (tests, screenshots, logs, runbooks).
 - [ ] Daily evidence links added to tracking log entries.
-- [ ] Go/No-Go packet includes links to all must-have evidence.
+- [-] Go/No-Go packet includes links to all must-have evidence.
 
 ## Nice-to-Have Checklist
 
