@@ -7,6 +7,7 @@ using StitchLens.Data.Models;
 
 namespace StitchLens.Core.Tests.Services;
 
+[Trait("Category", "LaunchCritical")]
 public class SubscriptionServiceTests {
     [Fact]
     public async Task CanUserDownloadAsync_AllowsPayAsYouGoUser() {

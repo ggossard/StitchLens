@@ -11,6 +11,7 @@ using DataSubscription = StitchLens.Data.Models.Subscription;
 
 namespace StitchLens.Web.Tests.Services;
 
+[Trait("Category", "LaunchCritical")]
 public class StripeWebhookProcessorTests {
     [Fact]
     public async Task HandleCheckoutCompletedAsync_DoesNothing_WhenSubscriptionMetadataIsMissing() {

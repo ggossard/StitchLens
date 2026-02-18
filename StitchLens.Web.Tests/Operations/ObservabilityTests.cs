@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace StitchLens.Web.Tests.Operations;
 
+[Trait("Category", "LaunchCritical")]
 public class ObservabilityTests : IClassFixture<WebApplicationFactory<Program>> {
     private readonly WebApplicationFactory<Program> _factory;
 

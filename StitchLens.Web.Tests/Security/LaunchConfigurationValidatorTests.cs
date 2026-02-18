@@ -7,6 +7,7 @@ using StitchLens.Web.Services;
 
 namespace StitchLens.Web.Tests.Security;
 
+[Trait("Category", "LaunchCritical")]
 public class LaunchConfigurationValidatorTests {
     [Fact]
     public void ValidateOrThrow_DoesNotThrowInDevelopment_WhenRequiredKeysMissing() {

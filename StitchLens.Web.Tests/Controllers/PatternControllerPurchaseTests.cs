@@ -15,6 +15,7 @@ using StitchLens.Web.Services;
 
 namespace StitchLens.Web.Tests.Controllers;
 
+[Trait("Category", "LaunchCritical")]
 public class PatternControllerPurchaseTests {
     [Fact]
     public async Task CompletePatternPurchase_CreatesPayment_ForValidPaidSession() {

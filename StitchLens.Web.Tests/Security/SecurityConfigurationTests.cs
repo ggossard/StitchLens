@@ -7,6 +7,7 @@ using StitchLens.Web.Controllers;
 
 namespace StitchLens.Web.Tests.Security;
 
+[Trait("Category", "LaunchCritical")]
 public class SecurityConfigurationTests : IClassFixture<WebApplicationFactory<Program>> {
     private readonly WebApplicationFactory<Program> _factory;
 

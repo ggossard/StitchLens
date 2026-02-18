@@ -27,3 +27,6 @@ jobs:
 
       - name: Test
         run: dotnet test StitchLens.sln --configuration Release --no-build
+
+      - name: Launch-Critical Tests
+        run: dotnet test StitchLens.sln --configuration Release --no-build --filter "Category=LaunchCritical"

@@ -12,6 +12,7 @@ using StitchLens.Web.Services;
 
 namespace StitchLens.Web.Tests.Controllers;
 
+[Trait("Category", "LaunchCritical")]
 public class WebhookControllerEventLogTests {
     [Fact]
     public async Task TryStartWebhookProcessingAsync_ReturnsNull_ForDuplicateProcessedEvent() {
