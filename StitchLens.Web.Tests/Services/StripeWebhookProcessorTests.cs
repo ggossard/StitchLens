@@ -13,6 +13,28 @@ namespace StitchLens.Web.Tests.Services;
 
 public class StripeWebhookProcessorTests {
     [Fact]
+    public async Task HandleCheckoutCompletedAsync_DoesNothing_WhenSubscriptionMetadataIsMissing() {
+        using var db = CreateDb();
+        var processor = CreateProcessor(db.Context);
+
+        var stripeEvent = new Event {
+            Data = new EventData {
+                Object = new Session {
+                    Id = "cs_missing_meta",
+                    Metadata = new Dictionary<string, string> {
+                        ["user_id"] = "123"
+                    }
+                }
+            }
+        };
+
+        await processor.HandleCheckoutCompletedAsync(stripeEvent, "{}");
+
+        (await db.Context.Subscriptions.CountAsync()).Should().Be(0);
+        (await db.Context.PaymentHistory.CountAsync()).Should().Be(0);
+    }
+
+    [Fact]
     public async Task HandleCheckoutCompletedAsync_DoesNothing_WhenUserIdMetadataIsInvalid() {
         using var db = CreateDb();
         var processor = CreateProcessor(db.Context);
@@ -235,6 +257,37 @@ public class StripeWebhookProcessorTests {
         await processor.HandleInvoicePaymentFailedAsync(stripeEvent, rawJson);
 
         (await db.Context.PaymentHistory.CountAsync(p => p.StripeInvoiceId == "in_duplicate_failed")).Should().Be(1);
+    }
+
+    [Fact]
+    public async Task HandleInvoicePaymentSucceededAsync_DoesNothing_WhenSubscriptionIdCannotBeResolved() {
+        using var db = CreateDb();
+        var processor = CreateProcessor(db.Context);
+
+        var stripeEvent = new Event {
+            Data = new EventData {
+                Object = new Invoice {
+                    Id = "in_missing_sub",
+                    AmountPaid = 1295,
+                    Currency = "usd"
+                }
+            }
+        };
+
+        var rawJson = """
+        {
+          "data": {
+            "object": {
+              "payment_intent": "pi_missing_sub",
+              "lines": { "data": [] }
+            }
+          }
+        }
+        """;
+
+        await processor.HandleInvoicePaymentSucceededAsync(stripeEvent, rawJson);
+
+        (await db.Context.PaymentHistory.CountAsync()).Should().Be(0);
     }
 
     private static StripeWebhookProcessor CreateProcessor(StitchLensDbContext context) {

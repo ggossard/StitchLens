@@ -48,6 +48,26 @@ public class WebhookControllerEventLogTests {
         updated.LastError.Should().Be("Simulated processing failure");
     }
 
+    [Fact]
+    public async Task TryStartWebhookProcessingAsync_ReturnsExistingLogForRetry_WhenStatusIsFailed() {
+        using var db = CreateDb();
+        var controller = CreateController(db.Context);
+        var stripeEvent = new Event { Id = "evt_retry_1", Type = "checkout.session.completed" };
+
+        var firstLog = await InvokeTryStartWebhookProcessingAsync(controller, stripeEvent);
+        firstLog.Should().NotBeNull();
+
+        await InvokeMarkWebhookFailedAsync(controller, firstLog!.Id, "Transient failure");
+
+        var retryLog = await InvokeTryStartWebhookProcessingAsync(controller, stripeEvent);
+        retryLog.Should().NotBeNull();
+        retryLog!.Id.Should().Be(firstLog.Id);
+        retryLog.Status.Should().Be(WebhookEventStatus.Processing);
+
+        var rows = await db.Context.WebhookEventLogs.Where(e => e.EventId == "evt_retry_1").ToListAsync();
+        rows.Should().HaveCount(1);
+    }
+
     private static WebhookController CreateController(StitchLensDbContext context) {
         var config = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?> {
