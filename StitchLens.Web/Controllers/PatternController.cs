@@ -10,6 +10,7 @@ using StitchLens.Core.Services;
 using StitchLens.Data;
 using StitchLens.Data.Models;
 using StitchLens.Web.Models;
+using StitchLens.Web.Services;
 using System.Security.Claims;
 using static StitchLens.Web.Models.ConfigureViewModel;
 
@@ -25,6 +26,7 @@ public class PatternController : Controller {
     private readonly UserManager<User> _userManager;
     private readonly ITierConfigurationService _tierConfigService;
     private readonly IConfiguration _configuration;
+    private readonly IStripeCheckoutSessionService _stripeCheckoutSessionService;
 
     public PatternController(
         StitchLensDbContext context,
@@ -35,7 +37,8 @@ public class PatternController : Controller {
         IGridGenerationService gridService,
         UserManager<User> userManager,
         ITierConfigurationService tierConfigService,
-        IConfiguration configuration) {
+        IConfiguration configuration,
+        IStripeCheckoutSessionService stripeCheckoutSessionService) {
         _context = context;
         _imageService = imageService;
         _colorService = colorService;
@@ -45,6 +48,7 @@ public class PatternController : Controller {
         _userManager = userManager;
         _tierConfigService = tierConfigService;
         _configuration = configuration;
+        _stripeCheckoutSessionService = stripeCheckoutSessionService;
 
         StripeConfiguration.ApiKey = _configuration["Stripe:SecretKey"];
     }
@@ -564,8 +568,7 @@ public class PatternController : Controller {
                 options.CustomerEmail = null;
             }
 
-            var service = new SessionService();
-            var session = await service.CreateAsync(options);
+            var session = await _stripeCheckoutSessionService.CreateAsync(options);
 
             return Redirect(session.Url);
         }
@@ -599,8 +602,7 @@ public class PatternController : Controller {
         }
 
         try {
-            var service = new SessionService();
-            var session = await service.GetAsync(session_id);
+            var session = await _stripeCheckoutSessionService.GetAsync(session_id);
 
             if (!string.Equals(session.PaymentStatus, "paid", StringComparison.OrdinalIgnoreCase)) {
                 TempData["ErrorMessage"] = "Payment was not completed. Please try again.";
