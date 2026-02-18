@@ -41,4 +41,26 @@ public class ObservabilityTests : IClassFixture<WebApplicationFactory<Program>> 
             .Should()
             .Be("launch-hardening-test-correlation");
     }
+
+    [Fact]
+    public async Task LivenessEndpoint_ReturnsSuccess() {
+        using var client = _factory.CreateClient(new WebApplicationFactoryClientOptions {
+            AllowAutoRedirect = false
+        });
+
+        var response = await client.GetAsync("/health/live");
+
+        response.IsSuccessStatusCode.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task ReadinessEndpoint_ReturnsSuccess() {
+        using var client = _factory.CreateClient(new WebApplicationFactoryClientOptions {
+            AllowAutoRedirect = false
+        });
+
+        var response = await client.GetAsync("/health/ready");
+
+        response.IsSuccessStatusCode.Should().BeTrue();
+    }
 }

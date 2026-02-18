@@ -17,7 +17,10 @@ Stripe.StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
 builder.Services.AddControllersWithViews(options => {
     options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
 });
-builder.Services.AddHealthChecks();
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<StitchLensDbContext>(
+        name: "database",
+        tags: new[] { "ready" });
 
 // Register database context
 builder.Services.AddDbContext<StitchLensDbContext>(options =>
@@ -136,6 +139,12 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.MapHealthChecks("/health", new HealthCheckOptions());
+app.MapHealthChecks("/health/live", new HealthCheckOptions {
+    Predicate = _ => false
+});
+app.MapHealthChecks("/health/ready", new HealthCheckOptions {
+    Predicate = registration => registration.Tags.Contains("ready")
+});
 
 
 if (app.Environment.IsDevelopment()) {
