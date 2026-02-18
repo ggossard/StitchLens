@@ -144,6 +144,9 @@ if (app.Environment.IsDevelopment()) {
     Console.WriteLine();
     Console.WriteLine($"     stripe listen --forward-to {webhookUrl}/api/webhook/stripe");
     Console.WriteLine();
+    Console.WriteLine("  After Stripe CLI prints a new signing secret, update user secrets:");
+    Console.WriteLine("     dotnet user-secrets set \"Stripe:WebhookSecret\" \"whsec_xxx\" --project \"StitchLens.Web/StitchLens.Web.csproj\"");
+    Console.WriteLine();
     Console.WriteLine("═══════════════════════════════════════════════════════════");
     Console.WriteLine();
     Console.ResetColor();
