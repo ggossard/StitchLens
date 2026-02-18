@@ -3,9 +3,9 @@
 This repository contains the StitchLens solution: an ASP.NET Core9 application that converts photos into needlepoint patterns.
 
 Projects
-- `StitchLens.Web` — web application (Razor views)
-- `StitchLens.Core` — core services (image processing, quantization, PDF generation)
-- `StitchLens.Data` — EF Core models and database
+- `StitchLens.Web` ï¿½ web application (Razor views)
+- `StitchLens.Core` ï¿½ core services (image processing, quantization, PDF generation)
+- `StitchLens.Data` ï¿½ EF Core models and database
 
 Quick start (local)
 1. Install .NET9 SDK: https://dotnet.microsoft.com/download
@@ -35,6 +35,7 @@ Uploads
 Contributing
 - Use feature branches and open PRs against `main`.
 - Keep `SeedData` in the repo for reproducible initialization.
+- AI coding session guidance: `StitchLens.Web/docs/AI_INSTRUCTIONS.md`.
 
 Security
 - Do not commit secrets or production connection strings. Use user secrets or environment variables for production configuration.

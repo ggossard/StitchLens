@@ -7,6 +7,7 @@ Ship a stable, secure, observable MVP to public users with low launch-day risk a
 
 ### Must-Have Before Public Launch
 - Payment flow correctness and idempotency (Pay As You Go and subscriptions)
+- Annual billing explicitly enabled only if annual Stripe price IDs are configured; otherwise disabled by design with safe UX
 - Webhook reliability and replay safety
 - Critical-path smoke tests and regressions for upload/configure/preview/download/purchase
 - Error handling and user-facing fallback messages for payment and PDF generation failures
@@ -14,6 +15,7 @@ Ship a stable, secure, observable MVP to public users with low launch-day risk a
 - Logging and alerting for critical failures
 - Migration backup and rollback runbook
 - Basic operational runbook (deploy, verify, rollback, incident triage)
+- Launch-day communications templates for incidents and rollback
 
 ### Nice-to-Have (If Capacity Allows)
 - Load/perf tuning beyond baseline
@@ -26,6 +28,11 @@ Ship a stable, secure, observable MVP to public users with low launch-day risk a
 - 1 engineer + product owner
 - Daily check-in and end-of-day status
 - Staging environment available with Stripe test mode + webhook endpoint
+
+## Evidence Convention
+- Store sprint evidence under `StitchLens.Web/docs/launch-hardening-evidence/`.
+- Use one folder per day (`day-01` ... `day-10`) with test output, screenshots, and notes.
+- Every deliverable in this plan should include at least one linked artifact.
 
 ## Day-by-Day Plan (2 Weeks)
 
@@ -71,7 +78,8 @@ Ship a stable, secure, observable MVP to public users with low launch-day risk a
 - Verify monthly/annual checkout routing uses DB tier config values.
 - Validate subscription metadata flow (`tier`, `billing_cycle`) through checkout and webhook.
 - Confirm dashboard/plan labels reflect monthly vs annual.
-- Confirm annual-unavailable state behaves safely (no broken checkout).
+- Confirm annual-unavailable state behaves safely (no broken checkout) when annual Stripe IDs are missing.
+- Record explicit launch decision: annual enabled vs disabled-by-design.
 
 **Deliverables**
 - Subscription Flow Validation Report
@@ -83,6 +91,10 @@ Ship a stable, secure, observable MVP to public users with low launch-day risk a
 - Validate replay-safe behavior for:
   - `checkout.session.completed`
   - subscription state events
+  - duplicate delivery of the same event
+  - out-of-order event delivery
+  - missing/invalid metadata (`tier`, `billing_cycle`, project identifiers)
+  - transient processing failures followed by Stripe retries
 - Ensure one-time and subscription sessions are routed to correct handler path.
 
 **Deliverables**
@@ -120,11 +132,20 @@ Ship a stable, secure, observable MVP to public users with low launch-day risk a
 **Priority:** Must-Have
 - Verify no secrets in repo history/worktree.
 - Confirm production uses environment/secret manager values only.
+- Confirm staging/production config parity for launch-critical settings:
+  - Stripe publishable/secret keys
+  - Stripe webhook secret
+  - DB target/connection string
+  - logging sink and alert destinations
+  - launch feature flags
 - Validate cookie/auth settings for production:
   - secure cookies
   - HTTPS enforcement
   - same-site policy sanity check
 - Validate anti-forgery protections on mutation endpoints.
+- Validate session timeout and remember-me behavior.
+- Validate login lockout/rate limiting for abuse scenarios.
+- Validate password reset/account recovery flows.
 
 **Deliverables**
 - Security Readiness Checklist
@@ -172,6 +193,11 @@ Ship a stable, secure, observable MVP to public users with low launch-day risk a
 - Define threshold alarms for launch week.
 - Complete final go/no-go review against acceptance criteria.
 - Build launch-day checklist and owner assignments.
+- Assign primary + backup owner for each launch-day task.
+- Finalize customer communication templates:
+  - degraded service notice
+  - payment issue notice
+  - rollback notice
 
 **Deliverables**
 - Performance Baseline Report
@@ -180,7 +206,7 @@ Ship a stable, secure, observable MVP to public users with low launch-day risk a
 
 ## Nice-to-Have Backlog (Post Sprint or if Ahead)
 - Gallery-ready indexing prep for `Public` + `Tags`
-- Scheduled cleanup for stale upload and cached PDF artifacts
+- Scheduled cleanup for stale upload and cached PDF artifacts (promote to Must-Have if expected launch storage growth is moderate/high)
 - Expanded browser/device matrix for UI validation
 - Better billing analytics (funnel from preview -> checkout -> success)
 - Admin diagnostics page for payment/webhook event inspection
@@ -206,3 +232,8 @@ Ship a stable, secure, observable MVP to public users with low launch-day risk a
 - Engineering: implementation, tests, observability, runbooks
 - Product/Founder: acceptance criteria signoff, launch messaging, go/no-go decision
 - Shared: launch-day checklist execution
+
+## Launch-Day Ownership Model
+- Each critical task must have one primary owner and one backup owner.
+- If a primary owner is unavailable, backup owner is empowered to execute without delay.
+- Keep owner contact details and escalation order in the launch-day checklist.

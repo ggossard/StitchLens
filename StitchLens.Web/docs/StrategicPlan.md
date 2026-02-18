@@ -34,23 +34,23 @@
 - Annual contracts for stability
 - Minimal ongoing support
 
-**D2C Pattern Sales (30% - Secondary Revenue)**
-- 100-150 sales/mo @ $12-15 = $1,500-2,250/mo
+**D2C Pay-As-You-Go Sales (Secondary Revenue)**
+- 100-150 pattern purchases/mo @ $5.95 = $595-893/mo
 - Mostly automated (Stripe + email delivery)
 - Paid ads on autopilot
-- Both personal and commercial licensing
+- Entry-level option for new users
 
-**Premium Subscriptions (10%)**
-- 20-30 subscribers @ $19.99-39/mo = $400-600/mo
-- For Etsy sellers and high-volume hobbyists
-- Unlimited patterns + commercial license
+**Subscriptions (Growth Revenue)**
+- 20-30 subscribers on Hobbyist/Creator tiers ($12.95-$35.95/mo) = ~$300-1,080/mo
+- Hobbyist: regular stitchers with monthly quotas
+- Creator: higher volume + commercial usage rights
 
 **Optional: Fulfillment Partnerships**
 - Partner with canvas printers (revenue share 30-40%)
 - 80 orders/mo @ $30 commission = $2,400/mo
 - Zero fulfillment work on your end
 
-**Total Revenue Potential: $10,500+/month**
+**Total Revenue Potential: ~$8,000-10,000+/month**
 
 ---
 
@@ -121,7 +121,7 @@
 ### Why B2B is Your Best Revenue Stream
 
 **Advantages:**
-- Higher per-customer value ($299/mo vs $15 one-time)
+- Higher per-customer value ($299/mo vs $5.95 pay-as-you-go)
 - Recurring revenue (MRR) = predictable income
 - Fewer customers to support (20 vs 1,000s)
 - More stable (businesses don't churn like consumers)
@@ -430,31 +430,33 @@
 
 ---
 
-## 💡 Licensing Tiers
+## 💡 Current Pricing Tiers (from seeded configuration)
 
-### Personal Use License: $15
-- One-time use
-- Personal projects only
-- Standard resolution
-- One yarn brand choice
+### Pay As You Go: $5.95 per pattern
+- No monthly subscription
+- Personal use only
+- Good entry point to try the product
+- No priority support
 
-### Commercial License: $49
-- Can sell finished pieces
-- Higher resolution
-- All yarn brands available
-- For Etsy sellers, designers
+### Hobbyist: $12.95/month
+- 3 pattern creations per month
+- Daily limit: 20
+- Personal use only
+- No priority support
+- Annual planning price: $129.50/year
 
-### Business License: $149
-- Unlimited commercial use
-- Extra high resolution
-- Priority support
-- Custom color palettes
-- For corporate gifts, designers
+### Creator: $35.95/month
+- 30 pattern creations per month
+- Daily limit: 100
+- Commercial use allowed
+- Priority support included
+- Annual planning price: $359.50/year
 
-### Professional Subscription: $39/mo
-- Unlimited patterns
-- Commercial license included
-- For high-volume users
+### Custom: Contact sales
+- Enterprise / partner solutions
+- Unlimited quota (custom terms)
+- Commercial use + priority support
+- Final pricing scoped per customer
 
 ---
 
@@ -646,7 +648,7 @@ Not sure? Learn the difference →
 ### Month 3: Marketing Test
 - [ ] Set up Google Analytics
 - [ ] Create first Google Ads campaign ($500 budget)
-- [ ] A/B test pricing ($10 vs $15 vs $20)
+- [ ] A/B test pay-as-you-go pricing ($4.95 vs $5.95 vs $7.95)
 - [ ] Hire Upwork ads specialist ($300)
 - [ ] Goal: 20-30 sales
 
@@ -724,7 +726,7 @@ The same core technology that powers StitchLens can be adapted for custom paint-
 | **Demographics** | 40-75, predominantly female | 5-75, all genders |
 | **Social Media** | Pinterest, Facebook | Instagram, TikTok, Pinterest |
 | **Use Cases** | Heirloom crafts, gifts | Kids activities, date nights, pet portraits |
-| **Price Point** | $12-15 (digital) | $12-25 (digital) |
+| **Price Point** | $5.95 pay-as-you-go or $12.95-$35.95/mo | $12-25 (digital) |
 | **Kit Price** | $65-125 | $45-125 |
 | **B2B Customers** | Craft shops, yarn stores | Photo services, art retailers |
 | **B2B Scale** | Small shops (10-20 customers) | Major brands (Shutterfly, Michaels) |
