@@ -8,80 +8,98 @@ public static class DbInitializer {
     public static void Initialize(StitchLensDbContext context, string contentRootPath) {
         context.Database.Migrate();
 
-        // Seed tier configurations FIRST
-        if (!context.TierConfigurations.Any()) {
-            var tiers = new[]
+        // Seed tier configurations FIRST (idempotent)
+        var tiers = new[]
+        {
+            new TierConfiguration
             {
-                new TierConfiguration
-                {
-                    Tier = SubscriptionTier.PayAsYouGo,
-                    Name = "Pay As You Go",
-                    Description = "Try it out",
-                    PatternCreationQuota = int.MaxValue,
-                    PatternCreationDailyLimit = int.MaxValue,
-                    AllowCommercialUse = false,
-                    PrioritySupport = false,
-                    MonthlyPrice = 0,
-                    AnnualPrice = null,
-                    PerPatternPrice = 5.95m,
-                    StripeMonthlyPriceId = null,
-                    StripeAnnualPriceId = null,
-                    StripePerPatternPriceId = null
-                },
-                new TierConfiguration
-                {
-                    Tier = SubscriptionTier.Hobbyist,
-                    Name = "Hobbyist",
-                    Description = "For regular stitchers",
-                    PatternCreationQuota = 3,
-                    PatternCreationDailyLimit = 20,
-                    AllowCommercialUse = false,
-                    PrioritySupport = false,
-                    MonthlyPrice = 12.95m,
-                    AnnualPrice = 129.50m,
-                    PerPatternPrice = null,
-                    StripeMonthlyPriceId = "price_1SbpSSFiTiD9qoU887veIxiO",
-                    StripeAnnualPriceId = null,
-                    StripePerPatternPriceId = null
-                },
-                new TierConfiguration
-                {
-                    Tier = SubscriptionTier.Creator,
-                    Name = "Creator",
-                    Description = "Sell your finished pieces",
-                    PatternCreationQuota = 30,
-                    PatternCreationDailyLimit = 100,
-                    AllowCommercialUse = true,
-                    PrioritySupport = true,
-                    MonthlyPrice = 35.95m,
-                    AnnualPrice = 359.50m,
-                    PerPatternPrice = null,
-                    StripeMonthlyPriceId = "price_1SbpSaFiTiD9qoU8yrkT8tOE",
-                    StripeAnnualPriceId = null,
-                    StripePerPatternPriceId = null
-                },
-                new TierConfiguration
-                {
-                    Tier = SubscriptionTier.Custom,
-                    Name = "Custom",
-                    Description = "Enterprise solutions",
-                    PatternCreationQuota = int.MaxValue,
-                    PatternCreationDailyLimit = int.MaxValue,
-                    AllowCommercialUse = true,
-                    PrioritySupport = true,
-                    MonthlyPrice = 0,
-                    AnnualPrice = null,
-                    PerPatternPrice = null,
-                    StripeMonthlyPriceId = null,
-                    StripeAnnualPriceId = null,
-                    StripePerPatternPriceId = null
-                }
-            };
+                Tier = SubscriptionTier.PayAsYouGo,
+                Name = "Pay As You Go",
+                Description = "Try it out",
+                PatternCreationQuota = int.MaxValue,
+                PatternCreationDailyLimit = int.MaxValue,
+                AllowCommercialUse = false,
+                PrioritySupport = false,
+                MonthlyPrice = 0,
+                AnnualPrice = null,
+                PerPatternPrice = 5.95m,
+                StripeMonthlyPriceId = null,
+                StripeAnnualPriceId = null,
+                StripePerPatternPriceId = null
+            },
+            new TierConfiguration
+            {
+                Tier = SubscriptionTier.Hobbyist,
+                Name = "Hobbyist",
+                Description = "For regular stitchers",
+                PatternCreationQuota = 3,
+                PatternCreationDailyLimit = 20,
+                AllowCommercialUse = false,
+                PrioritySupport = false,
+                MonthlyPrice = 12.95m,
+                AnnualPrice = 129.50m,
+                PerPatternPrice = null,
+                StripeMonthlyPriceId = "price_1SbpSSFiTiD9qoU887veIxiO",
+                StripeAnnualPriceId = null,
+                StripePerPatternPriceId = null
+            },
+            new TierConfiguration
+            {
+                Tier = SubscriptionTier.Creator,
+                Name = "Creator",
+                Description = "Sell your finished pieces",
+                PatternCreationQuota = 30,
+                PatternCreationDailyLimit = 100,
+                AllowCommercialUse = true,
+                PrioritySupport = true,
+                MonthlyPrice = 35.95m,
+                AnnualPrice = 359.50m,
+                PerPatternPrice = null,
+                StripeMonthlyPriceId = "price_1SbpSaFiTiD9qoU8yrkT8tOE",
+                StripeAnnualPriceId = null,
+                StripePerPatternPriceId = null
+            },
+            new TierConfiguration
+            {
+                Tier = SubscriptionTier.Custom,
+                Name = "Custom",
+                Description = "Enterprise solutions",
+                PatternCreationQuota = int.MaxValue,
+                PatternCreationDailyLimit = int.MaxValue,
+                AllowCommercialUse = true,
+                PrioritySupport = true,
+                MonthlyPrice = 0,
+                AnnualPrice = null,
+                PerPatternPrice = null,
+                StripeMonthlyPriceId = null,
+                StripeAnnualPriceId = null,
+                StripePerPatternPriceId = null
+            }
+        };
 
-            context.TierConfigurations.AddRange(tiers);
-            context.SaveChanges();
-            Console.WriteLine("Seeded tier configurations");
+        var existingTiers = context.TierConfigurations.ToDictionary(t => t.Tier);
+
+        foreach (var seededTier in tiers) {
+            if (existingTiers.TryGetValue(seededTier.Tier, out var existingTier)) {
+                existingTier.Name = seededTier.Name;
+                existingTier.Description = seededTier.Description;
+                existingTier.PatternCreationQuota = seededTier.PatternCreationQuota;
+                existingTier.PatternCreationDailyLimit = seededTier.PatternCreationDailyLimit;
+                existingTier.AllowCommercialUse = seededTier.AllowCommercialUse;
+                existingTier.PrioritySupport = seededTier.PrioritySupport;
+                existingTier.MonthlyPrice = seededTier.MonthlyPrice;
+                existingTier.AnnualPrice = seededTier.AnnualPrice;
+                existingTier.PerPatternPrice = seededTier.PerPatternPrice;
+                existingTier.StripeMonthlyPriceId = seededTier.StripeMonthlyPriceId;
+                existingTier.StripeAnnualPriceId = seededTier.StripeAnnualPriceId;
+                existingTier.StripePerPatternPriceId = seededTier.StripePerPatternPriceId;
+            }
+            else {
+                context.TierConfigurations.Add(seededTier);
+            }
         }
+
+        context.SaveChanges();
 
         // Check if brands already exist
         if (context.YarnBrands.Any())

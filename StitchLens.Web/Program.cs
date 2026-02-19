@@ -81,6 +81,7 @@ builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
 builder.Services.AddScoped<ITierConfigurationService, TierConfigurationService>();
 builder.Services.AddScoped<IStripeWebhookProcessor, StripeWebhookProcessor>();
 builder.Services.AddScoped<IStripeCheckoutSessionService, StripeCheckoutSessionService>();
+builder.Services.AddScoped<IEmailSenderService, SmtpEmailSenderService>();
 
 var uploadPath = Path.Combine(builder.Environment.ContentRootPath, "uploads");
 builder.Services.AddSingleton<IImageProcessingService>(

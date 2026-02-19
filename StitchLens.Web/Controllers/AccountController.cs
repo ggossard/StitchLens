@@ -6,9 +6,12 @@ using StitchLens.Core.Services;
 using StitchLens.Data;
 using StitchLens.Data.Models;
 using StitchLens.Web.Models;
+using StitchLens.Web.Services;
 using System.Security.Claims;
+using System.Text;
 using Stripe;
 using Stripe.Checkout;
+using Microsoft.AspNetCore.WebUtilities;
 
 namespace StitchLens.Web.Controllers;
 
@@ -19,6 +22,8 @@ public class AccountController : Controller {
     private readonly ISubscriptionService _subscriptionService;
     private readonly IConfiguration _configuration;
     private readonly ITierConfigurationService _tierConfigService;
+    private readonly IEmailSenderService _emailSenderService;
+    private readonly ILogger<AccountController> _logger;
 
     public AccountController(
     UserManager<User> userManager,
@@ -26,13 +31,17 @@ public class AccountController : Controller {
     StitchLensDbContext context,
     ISubscriptionService subscriptionService,
     IConfiguration configuration,
-    ITierConfigurationService tierConfigService) {
+    ITierConfigurationService tierConfigService,
+    IEmailSenderService emailSenderService,
+    ILogger<AccountController> logger) {
         _userManager = userManager;
         _signInManager = signInManager;
         _context = context;
         _subscriptionService = subscriptionService;
         _configuration = configuration;
         _tierConfigService = tierConfigService;
+        _emailSenderService = emailSenderService;
+        _logger = logger;
 
         // Initialize Stripe
         StripeConfiguration.ApiKey = _configuration["Stripe:SecretKey"];
@@ -214,6 +223,99 @@ public class AccountController : Controller {
         };
 
         return View(model);
+    }
+
+    // GET: /Account/ForgotPassword
+    [HttpGet]
+    [AllowAnonymous]
+    public IActionResult ForgotPassword() {
+        return View();
+    }
+
+    // POST: /Account/ForgotPassword
+    [HttpPost]
+    [AllowAnonymous]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model) {
+        if (!ModelState.IsValid) {
+            return View(model);
+        }
+
+        var user = await _userManager.FindByEmailAsync(model.Email);
+        if (user == null || !(await _userManager.IsEmailConfirmedAsync(user))) {
+            return RedirectToAction(nameof(ForgotPasswordConfirmation));
+        }
+
+        var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+        var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
+        var callbackUrl = Url.Action(
+            nameof(ResetPassword),
+            "Account",
+            new { email = user.Email, token = encodedToken },
+            protocol: Request.Scheme);
+
+        if (string.IsNullOrWhiteSpace(callbackUrl)) {
+            _logger.LogError("Could not build reset password callback URL. UserId={UserId}", user.Id);
+            return RedirectToAction(nameof(ForgotPasswordConfirmation));
+        }
+
+        await _emailSenderService.SendPasswordResetEmailAsync(model.Email, callbackUrl);
+        return RedirectToAction(nameof(ForgotPasswordConfirmation));
+    }
+
+    [HttpGet]
+    [AllowAnonymous]
+    public IActionResult ForgotPasswordConfirmation() {
+        return View();
+    }
+
+    // GET: /Account/ResetPassword
+    [HttpGet]
+    [AllowAnonymous]
+    public IActionResult ResetPassword(string? token = null, string? email = null) {
+        if (string.IsNullOrWhiteSpace(token) || string.IsNullOrWhiteSpace(email)) {
+            return BadRequest("A reset token and email are required.");
+        }
+
+        var decodedToken = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(token));
+        var model = new ResetPasswordViewModel {
+            Token = decodedToken,
+            Email = email
+        };
+
+        return View(model);
+    }
+
+    // POST: /Account/ResetPassword
+    [HttpPost]
+    [AllowAnonymous]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model) {
+        if (!ModelState.IsValid) {
+            return View(model);
+        }
+
+        var user = await _userManager.FindByEmailAsync(model.Email);
+        if (user == null) {
+            return RedirectToAction(nameof(ResetPasswordConfirmation));
+        }
+
+        var result = await _userManager.ResetPasswordAsync(user, model.Token, model.Password);
+        if (result.Succeeded) {
+            return RedirectToAction(nameof(ResetPasswordConfirmation));
+        }
+
+        foreach (var error in result.Errors) {
+            ModelState.AddModelError(string.Empty, error.Description);
+        }
+
+        return View(model);
+    }
+
+    [HttpGet]
+    [AllowAnonymous]
+    public IActionResult ResetPasswordConfirmation() {
+        return View();
     }
 
     [Authorize]

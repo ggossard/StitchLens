@@ -11,6 +11,7 @@ using Moq;
 using StitchLens.Data.Models;
 using StitchLens.Web.Controllers;
 using StitchLens.Web.Models;
+using StitchLens.Web.Services;
 
 namespace StitchLens.Web.Tests.Security;
 
@@ -79,7 +80,9 @@ public class AccountLoginRememberMeTests {
             null!,
             null!,
             new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>()).Build(),
-            null!);
+            null!,
+            Mock.Of<IEmailSenderService>(),
+            Mock.Of<ILogger<AccountController>>());
     }
 
     private static IUrlHelper CreateUrlHelper() {
