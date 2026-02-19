@@ -18,7 +18,7 @@ Use this as a quick daily execution sheet during the 2-week hardening sprint.
 - [ ] Upload -> Configure -> Preview flow smoke-tested.
 - [ ] Download flow verified for each tier.
 - [ ] PDF cache hit/miss/invalidation behavior verified.
-- [-] Error paths return user-friendly messages (no raw exceptions).
+- [x] Error paths return user-friendly messages (no raw exceptions).
 - [x] Critical smoke tests pass in CI.
 
 ### Security and Configuration
