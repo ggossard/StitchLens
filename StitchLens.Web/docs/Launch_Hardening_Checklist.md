@@ -29,7 +29,7 @@ Use this as a quick daily execution sheet during the 2-week hardening sprint.
 - [x] Session timeout and remember-me behavior verified.
 - [x] Login lockout/rate limiting verified for abusive attempts.
 - [x] Password reset and account recovery flow verified.
-- [ ] Staging-to-production config parity check completed (Stripe keys, webhook secret, DB target, log sink, feature flags).
+- [-] Staging-to-production config parity check completed (Stripe keys, webhook secret, DB target, log sink, feature flags).
 
 ### Observability and Operations
 - [x] Structured logs exist for payment, webhook, generation, and download paths.
@@ -40,8 +40,8 @@ Use this as a quick daily execution sheet during the 2-week hardening sprint.
 ### Database and Deploy Safety
 - [ ] Migration tested on staging copy.
 - [ ] Backup and restore procedure validated.
-- [ ] Rollback plan documented and tested.
-- [ ] Deploy runbook drafted and reviewed.
+- [-] Rollback plan documented and tested (documented in `StitchLens.Web/docs/launch-hardening-evidence/go-no-go/rollback.md`; staging drill pending).
+- [-] Deploy runbook drafted and reviewed (drafted in `StitchLens.Web/docs/launch-hardening-evidence/go-no-go/deploy-runbook.md`; review sign-off pending).
 
 ### Launch Readiness
 - [ ] Go/No-Go criteria agreed and signed off.
@@ -53,8 +53,8 @@ Use this as a quick daily execution sheet during the 2-week hardening sprint.
 
 ### Evidence and Auditability
 - [x] Evidence folder prepared for sprint artifacts (tests, screenshots, logs, runbooks).
-- [ ] Daily evidence links added to tracking log entries.
-- [-] Go/No-Go packet includes links to all must-have evidence.
+- [-] Daily evidence links added to tracking log entries.
+- [-] Go/No-Go packet includes links to all must-have evidence (packet skeleton in `StitchLens.Web/docs/launch-hardening-evidence/go-no-go/`; evidence-link pass pending).
 
 ## Nice-to-Have Checklist
 
@@ -110,14 +110,14 @@ Use this as a quick daily execution sheet during the 2-week hardening sprint.
 - Blockers:
 
 ### Day 8
-- Focus:
-- Completed:
-- Blockers:
+- Focus: observability, security verification, recovery flow hardening
+- Completed: launch-critical tests for webhook/payment/idempotency, security config, remember-me, password reset/account recovery, and error handling (see `StitchLens.Web/docs/launch-hardening-evidence/go-no-go/`)
+- Blockers: staging-only validations (webhook signature in staging, migration/backup/restore drill)
 
 ### Day 9
-- Focus:
-- Completed:
-- Blockers:
+- Focus: go/no-go packet scaffolding and launch deployment readiness docs.
+- Completed: drafted config parity checklist and deploy runbook (`StitchLens.Web/docs/launch-hardening-evidence/go-no-go/config-parity-checklist.md`, `StitchLens.Web/docs/launch-hardening-evidence/go-no-go/deploy-runbook.md`).
+- Blockers: staging execution evidence still required (webhook signature validation, migration/backup/restore drill, owner assignments/sign-off).
 
 ### Day 10
 - Focus:
