@@ -11,11 +11,14 @@ public class ObservabilityTests : IClassFixture<WebApplicationFactory<Program>> 
         _factory = factory;
     }
 
+    private static readonly WebApplicationFactoryClientOptions ClientOptions = new() {
+        AllowAutoRedirect = false,
+        BaseAddress = new Uri("https://localhost")
+    };
+
     [Fact]
     public async Task HealthEndpoint_ReturnsSuccess_AndCorrelationHeader() {
-        using var client = _factory.CreateClient(new WebApplicationFactoryClientOptions {
-            AllowAutoRedirect = false
-        });
+        using var client = _factory.CreateClient(ClientOptions);
 
         var response = await client.GetAsync("/health");
 
@@ -26,9 +29,7 @@ public class ObservabilityTests : IClassFixture<WebApplicationFactory<Program>> 
 
     [Fact]
     public async Task CorrelationHeader_EchoesClientProvidedValue() {
-        using var client = _factory.CreateClient(new WebApplicationFactoryClientOptions {
-            AllowAutoRedirect = false
-        });
+        using var client = _factory.CreateClient(ClientOptions);
 
         using var request = new HttpRequestMessage(HttpMethod.Get, "/health");
         request.Headers.Add("X-Correlation-ID", "launch-hardening-test-correlation");
@@ -44,9 +45,7 @@ public class ObservabilityTests : IClassFixture<WebApplicationFactory<Program>> 
 
     [Fact]
     public async Task LivenessEndpoint_ReturnsSuccess() {
-        using var client = _factory.CreateClient(new WebApplicationFactoryClientOptions {
-            AllowAutoRedirect = false
-        });
+        using var client = _factory.CreateClient(ClientOptions);
 
         var response = await client.GetAsync("/health/live");
 
@@ -55,9 +54,7 @@ public class ObservabilityTests : IClassFixture<WebApplicationFactory<Program>> 
 
     [Fact]
     public async Task ReadinessEndpoint_ReturnsSuccess() {
-        using var client = _factory.CreateClient(new WebApplicationFactoryClientOptions {
-            AllowAutoRedirect = false
-        });
+        using var client = _factory.CreateClient(ClientOptions);
 
         var response = await client.GetAsync("/health/ready");
 
