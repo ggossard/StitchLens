@@ -77,10 +77,10 @@ public static class DbInitializer {
             }
         };
 
-        var existingTiers = context.TierConfigurations.ToDictionary(t => t.Tier);
-
         foreach (var seededTier in tiers) {
-            if (existingTiers.TryGetValue(seededTier.Tier, out var existingTier)) {
+            var existingTier = context.TierConfigurations.SingleOrDefault(t => t.Tier == seededTier.Tier);
+
+            if (existingTier != null) {
                 existingTier.Name = seededTier.Name;
                 existingTier.Description = seededTier.Description;
                 existingTier.PatternCreationQuota = seededTier.PatternCreationQuota;
@@ -97,9 +97,30 @@ public static class DbInitializer {
             else {
                 context.TierConfigurations.Add(seededTier);
             }
-        }
 
-        context.SaveChanges();
+            try {
+                context.SaveChanges();
+            }
+            catch (DbUpdateException ex) when (IsTierUniqueConstraintViolation(ex)) {
+                context.ChangeTracker.Clear();
+
+                var tierAfterConflict = context.TierConfigurations.Single(t => t.Tier == seededTier.Tier);
+                tierAfterConflict.Name = seededTier.Name;
+                tierAfterConflict.Description = seededTier.Description;
+                tierAfterConflict.PatternCreationQuota = seededTier.PatternCreationQuota;
+                tierAfterConflict.PatternCreationDailyLimit = seededTier.PatternCreationDailyLimit;
+                tierAfterConflict.AllowCommercialUse = seededTier.AllowCommercialUse;
+                tierAfterConflict.PrioritySupport = seededTier.PrioritySupport;
+                tierAfterConflict.MonthlyPrice = seededTier.MonthlyPrice;
+                tierAfterConflict.AnnualPrice = seededTier.AnnualPrice;
+                tierAfterConflict.PerPatternPrice = seededTier.PerPatternPrice;
+                tierAfterConflict.StripeMonthlyPriceId = seededTier.StripeMonthlyPriceId;
+                tierAfterConflict.StripeAnnualPriceId = seededTier.StripeAnnualPriceId;
+                tierAfterConflict.StripePerPatternPriceId = seededTier.StripePerPatternPriceId;
+
+                context.SaveChanges();
+            }
+        }
 
         // Check if brands already exist
         if (context.YarnBrands.Any())
@@ -242,5 +263,13 @@ public static class DbInitializer {
         public double lab_l { get; set; }
         public double lab_a { get; set; }
         public double lab_b { get; set; }
+    }
+
+    private static bool IsTierUniqueConstraintViolation(DbUpdateException ex) {
+        var message = ex.InnerException?.Message ?? ex.Message;
+
+        return message.Contains("TierConfigurations", StringComparison.OrdinalIgnoreCase) &&
+               message.Contains("Tier", StringComparison.OrdinalIgnoreCase) &&
+               message.Contains("UNIQUE", StringComparison.OrdinalIgnoreCase);
     }
 }
