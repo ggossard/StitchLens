@@ -5,7 +5,23 @@ using StitchLens.Data.Models;
 namespace StitchLens.Data;
 
 public static class DbInitializer {
+    private static readonly object InitializationLock = new();
+    private static readonly HashSet<string> InitializedDatabases = new(StringComparer.Ordinal);
+
     public static void Initialize(StitchLensDbContext context, string contentRootPath) {
+        var databaseKey = $"{context.Database.ProviderName}|{context.Database.GetConnectionString()}";
+
+        lock (InitializationLock) {
+            if (InitializedDatabases.Contains(databaseKey)) {
+                return;
+            }
+
+            InitializeCore(context, contentRootPath);
+            InitializedDatabases.Add(databaseKey);
+        }
+    }
+
+    private static void InitializeCore(StitchLensDbContext context, string contentRootPath) {
         context.Database.Migrate();
 
         // Seed tier configurations FIRST (idempotent)
