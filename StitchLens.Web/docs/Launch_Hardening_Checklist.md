@@ -2,6 +2,8 @@
 
 Use this as a quick daily execution sheet during the 2-week hardening sprint.
 
+Hosting/deployment execution reference: `StitchLens.Web/docs/aws-production-execution-plan.md`
+
 ## Must-Have Checklist
 
 ### Payments and Billing
@@ -120,6 +122,6 @@ Use this as a quick daily execution sheet during the 2-week hardening sprint.
 - Blockers: staging execution evidence still required (webhook signature validation, migration/backup/restore drill, owner assignments/sign-off).
 
 ### Day 10
-- Focus:
-- Completed:
-- Blockers:
+- Focus: staging safety proofs (webhook signature validation, migration, backup/restore, rollback drill).
+- Completed: prepared Day A run sheet and Day 10 evidence folder (`StitchLens.Web/docs/launch-hardening-evidence/go-no-go/day-a-staging-safety-run-sheet.md`, `StitchLens.Web/docs/launch-hardening-evidence/day-10/`), and ran a quick repository secret-hygiene pass (see `StitchLens.Web/docs/launch-hardening-evidence/day-10/commands.txt`).
+- Blockers: requires staging environment execution and operator credentials/access for DB and deploy tooling.

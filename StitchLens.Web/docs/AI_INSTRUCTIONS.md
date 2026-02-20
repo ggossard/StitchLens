@@ -23,6 +23,7 @@ Business context docs:
 
 - Strategic plan: `StitchLens.Web/docs/StrategicPlan.md`
 - PRD: `StitchLens.Web/docs/StitchLens_PRD.md`
+- AWS production plan: `StitchLens.Web/docs/aws-production-execution-plan.md`
 
 ## Working style
 

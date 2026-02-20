@@ -2,6 +2,8 @@
 
 Store all launch-hardening artifacts here so go/no-go decisions are traceable.
 
+Related hosting/deployment plan: `StitchLens.Web/docs/aws-production-execution-plan.md`
+
 ## Folder convention
 
 - `day-01` through `day-10`: daily evidence folders

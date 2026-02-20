@@ -1,0 +1,18 @@
+[Unit]
+Description=StitchLens Web Application
+After=network.target
+
+[Service]
+Type=simple
+User=stitchlens
+Group=stitchlens
+WorkingDirectory=/opt/stitchlens/current
+EnvironmentFile=/etc/stitchlens/stitchlens.env
+ExecStart=/usr/bin/dotnet /opt/stitchlens/current/StitchLens.Web.dll
+Restart=always
+RestartSec=5
+KillSignal=SIGINT
+SyslogIdentifier=stitchlens
+
+[Install]
+WantedBy=multi-user.target

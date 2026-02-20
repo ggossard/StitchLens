@@ -1,0 +1,15 @@
+# Day 10 command log
+# Record command + short outcome in time order.
+
+# Example:
+# [14:05] dotnet ef database update --project StitchLens.Data --startup-project StitchLens.Web
+# [14:08] PASS - migration completed in staging copy
+
+[09:00] glob "**/.env*"
+[09:00] PASS - no .env files found in repository
+
+[09:02] grep sensitive token patterns (AWS/Google/Stripe live/private key headers/Slack)
+[09:02] PASS - no direct secret-token pattern matches found
+
+[09:04] grep config secret-key identifiers in code/docs
+[09:04] PASS - matches were expected configuration references and test fixture values
