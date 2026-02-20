@@ -11,8 +11,6 @@ public class StitchLensDbContext : IdentityDbContext<User, IdentityRole<int>, in
         : base(options) {
     }
 
-    // Note: Users DbSet is inherited from IdentityDbContext, but we can still reference it
-    public DbSet<User> Users => Set<User>();
     public DbSet<Project> Projects => Set<Project>();
     public DbSet<YarnBrand> YarnBrands => Set<YarnBrand>();
     public DbSet<YarnColor> YarnColors => Set<YarnColor>();
