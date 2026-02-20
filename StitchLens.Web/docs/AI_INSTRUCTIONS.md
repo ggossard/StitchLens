@@ -10,6 +10,12 @@ Paste this into your first prompt:
 Please follow `StitchLens.Web/docs/AI_INSTRUCTIONS.md` for this session.
 ```
 
+Then immediately load session continuity context from:
+
+- `SESSION_RESUME.md`
+
+If `SESSION_RESUME.md` exists, treat it as the starting checkpoint for branch, latest commit, and next step.
+
 If a request conflicts with this file, follow the explicit user request.
 
 ## Project context
@@ -90,6 +96,10 @@ If any command cannot be run, say so and provide exact local verify steps.
 ## Documentation update policy
 
 When behavior, pricing, or flows change, update relevant docs in the same task when reasonable.
+
+Also keep session continuity current:
+
+- After each commit created in-session, update `SESSION_RESUME.md` with latest branch, commit hash, what changed, and next step.
 
 Most common doc targets:
 
