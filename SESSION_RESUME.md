@@ -10,10 +10,10 @@ Please follow `StitchLens.Web/docs/AI_INSTRUCTIONS.md` for this session and resu
 
 ## Current Snapshot
 
-- Date: 2026-02-20
+- Date: 2026-02-24
 - Branch: `launch-hardening`
-- Last pushed commit: `ceb3599`
-- Focus area: CI stabilization and AWS production runbook/docs
+- Last pushed commit: use `git rev-parse --short HEAD`
+- Focus area: CI stabilization for GitHub Dotnet Tests
 
 ## Recent Completed Work
 
@@ -21,6 +21,7 @@ Please follow `StitchLens.Web/docs/AI_INSTRUCTIONS.md` for this session and resu
 - Added AWS deploy templates/scripts under `StitchLens.Web/deploy/aws/`.
 - Stabilized CI around initializer concurrency/race conditions.
 - Hardened observability endpoint tests for redirect behavior.
+- Guarded external OAuth provider registration so missing Google/Facebook secrets do not crash health endpoint tests.
 
 ## Key Docs
 
@@ -31,7 +32,7 @@ Please follow `StitchLens.Web/docs/AI_INSTRUCTIONS.md` for this session and resu
 
 ## Next Suggested Step
 
-- Check latest GitHub Actions `Dotnet Tests` run for commit `ceb3599` and continue with any remaining failures.
+- Check latest GitHub Actions `Dotnet Tests` run for the current HEAD commit and confirm green.
 
 ## Maintenance Rule
 

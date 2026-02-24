@@ -47,18 +47,28 @@ builder.Services.AddIdentity<User, IdentityRole<int>>(options => {
 .AddEntityFrameworkStores<StitchLensDbContext>()
 .AddDefaultTokenProviders();
 
-// Add external authentication providers
-builder.Services.AddAuthentication()
-    .AddGoogle(options => {
-        options.ClientId = builder.Configuration["Authentication:Google:ClientId"]!;
-        options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"]!;
+// Add external authentication providers only when configured
+var authBuilder = builder.Services.AddAuthentication();
+
+var googleClientId = builder.Configuration["Authentication:Google:ClientId"];
+var googleClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
+if (!string.IsNullOrWhiteSpace(googleClientId) && !string.IsNullOrWhiteSpace(googleClientSecret)) {
+    authBuilder.AddGoogle(options => {
+        options.ClientId = googleClientId;
+        options.ClientSecret = googleClientSecret;
         options.CallbackPath = "/signin-google";
-    })
-    .AddFacebook(options => {
-        options.AppId = builder.Configuration["Authentication:Facebook:AppId"]!;
-        options.AppSecret = builder.Configuration["Authentication:Facebook:AppSecret"]!;
+    });
+}
+
+var facebookAppId = builder.Configuration["Authentication:Facebook:AppId"];
+var facebookAppSecret = builder.Configuration["Authentication:Facebook:AppSecret"];
+if (!string.IsNullOrWhiteSpace(facebookAppId) && !string.IsNullOrWhiteSpace(facebookAppSecret)) {
+    authBuilder.AddFacebook(options => {
+        options.AppId = facebookAppId;
+        options.AppSecret = facebookAppSecret;
         options.CallbackPath = "/signin-facebook";
     });
+}
 
 // Configure application cookie
 builder.Services.ConfigureApplicationCookie(options => {
